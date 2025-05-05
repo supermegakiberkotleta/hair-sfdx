@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Facebook_PSID__c</fullName>
+    <caseSensitive>false</caseSensitive>
+    <description>Dialogue ID between the client and the facebook page</description>
+    <externalId>false</externalId>
+    <inlineHelpText>Dialogue ID between the client and the facebook page</inlineHelpText>
+    <label>Facebook PSID</label>
+    <length>50</length>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+    <type>Text</type>
+    <unique>true</unique>
+</CustomField>
