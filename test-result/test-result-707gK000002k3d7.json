@@ -1,0 +1,98 @@
+{
+  "summary": {
+    "outcome": "Passed",
+    "testsRan": 1,
+    "passing": 1,
+    "failing": 0,
+    "skipped": 0,
+    "passRate": "100%",
+    "failRate": "0%",
+    "testStartTime": "Mon May 05 2025 12:31:59",
+    "testExecutionTime": "36 ms",
+    "testTotalTime": "36 ms",
+    "commandTime": "470 ms",
+    "hostname": "https://orgfarm-da81776627-dev-ed.develop.my.salesforce.com",
+    "orgId": "00DgK0000021BUvUAM",
+    "username": "lenderpro3801@agentforce.com",
+    "testRunId": "707gK000002k3d7",
+    "userId": "005gK000001adYZQAY",
+    "testRunCoverage": "89%",
+    "orgWideCoverage": "8%"
+  },
+  "tests": [
+    {
+      "Id": "07MgK000000HstdUAC",
+      "QueueItemId": "709gK0000017s8PQAQ",
+      "StackTrace": null,
+      "Message": null,
+      "AsyncApexJobId": "707gK000002k3d7QAA",
+      "MethodName": "testController",
+      "Outcome": "Pass",
+      "ApexClass": {
+        "Id": "01pgK0000010yn7QAA",
+        "Name": "AgentforceHomepageControllerTest",
+        "NamespacePrefix": null
+      },
+      "RunTime": 36,
+      "FullName": "AgentforceHomepageControllerTest.testController"
+    }
+  ],
+  "coverage": {
+    "coverage": [
+      {
+        "id": "01pgK0000010yn6QAA",
+        "name": "AgentforceHomepageController",
+        "totalLines": 9,
+        "lines": {
+          "3": 1,
+          "4": 1,
+          "5": 1,
+          "8": 1,
+          "9": 1,
+          "10": 1,
+          "13": 0,
+          "14": 1,
+          "17": 1
+        },
+        "totalCovered": 8,
+        "coveredPercent": 89
+      }
+    ],
+    "records": [
+      {
+        "ApexTestClass": {
+          "Id": "07MgK000000HstdUAC",
+          "Name": "AgentforceHomepageControllerTest"
+        },
+        "Coverage": {
+          "coveredLines": [
+            3,
+            4,
+            5,
+            8,
+            9,
+            10,
+            14,
+            17
+          ],
+          "uncoveredLines": [
+            13
+          ]
+        },
+        "TestMethodName": "testController",
+        "NumLinesCovered": 8,
+        "ApexClassOrTrigger": {
+          "Id": "01pgK0000010yn6QAA",
+          "Name": "AgentforceHomepageController"
+        },
+        "NumLinesUncovered": 1
+      }
+    ],
+    "summary": {
+      "totalLines": 9,
+      "coveredLines": 8,
+      "orgWideCoverage": "8%",
+      "testRunCoverage": "89%"
+    }
+  }
+}

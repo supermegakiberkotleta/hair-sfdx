@@ -1,0 +1,25 @@
+=== Test Summary
+NAME                 VALUE                       
+───────────────────  ────────────────────────────
+Outcome              Passed                      
+Tests Ran            1                           
+Pass Rate            100%                        
+Fail Rate            0%                          
+Skip Rate            0%                          
+Test Run Id          707gK000002k3d7             
+Test Execution Time  36 ms                       
+Org Id               00DgK0000021BUvUAM          
+Username             lenderpro3801@agentforce.com
+Org Wide Coverage    8%                          
+
+
+=== Test Results
+TEST NAME                                        OUTCOME  MESSAGE  RUNTIME (MS)
+───────────────────────────────────────────────  ───────  ───────  ────────────
+AgentforceHomepageControllerTest.testController  Pass              36          
+
+
+=== Apex Code Coverage by Class
+CLASSES                       PERCENT  UNCOVERED LINES
+────────────────────────────  ───────  ───────────────
+AgentforceHomepageController  89%      13             

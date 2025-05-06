@@ -1,0 +1,28 @@
+[
+  [
+    {
+      "apexClassOrTriggerName": "AgentforceHomepageController",
+      "apexClassOrTriggerId": "01pgK0000010yn6QAA",
+      "apexTestClassId": "01pgK0000010yn7QAA",
+      "apexTestMethodName": "testController",
+      "numLinesCovered": 8,
+      "numLinesUncovered": 1,
+      "percentage": "89%",
+      "coverage": {
+        "coveredLines": [
+          3,
+          4,
+          5,
+          8,
+          9,
+          10,
+          14,
+          17
+        ],
+        "uncoveredLines": [
+          13
+        ]
+      }
+    }
+  ]
+]

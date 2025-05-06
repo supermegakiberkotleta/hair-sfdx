@@ -1,0 +1,20 @@
+[
+  {
+    "id": "01pgK0000010yn6QAA",
+    "name": "AgentforceHomepageController",
+    "totalLines": 9,
+    "lines": {
+      "3": 1,
+      "4": 1,
+      "5": 1,
+      "8": 1,
+      "9": 1,
+      "10": 1,
+      "13": 0,
+      "14": 1,
+      "17": 1
+    },
+    "totalCovered": 8,
+    "coveredPercent": 89
+  }
+]
