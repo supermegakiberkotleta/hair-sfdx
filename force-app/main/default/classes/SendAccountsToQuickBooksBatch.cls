@@ -40,13 +40,19 @@ global class SendAccountsToQuickBooksBatch implements Database.Batchable<SObject
                             String year = key.replace('Sales_', '');
                             if (isNumeric(year)) {
                                 String qbKey = acc.Id + '_' + year;
+                                Map<String, Object> salesData = (Map<String, Object>) response.get(key);
+                                Integer income = Integer.valueOf(salesData.get('income').toString());
+                                Integer netIncome = Integer.valueOf(salesData.get('net_income').toString());
+
                                 if (existingQBs.containsKey(qbKey)) {
-                                    existingQBs.get(qbKey).Total_sales__c = Integer.valueOf(response.get(key).toString());
+                                    existingQBs.get(qbKey).Income__c = income;
+                                    existingQBs.get(qbKey).Net_income__c = netIncome;
                                 } else {
                                     newQBs.add(new Sales_from_QuickBooks__c(
                                         Account__c = acc.Id,
                                         Name = year,
-                                        Total_sales__c = Integer.valueOf(response.get(key).toString())
+                                        Income__c = income,
+                                        Net_income__c = netIncome
                                     ));
                                 }
                             }
@@ -75,7 +81,7 @@ global class SendAccountsToQuickBooksBatch implements Database.Batchable<SObject
         for (Account acc : accounts) accIds.add(acc.Id);
 
         for (Sales_from_QuickBooks__c qb : [
-            SELECT Id, Account__c, Name, Total_sales__c FROM Sales_from_QuickBooks__c WHERE Account__c IN :accIds
+            SELECT Id, Account__c, Name, Income__c, Net_income__c FROM Sales_from_QuickBooks__c WHERE Account__c IN :accIds
         ]) {
             mapQBs.put(qb.Account__c + '_' + qb.Name, qb);
         }
