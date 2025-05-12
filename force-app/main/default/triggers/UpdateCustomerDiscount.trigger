@@ -5,7 +5,7 @@ trigger UpdateCustomerDiscount on Account (before insert, before update) {
     for (Account acc : Trigger.new) {
         // Проверяем RecordTypeId
         if (acc.RecordTypeId == targetRecordTypeId) {
-            String clientType = acc.client_type__c;
+            String clientType = acc.Client_Type__c;
 
             if (clientType != null && clientType.contains('Discount')) {
                 try {
@@ -21,7 +21,7 @@ trigger UpdateCustomerDiscount on Account (before insert, before update) {
                         acc.Customer_Discount_Ammount__c = 0;
                     }
                 } catch (Exception e) {
-                    System.debug('Ошибка при парсинге client_type__c: ' + e.getMessage());
+                    System.debug('Ошибка при парсинге Client_Type__c: ' + e.getMessage());
                     acc.Customer_Discount_Ammount__c = 0;
                 }
             } else {

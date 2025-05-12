@@ -9,7 +9,7 @@ public class UpdateCustomerDiscountTest {
         Account acc1 = new Account(
             Name = 'Test Account 1',
             RecordTypeId = targetRecordTypeId,
-            client_type__c = 'Discount 20%'
+            Client_Type__c = 'Discount 20%'
         );
         insert acc1;
 
@@ -17,9 +17,11 @@ public class UpdateCustomerDiscountTest {
         Account insertedAcc1 = [SELECT Customer_Discount_Ammount__c FROM Account WHERE Id = :acc1.Id];
         System.assertEquals(20, insertedAcc1.Customer_Discount_Ammount__c, 'Скидка должна быть 20%');
 
-        // Тест на отсутствие процента в client_type__c
-        acc1.client_type__c = 'Closed Lost';
+        // Тест на отсутствие процента в Client_Type__c
+        acc1.Client_Type__c = 'Closed Lost';
+        acc1.Reason_for_closure__c = 'Undefined reason'; // Добавлено
         update acc1;
+
 
         insertedAcc1 = [SELECT Customer_Discount_Ammount__c FROM Account WHERE Id = :acc1.Id];
         System.assertEquals(0, insertedAcc1.Customer_Discount_Ammount__c, 'Скидка должна быть 0%');
@@ -28,7 +30,7 @@ public class UpdateCustomerDiscountTest {
         Account acc2 = new Account(
             Name = 'Test Account 2',
             RecordTypeId = '012Kc000000tenBIAQ',
-            client_type__c = 'Discount 20%'
+            Client_Type__c = 'Discount 20%'
         );
         insert acc2;
 
