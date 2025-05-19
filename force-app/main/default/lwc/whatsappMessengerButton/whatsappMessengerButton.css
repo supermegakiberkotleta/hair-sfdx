@@ -51,3 +51,13 @@
     flex: 1;
     overflow: hidden;
 }
+.button-wrapper {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.custom-fb-button.secondary {
+    background-color: #25D366;
+    color: #fff;
+}

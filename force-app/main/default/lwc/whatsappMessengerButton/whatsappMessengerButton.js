@@ -1,6 +1,7 @@
 import { LightningElement, api, track, wire } from 'lwc';
 import whatsappIcon from '@salesforce/resourceUrl/whatsappIcon';
 import getLeadName from '@salesforce/apex/WhatsappChatController.getLeadName';
+import getRecordPsid from '@salesforce/apex/WhatsappChatController.getRecordPsid';
 
 export default class WhatsappMessengerButton extends LightningElement {
     @api recordId;
@@ -8,6 +9,7 @@ export default class WhatsappMessengerButton extends LightningElement {
 
     @track isModalOpen = false;
     @track leadName = '';
+    @track whatsappId = '';
 
     whatsappIconUrl = whatsappIcon;
 
@@ -16,8 +18,21 @@ export default class WhatsappMessengerButton extends LightningElement {
         if (data) {
             this.leadName = data;
         } else if (error) {
-            console.error('Error fetching record name:', error);
+            console.error('Error fetching lead name:', error);
         }
+    }
+
+    @wire(getRecordPsid, { objectApiName: '$objectApiName', recordId: '$recordId' })
+    wiredWhatsappId({ error, data }) {
+        if (data) {
+            this.whatsappId = data;
+        } else if (error) {
+            console.error('Error fetching Whatsapp ID:', error);
+        }
+    }
+
+    get whatsappLink() {
+        return this.whatsappId ? `https://wa.me/${this.whatsappId.replace(/\D/g, '')}` : '#';
     }
 
     openChat() {
