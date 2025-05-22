@@ -1,0 +1,15 @@
+<template>
+    <div class="notification-panel">
+        <template for:each={messages} for:item="msg">
+            <div key={msg.id} class="notification">
+                <div class="notification-header">
+                    <span class="notification-title">{msg.recordName}</span>
+                    <span class="notification-channel">({msg.channel})</span>
+                </div>
+                <div class="notification-body">{msg.text}</div>
+                <a href={msg.link} target="_blank" class="notification-link">Go to record</a>
+            </div>
+        </template>
+        <audio id="notificationSound" src={soundUrl}></audio>
+    </div>
+</template>
