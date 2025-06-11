@@ -11,13 +11,22 @@ public with sharing class SendMessageToAPI {
         public String channel;
 
         @InvocableVariable(required=false)
-        public Boolean shouldDelete; // ✅ Новое имя переменной
+        public Boolean shouldDelete;
+
+        @InvocableVariable(required=false)
+        public String contentUri; // ✅ Новое поле
     }
 
-    @InvocableMethod(label='Send Message to External API' description='Send chatId, message, channel and delete to your API')
+    @InvocableMethod(label='Send Message to External API' description='Send chatId, message, channel, contentUri and delete to your API')
     public static void send(List<Input> inputs) {
         for (Input input : inputs) {
-            System.enqueueJob(new SendMessageJob(input.chatId, input.message, input.channel, input.shouldDelete));
+            System.enqueueJob(new SendMessageJob(
+                input.chatId,
+                input.message,
+                input.channel,
+                input.shouldDelete,
+                input.contentUri // ➕ Передаём новое поле
+            ));
         }
     }
 
@@ -26,12 +35,14 @@ public with sharing class SendMessageToAPI {
         private String message;
         private String channel;
         private Boolean shouldDelete;
+        private String contentUri; // ➕ Храним contentUri
 
-        public SendMessageJob(String chatId, String message, String channel, Boolean shouldDelete) {
+        public SendMessageJob(String chatId, String message, String channel, Boolean shouldDelete, String contentUri) {
             this.chatId = chatId;
             this.message = message;
             this.channel = channel;
             this.shouldDelete = shouldDelete;
+            this.contentUri = contentUri;
         }
 
         public void execute(QueueableContext context) {
@@ -46,9 +57,12 @@ public with sharing class SendMessageToAPI {
                 'channel' => channel
             };
 
-            // Добавляем поле shouldDelete как "delete" в JSON, если оно задано
             if (shouldDelete != null) {
-                payload.put('delete', shouldDelete); // здесь "delete" — это просто ключ JSON, это допустимо
+                payload.put('delete', shouldDelete);
+            }
+
+            if (String.isNotBlank(contentUri)) {
+                payload.put('content_uri', contentUri); // ➕ Добавляем ссылку если указана
             }
 
             req.setBody(JSON.serialize(payload));
