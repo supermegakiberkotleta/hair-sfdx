@@ -3,17 +3,22 @@ public class LoanLeadsConvertedBatch implements Database.Batchable<SObject> {
 
     public LoanLeadsConvertedBatch(List<Id> leadIds) {
         this.leadIds = leadIds;
+        System.debug('Batch initialized with lead IDs: ' + leadIds);
     }
 
     public Database.QueryLocator start(Database.BatchableContext bc) {
+        System.debug('Start method called');
         return Database.getQueryLocator([
             SELECT Id, LastName, Company, OwnerId FROM Lead WHERE Id IN :leadIds
         ]);
     }
 
     public void execute(Database.BatchableContext bc, List<SObject> scope) {
+        System.debug('Execute method called with scope size: ' + scope.size());
         for (Lead l : (List<Lead>)scope) {
-            // Создаём и вставляем Account
+            System.debug('Processing Lead: ' + l.Id);
+
+            // Create and insert Account
             Account acc = new Account(
                 Name = l.LastName,
                 OwnerId = l.OwnerId
@@ -22,8 +27,9 @@ public class LoanLeadsConvertedBatch implements Database.Batchable<SObject> {
                 acc.RecordTypeId = '012Kc000000teo4IAA';
             }
             insert acc;
+            System.debug('Inserted Account with Id: ' + acc.Id);
 
-            // Создаём и вставляем Contact
+            // Create and insert Contact
             Contact con = new Contact(
                 LastName = l.LastName,
                 AccountId = acc.Id,
@@ -33,8 +39,9 @@ public class LoanLeadsConvertedBatch implements Database.Batchable<SObject> {
                 con.RecordTypeId = '012Kc000000teoJIAQ';
             }
             insert con;
+            System.debug('Inserted Contact with Id: ' + con.Id);
 
-            // Создаём и вставляем Opportunity
+            // Create and insert Opportunity
             Opportunity opp = new Opportunity(
                 Name = l.LastName,
                 StageName = '0 days',
@@ -46,8 +53,9 @@ public class LoanLeadsConvertedBatch implements Database.Batchable<SObject> {
                 opp.RecordTypeId = '012Kc000000tenzIAA';
             }
             insert opp;
+            System.debug('Inserted Opportunity with Id: ' + opp.Id);
 
-            // Конвертация лида
+            // Lead conversion
             Database.LeadConvert lc = new Database.LeadConvert();
             lc.setLeadId(l.Id);
             lc.setConvertedStatus('Convrted Loan');
@@ -58,12 +66,14 @@ public class LoanLeadsConvertedBatch implements Database.Batchable<SObject> {
 
             Database.LeadConvertResult res = Database.convertLead(lc);
             if (!res.isSuccess()) {
-                System.debug('Ошибка конвертации лида: ' + res.getErrors());
+                System.debug('Lead conversion failed for Lead Id: ' + l.Id + ', Errors: ' + res.getErrors());
+            } else {
+                System.debug('Lead successfully converted: ' + l.Id);
             }
         }
     }
 
     public void finish(Database.BatchableContext bc) {
-        // Если нужна дополнительная логика
+        System.debug('Finish method called');
     }
 }

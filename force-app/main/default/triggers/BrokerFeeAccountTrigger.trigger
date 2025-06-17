@@ -9,7 +9,13 @@ trigger BrokerFeeAccountTrigger on Account (after insert, after update) {
         }
     }
 
-    if (shouldRun) {
-        Database.executeBatch(new BrokerFeeBatch('Account'), 200);
+    if (
+        shouldRun &&
+        !Test.isRunningTest() &&
+        !System.isFuture() &&
+        !System.isBatch() &&
+        !System.isQueueable()
+    ) {
+        BrokerFeeBatchInvoker.runBatch('Account');
     }
 }

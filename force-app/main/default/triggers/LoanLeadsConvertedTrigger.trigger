@@ -5,7 +5,7 @@ trigger LoanLeadsConvertedTrigger on Lead (after update) {
         Lead old = Trigger.oldMap.get(l.Id);
         if (
             l.Status == 'Call after' &&
-            old.Status != 'Call after' && // чтобы реагировать только на изменение
+            old.Status != 'Call after' &&
             l.RecordTypeId == '012Kc000000tenuIAA'
         ) {
             leadsToConvert.add(l.Id);
@@ -13,6 +13,6 @@ trigger LoanLeadsConvertedTrigger on Lead (after update) {
     }
 
     if (!leadsToConvert.isEmpty()) {
-        Database.executeBatch(new LoanLeadsConvertedBatch(leadsToConvert));
+        System.enqueueJob(new LoanLeadsConvertedBatchStarter(leadsToConvert));
     }
 }

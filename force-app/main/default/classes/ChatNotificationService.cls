@@ -30,34 +30,53 @@ public with sharing class ChatNotificationService {
     public static Id notificationTypeIdOverride;
 
     public static void sendCustomNotification(Chat_Message__e evt, SObject record) {
-        Id notificationTypeId = notificationTypeIdOverride != null ? 
-            notificationTypeIdOverride : getNotificationTypeId('Chat_Notification');
-        if (notificationTypeId != null) {
-            Messaging.CustomNotification notification = new Messaging.CustomNotification();
-            notification.setTitle('New message in chat');
-            notification.setBody(evt.Message__c);
-            notification.setNotificationTypeId(notificationTypeId);
-            notification.setTargetId((Id) record.get('Id'));
-            Set<String> recipientIds = new Set<String>{ String.valueOf(record.get('OwnerId')) };
-            notification.send(recipientIds);
+        try {
+            String sender = evt.Sender__c;
+            Datetime msgDate = evt.Date__c;
+
+            if (sender == 'user') {
+                record.put('Last_Message_Date__c', msgDate);
+            } else if (sender == 'agent') {
+                record.put('Date_of_last_outgoing_message__c', msgDate);
+            }
+
+            update record; // <-- может выбрасывать ошибку
+
+            if (sender == 'agent') return;
+
+            Id notificationTypeId = notificationTypeIdOverride != null ?
+                notificationTypeIdOverride : getNotificationTypeId('Chat_Notification');
+
+            if (notificationTypeId != null) {
+                Messaging.CustomNotification notification = new Messaging.CustomNotification();
+                notification.setTitle('New message in chat');
+                notification.setBody(evt.Message__c);
+                notification.setNotificationTypeId(notificationTypeId);
+                notification.setTargetId((Id) record.get('Id'));
+                Set<String> recipientIds = new Set<String>{ String.valueOf(record.get('OwnerId')) };
+                notification.send(recipientIds); // <-- тоже может выбросить ошибку
+            }
+
+            Chat_Message__e newEvent = new Chat_Message__e(
+                PSID__c       = evt.PSID__c,
+                Channel__c    = evt.Channel__c,
+                Message__c    = evt.Message__c,
+                Sender__c     = sender,
+                Date__c       = msgDate,
+                OwnerId__c    = (Id) record.get('OwnerId'),
+                RecordId__c   = (Id) record.get('Id'),
+                Processed_By_Server__c = true
+            );
+            EventBus.publish(newEvent);
+
+        } catch (Exception e) {
+            System.debug('Ошибка в sendCustomNotification: ' + e.getMessage());
+            System.debug('Stack Trace: ' + e.getStackTraceString());
+            throw e; // можно убрать на проде, но полезно при отладке
         }
-
-        // Дополнительно публикуем новое событие, чтобы LWC отработал
-        Chat_Message__e newEvent = new Chat_Message__e(
-            PSID__c       = evt.PSID__c,
-            Channel__c    = evt.Channel__c,
-            Message__c    = evt.Message__c,
-            Sender__c     = evt.Sender__c,
-            OwnerId__c    = (Id) record.get('OwnerId'),
-            RecordId__c   = (Id) record.get('Id'),
-            Processed_By_Server__c = true
-        );
-        EventBus.publish(newEvent);
-
     }
 
 
-    // Приватный метод остаётся без изменений
     private static Id getNotificationTypeId(String developerName) {
         List<CustomNotificationType> types = [
             SELECT Id FROM CustomNotificationType WHERE DeveloperName = :developerName LIMIT 1

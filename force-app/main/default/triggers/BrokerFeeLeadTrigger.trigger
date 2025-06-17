@@ -13,7 +13,13 @@ trigger BrokerFeeLeadTrigger on Lead (after insert, after update) {
         }
     }
 
-    if (shouldRun) {
-        Database.executeBatch(new BrokerFeeBatch('Lead'), 200);
+    if (
+        shouldRun &&
+        !Test.isRunningTest() &&
+        !System.isFuture() &&
+        !System.isBatch() &&
+        !System.isQueueable()
+    ) {
+        BrokerFeeBatchInvoker.runBatch('Lead');
     }
 }

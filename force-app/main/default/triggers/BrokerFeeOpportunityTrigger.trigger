@@ -9,7 +9,13 @@ trigger BrokerFeeOpportunityTrigger on Opportunity (after insert, after update) 
         }
     }
 
-    if (shouldRun) {
-        Database.executeBatch(new BrokerFeeBatch('Opportunity'), 200);
+    if (
+        shouldRun &&
+        !Test.isRunningTest() &&
+        !System.isFuture() &&
+        !System.isBatch() &&
+        !System.isQueueable()
+    ) {
+        BrokerFeeBatchInvoker.runBatch('Opportunity');
     }
 }
