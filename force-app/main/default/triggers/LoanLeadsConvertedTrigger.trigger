@@ -1,4 +1,6 @@
 trigger LoanLeadsConvertedTrigger on Lead (after update) {
+    List<Id> leadsToConvert = new List<Id>();
+
     for (Lead l : Trigger.new) {
         Lead old = Trigger.oldMap.get(l.Id);
 
@@ -26,7 +28,13 @@ trigger LoanLeadsConvertedTrigger on Lead (after update) {
                 String message = 'Before changing the status to "Call after", you must fill in the fields: '
                     + String.join(missingFields, ', ');
                 l.addError(message);
+            } else {
+                leadsToConvert.add(l.Id); // ✅ Только если нет ошибок
             }
         }
+    }
+
+    if (!leadsToConvert.isEmpty()) {
+        System.enqueueJob(new LoanLeadsConvertedBatchStarter(leadsToConvert));
     }
 }
