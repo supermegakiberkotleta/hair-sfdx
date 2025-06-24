@@ -8,26 +8,46 @@ public class LeadConvertHandler {
             Lead oldLead = oldMap.get(lead.Id);
 
             if (lead.IsConverted && oldLead != null && !oldLead.IsConverted) {
-                System.debug('Processing converted Lead: ' + lead.Id);
+                // ✅ Только если нужный RecordType
+                if (lead.RecordTypeId == '012Kc000000tenuIAA') {
+                    List<String> missingFields = new List<String>();
+
+                    if (lead.Final_Daily_payment__c == null)
+                        missingFields.add('Final Daily Payment');
+                    if (lead.Final_purchased_Amount_of_Future_New__c == null)
+                        missingFields.add('Final purchased Amount of Future Receipt');
+                    if (String.isBlank(lead.Payment_Frequency__c))
+                        missingFields.add('Payment Frequency');
+                    if (lead.Loan_Start_Date__c == null)
+                        missingFields.add('Loan Start Date');
+                    if (lead.Final_Term__c == null)
+                        missingFields.add('Final Term');
+                    if (String.isBlank(lead.Client_email__c))
+                        missingFields.add('Client Email');
+
+                    // 🛑 Если есть незаполненные — выбрасываем ошибку
+                    if (!missingFields.isEmpty()) {
+                        String errorMessage = 'Lead conversion is not possible. Fill in the fields: ' + String.join(missingFields, ', ');
+                        lead.addError(errorMessage);
+                        continue; // чтобы остальные не обрабатывались
+                    }
+                }
 
                 Map<String, Object> leadFieldMap = lead.getPopulatedFieldsAsMap();
 
                 if (lead.ConvertedAccountId != null) {
-                    System.debug('Lead ' + lead.Id + ' converted to Account: ' + lead.ConvertedAccountId);
                     Account acc = new Account(Id = lead.ConvertedAccountId);
                     copyMatchingFields(leadFieldMap, acc);
                     accountsToUpdate.add(acc);
                 }
 
                 if (lead.ConvertedContactId != null) {
-                    System.debug('Lead ' + lead.Id + ' converted to Contact: ' + lead.ConvertedContactId);
                     Contact con = new Contact(Id = lead.ConvertedContactId);
                     copyMatchingFields(leadFieldMap, con);
                     contactsToUpdate.add(con);
                 }
 
                 if (lead.ConvertedOpportunityId != null) {
-                    System.debug('Lead ' + lead.Id + ' converted to Opportunity: ' + lead.ConvertedOpportunityId);
                     Opportunity opp = new Opportunity(Id = lead.ConvertedOpportunityId);
                     copyMatchingFields(leadFieldMap, opp);
                     oppsToUpdate.add(opp);
@@ -36,17 +56,14 @@ public class LeadConvertHandler {
         }
 
         if (!accountsToUpdate.isEmpty() && !Test.isRunningTest()) {
-            System.debug('Updating Accounts: ' + accountsToUpdate);
             update accountsToUpdate;
         }
 
         if (!contactsToUpdate.isEmpty() && !Test.isRunningTest()) {
-            System.debug('Updating Contacts: ' + contactsToUpdate);
             update contactsToUpdate;
         }
 
         if (!oppsToUpdate.isEmpty() && !Test.isRunningTest()) {
-            System.debug('Updating Opportunities: ' + oppsToUpdate);
             update oppsToUpdate;
         }
     }

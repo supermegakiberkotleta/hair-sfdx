@@ -7,7 +7,13 @@ private class LoanLeadsConvertedBatchTest {
             LastName = 'Test',
             Company = 'Test Company',
             Status = 'New',
-            RecordTypeId = '012Kc000000tenuIAA'
+            RecordTypeId = '012Kc000000tenuIAA',
+            Final_Daily_payment__c = 100,
+            Final_purchased_Amount_of_Future_New__c = 100,
+            Payment_Frequency__c = '100',
+            Loan_Start_Date__c = Date.newInstance(2025, 6, 12),
+            Final_Term__c = '100',
+            Client_email__c = 'test@test.test'
         );
         insert testLead;
 
