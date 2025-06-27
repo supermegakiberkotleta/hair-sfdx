@@ -20,7 +20,7 @@ public class LeadQueueAssigner {
             SELECT Id
             FROM User
             WHERE Profile.Name = 'Hair'
-              AND Participates_in_the_queue__c = true
+              AND Participates_in_the_queue__c = true AND IsActive = true
             ORDER BY CreatedDate ASC, Id ASC
         ];
 

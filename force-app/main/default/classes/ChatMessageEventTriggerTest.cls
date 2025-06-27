@@ -8,7 +8,7 @@ private class ChatMessageEventTriggerTest {
 
         // Создаём лид
         Lead l = new Lead(
-            LastName = 'Trigger Lead',
+            LastName = 'ApexTest',
             WhatsApp_ID__c = 'trigger_psid',
             Company = 'Test',
             OwnerId = UserInfo.getUserId()
