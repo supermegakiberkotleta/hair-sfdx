@@ -60,4 +60,34 @@ public class CampaignMessageUtils {
             return false;
         }
     }
+    public static Boolean sendSalesforceFile(String chatId, String versionId, String channel) {
+        System.debug('sendSalesforceFile called with chatId: ' + chatId + ', versionId: ' + versionId + ', channel: ' + channel);
+
+        Http http = new Http();
+        HttpRequest req = new HttpRequest();
+        req.setEndpoint('https://hair.lenderpro.ai/chat/send-message?token=lxhWgAsa0Y2zqpHD5pwVAXDOT');
+        req.setMethod('POST');
+        req.setHeader('Content-Type', 'application/json');
+
+        Map<String, Object> body = new Map<String, Object>{
+            'chat_id' => chatId,
+            'salesforce_version_id' => versionId,
+            'channel' => channel
+        };
+        String jsonBody = JSON.serialize(body);
+        System.debug('Salesforce File Request body: ' + jsonBody);
+
+        req.setBody(jsonBody);
+
+        try {
+            HttpResponse res = http.send(req);
+            System.debug('Salesforce File Response status: ' + res.getStatusCode());
+            System.debug('Salesforce File Response body: ' + res.getBody());
+            return res.getStatusCode() == 200;
+        } catch (Exception e) {
+            System.debug('Exception during sendSalesforceFile: ' + e.getMessage());
+            return false;
+        }
+    }
+
 }

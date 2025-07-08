@@ -2,16 +2,35 @@ global class CampaignMessageBatch implements Database.Batchable<SObject>, Databa
     Id campaignId;
     String channel;
     String message;
+    String ContentVersionId;
     Integer successCount = 0;
 
     global CampaignMessageBatch(Id campaignId) {
         this.campaignId = campaignId;
         System.debug('### Constructor: campaignId = ' + campaignId);
         System.debug('### start(): Fetching campaign info');
-        Campaign camp = [SELECT Id, Type, Message__c FROM Campaign WHERE Id = :campaignId];
+        Campaign camp = [
+            SELECT Id, Type, Message__c, CampaignImageId 
+            FROM Campaign 
+            WHERE Id = :campaignId
+        ];
         this.channel = camp.Type;
         this.message = camp.Message__c;
-        System.debug('### start(): Loaded campaign: ' + camp);
+
+        if (camp.CampaignImageId != null) {
+
+            ContentVersion cv = [
+                SELECT Id, ContentDocumentId 
+                FROM ContentVersion 
+                WHERE ContentDocumentId = :camp.CampaignImageId 
+                ORDER BY VersionNumber DESC 
+                LIMIT 1
+            ];
+
+           this.ContentVersionId = cv.Id;
+           System.debug('🔗 ContentVersionId: ' + ContentVersionId);
+
+        }
     }
 
     global Database.QueryLocator start(Database.BatchableContext BC) {
@@ -65,6 +84,10 @@ global class CampaignMessageBatch implements Database.Batchable<SObject>, Databa
                     if (String.isNotBlank(chatId)) {
                         Boolean success = CampaignMessageUtils.sendMessage(chatId, message, channel);
                         System.debug('### execute(): Message sent = ' + success + ' for record Id = ' + rec.Id);
+                        if (success && String.isNotBlank(ContentVersionId)) {
+                            Boolean fileSent = CampaignMessageUtils.sendSalesforceFile(chatId, ContentVersionId, channel);
+                            System.debug('### File sent = ' + fileSent + ' for record Id = ' + rec.Id);
+                        }
                         if (success) successCount++;
                     } else {
                         System.debug('### execute(): chatId is blank, skipping');
@@ -88,4 +111,5 @@ global class CampaignMessageBatch implements Database.Batchable<SObject>, Databa
             System.debug('### finish(): Error updating campaign - ' + ex.getMessage());
         }
     }
+
 }
