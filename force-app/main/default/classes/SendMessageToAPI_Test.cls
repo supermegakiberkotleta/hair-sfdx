@@ -2,7 +2,7 @@
 private class SendMessageToAPI_Test {
 
     @isTest
-    static void testSendMethodWithQueueable() {
+    static void testSendMethod() {
         // Arrange: создаем input
         SendMessageToAPI.Input input = new SendMessageToAPI.Input();
         input.chatId = '1234567890';
@@ -13,13 +13,13 @@ private class SendMessageToAPI_Test {
         // Set mock for the callout
         Test.setMock(HttpCalloutMock.class, new MockSuccessResponse());
 
-        // Act: запустить как отдельную транзакцию
+        // Act: отправляем сообщение (теперь асинхронно через @future)
         Test.startTest();
-        SendMessageToAPI.send(inputs); // enqueueJob
-        Test.stopTest(); // выполнение очереди и callout здесь
+        SendMessageToAPI.send(inputs);
+        Test.stopTest(); // Выполнение @future метода здесь
 
         // Assert: можно проверять логи или добавлять asserts, если логируешь
-        System.debug('SendMessageToAPI job enqueued and executed');
+        System.debug('SendMessageToAPI message sent successfully');
     }
 
 }

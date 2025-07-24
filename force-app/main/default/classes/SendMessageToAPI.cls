@@ -20,60 +20,39 @@ public with sharing class SendMessageToAPI {
     @InvocableMethod(label='Send Message to External API' description='Send chatId, message, channel, contentUri and delete to your API')
     public static void send(List<Input> inputs) {
         for (Input input : inputs) {
-            System.enqueueJob(new SendMessageJob(
-                input.chatId,
-                input.message,
-                input.channel,
-                input.shouldDelete,
-                input.contentUri // ➕ Передаём новое поле
-            ));
+            sendMessage(input.chatId, input.message, input.channel, input.shouldDelete, input.contentUri);
         }
     }
 
-    public class SendMessageJob implements Queueable, Database.AllowsCallouts {
-        private String chatId;
-        private String message;
-        private String channel;
-        private Boolean shouldDelete;
-        private String contentUri; // ➕ Храним contentUri
+    @future(callout=true)
+    private static void sendMessage(String chatId, String message, String channel, Boolean shouldDelete, String contentUri) {
+        HttpRequest req = new HttpRequest();
+        req.setEndpoint('https://hair.lenderpro.ai/chat/send-message?token=lxhWgAsa0Y2zqpHD5pwVAXDOT');
+        req.setMethod('POST');
+        req.setHeader('Content-Type', 'application/json');
 
-        public SendMessageJob(String chatId, String message, String channel, Boolean shouldDelete, String contentUri) {
-            this.chatId = chatId;
-            this.message = message;
-            this.channel = channel;
-            this.shouldDelete = shouldDelete;
-            this.contentUri = contentUri;
+        Map<String, Object> payload = new Map<String, Object>{
+            'chat_id' => chatId,
+            'message' => message,
+            'channel' => channel
+        };
+
+        if (shouldDelete != null) {
+            payload.put('delete', shouldDelete);
         }
 
-        public void execute(QueueableContext context) {
-            HttpRequest req = new HttpRequest();
-            req.setEndpoint('https://hair.lenderpro.ai/chat/send-message?token=lxhWgAsa0Y2zqpHD5pwVAXDOT');
-            req.setMethod('POST');
-            req.setHeader('Content-Type', 'application/json');
+        if (String.isNotBlank(contentUri)) {
+            payload.put('content_uri', contentUri); // ➕ Добавляем ссылку если указана
+        }
 
-            Map<String, Object> payload = new Map<String, Object>{
-                'chat_id' => chatId,
-                'message' => message,
-                'channel' => channel
-            };
+        req.setBody(JSON.serialize(payload));
 
-            if (shouldDelete != null) {
-                payload.put('delete', shouldDelete);
-            }
-
-            if (String.isNotBlank(contentUri)) {
-                payload.put('content_uri', contentUri); // ➕ Добавляем ссылку если указана
-            }
-
-            req.setBody(JSON.serialize(payload));
-
-            Http http = new Http();
-            try {
-                HTTPResponse res = http.send(req);
-                System.debug('Callout Response: ' + res.getBody());
-            } catch (Exception e) {
-                System.debug('Callout Error: ' + e.getMessage());
-            }
+        Http http = new Http();
+        try {
+            HTTPResponse res = http.send(req);
+            System.debug('Callout Response: ' + res.getBody());
+        } catch (Exception e) {
+            System.debug('Callout Error: ' + e.getMessage());
         }
     }
 }
