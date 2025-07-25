@@ -1,6 +1,7 @@
 public class LeadQueueAssigner {
 
     private static final String TARGET_RECORD_TYPE_ID = '012Kc000000ten6IAA';
+    private static final String SPECIAL_USER_ID = '005Kc000001SqnjIAC';
 
     public static void assignOwners(List<Lead> newLeads) {
         List<Lead> filteredLeads = new List<Lead>();
@@ -33,30 +34,44 @@ public class LeadQueueAssigner {
             queueUserIds.add(u.Id);
         }
 
-        // Получить последний созданный лид с нужным RecordTypeId
-        Lead lastLead;
-        try {
-            lastLead = [
-                SELECT OwnerId
-                FROM Lead
-                WHERE RecordTypeId = :TARGET_RECORD_TYPE_ID
-                  AND OwnerId IN :queueUserIds
-                ORDER BY CreatedDate DESC
-                LIMIT 1
-            ];
-        } catch (Exception e) {
-            lastLead = null;
+        // Получить два последних созданных лида с нужным RecordTypeId
+        List<Lead> lastLeads = [
+            SELECT OwnerId
+            FROM Lead
+            WHERE RecordTypeId = :TARGET_RECORD_TYPE_ID
+              AND OwnerId IN :queueUserIds
+            ORDER BY CreatedDate DESC
+            LIMIT 2
+        ];
+
+        Id currentOwnerId = null;
+        Integer consecutiveCount = 0;
+
+        if (!lastLeads.isEmpty()) {
+            currentOwnerId = lastLeads[0].OwnerId;
+            
+            // Подсчитываем количество подряд лидов у текущего владельца
+            for (Lead l : lastLeads) {
+                if (l.OwnerId == currentOwnerId) {
+                    consecutiveCount++;
+                } else {
+                    break;
+                }
+            }
         }
 
-        Id lastOwnerId = lastLead != null ? lastLead.OwnerId : null;
+        // Определяем начальный индекс для назначения
         Integer startIndex = 0;
-
-        if (lastOwnerId != null) {
-            Integer idx = queueUserIds.indexOf(lastOwnerId);
-            if (idx != -1 && idx + 1 < queueUserIds.size()) {
-                startIndex = idx + 1;
-            } else {
-                startIndex = 0;
+        if (currentOwnerId != null) {
+            Integer idx = queueUserIds.indexOf(currentOwnerId);
+            if (idx != -1) {
+                // Если текущий пользователь - специальный и у него меньше 2 лидов подряд
+                if (currentOwnerId == SPECIAL_USER_ID && consecutiveCount < 2) {
+                    startIndex = idx; // Продолжаем с того же пользователя
+                } else {
+                    // Переходим к следующему пользователю
+                    startIndex = Math.mod(idx + 1, queueUserIds.size());
+                }
             }
         }
 
