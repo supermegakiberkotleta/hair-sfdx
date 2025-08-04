@@ -10,7 +10,7 @@ public with sharing class LeadConversionController {
                 SELECT Id, Status, RecordTypeId, Final_Daily_payment__c, 
                        Final_purchased_Amount_of_Future_New__c, Payment_Frequency__c,
                        Loan_Start_Date__c, Final_Term__c, Client_email__c, Lender_type__c,
-                       LastName, Company, OwnerId
+                       FirstName, LastName, OwnerId
                 FROM Lead 
                 WHERE Id = :leadId
             ];
@@ -43,8 +43,8 @@ public with sharing class LeadConversionController {
             Id existingAccountId = null;
             Id existingContactId = null;
             
-            // Ищем существующий Account по названию компании или фамилии
-            String accountName = lead.Company != null ? lead.Company : lead.LastName;
+            // Ищем существующий Account по фамилии (LastName)
+            String accountName = lead.LastName;
             List<Account> existingAccounts = [
                 SELECT Id, Name 
                 FROM Account 
@@ -83,7 +83,7 @@ public with sharing class LeadConversionController {
             Account acc;
             if (existingAccountId == null) {
                 acc = new Account(
-                    Name = accountName,
+                    Name = lead.LastName,
                     OwnerId = lead.OwnerId
                 );
                 if (!Test.isRunningTest()) {
@@ -102,7 +102,7 @@ public with sharing class LeadConversionController {
             Contact con;
             if (existingContactId == null) {
                 con = new Contact(
-                    FirstName = lead.LastName,
+                    FirstName = lead.FirstName != null ? lead.FirstName : '',
                     LastName = lead.LastName,
                     Email = lead.Client_email__c,
                     AccountId = acc.Id,
@@ -173,7 +173,7 @@ public with sharing class LeadConversionController {
             Lead lead = [
                 SELECT Final_Daily_payment__c, Final_purchased_Amount_of_Future_New__c,
                        Payment_Frequency__c, Loan_Start_Date__c, Final_Term__c,
-                       Client_email__c, Lender_type__c, Company, LastName
+                       Client_email__c, Lender_type__c, FirstName, LastName
                 FROM Lead 
                 WHERE Id = :leadId
             ];
@@ -197,12 +197,12 @@ public with sharing class LeadConversionController {
         
         try {
             Lead lead = [
-                SELECT Company, LastName, Client_email__c
+                SELECT FirstName, LastName, Client_email__c
                 FROM Lead 
                 WHERE Id = :leadId
             ];
             
-            String accountName = lead.Company != null ? lead.Company : lead.LastName;
+            String accountName = lead.LastName;
             
             // Проверяем существующий Account
             List<Account> existingAccounts = [

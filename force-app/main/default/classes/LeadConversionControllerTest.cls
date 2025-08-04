@@ -5,7 +5,8 @@ public class LeadConversionControllerTest {
     static void setupTestData() {
         // Создаем тестовый лид
         Lead testLead = new Lead(
-            LastName = 'Test Lead',
+            FirstName = 'Test',
+            LastName = 'Lead',
             Company = 'Test Company',
             Status = 'Call after',
             Final_Daily_payment__c = 100,
@@ -35,7 +36,7 @@ public class LeadConversionControllerTest {
     
     @isTest
     static void testValidateLeadFields() {
-        Lead testLead = [SELECT Id FROM Lead WHERE LastName = 'Test Lead' LIMIT 1];
+        Lead testLead = [SELECT Id FROM Lead WHERE LastName = 'Lead' LIMIT 1];
         
         Test.startTest();
         Boolean isValid = LeadConversionController.validateLeadFields(testLead.Id);
@@ -46,7 +47,7 @@ public class LeadConversionControllerTest {
     
     @isTest
     static void testValidateLeadFieldsMissing() {
-        Lead testLead = [SELECT Id FROM Lead WHERE LastName = 'Test Lead' LIMIT 1];
+        Lead testLead = [SELECT Id FROM Lead WHERE LastName = 'Lead' LIMIT 1];
         
         // Удаляем обязательное поле
         testLead.Final_Daily_payment__c = null;
@@ -61,7 +62,7 @@ public class LeadConversionControllerTest {
     
     @isTest
     static void testCheckForDuplicates() {
-        Lead testLead = [SELECT Id FROM Lead WHERE LastName = 'Test Lead' LIMIT 1];
+        Lead testLead = [SELECT Id FROM Lead WHERE LastName = 'Lead' LIMIT 1];
         
         Test.startTest();
         LeadConversionController.DuplicateCheckResult result = LeadConversionController.checkForDuplicates(testLead.Id);
@@ -74,16 +75,16 @@ public class LeadConversionControllerTest {
     
     @isTest
     static void testCheckForDuplicatesWithExisting() {
-        Lead testLead = [SELECT Id, Company, Client_email__c FROM Lead WHERE LastName = 'Test Lead' LIMIT 1];
+        Lead testLead = [SELECT Id, FirstName, LastName, Client_email__c FROM Lead WHERE LastName = 'Lead' LIMIT 1];
         
         // Создаем существующий Account
-        Account existingAccount = new Account(Name = testLead.Company);
+        Account existingAccount = new Account(Name = testLead.LastName);
         insert existingAccount;
         
         // Создаем существующий Contact
         Contact existingContact = new Contact(
-            FirstName = 'Test',
-            LastName = 'Contact',
+            FirstName = testLead.FirstName,
+            LastName = testLead.LastName,
             Email = testLead.Client_email__c,
             AccountId = existingAccount.Id
         );
@@ -102,7 +103,7 @@ public class LeadConversionControllerTest {
     
     @isTest
     static void testStartLeadConversion() {
-        Lead testLead = [SELECT Id FROM Lead WHERE LastName = 'Test Lead' LIMIT 1];
+        Lead testLead = [SELECT Id FROM Lead WHERE LastName = 'Lead' LIMIT 1];
         
         Test.startTest();
         LeadConversionController.ConversionResult result = LeadConversionController.startLeadConversion(testLead.Id);
@@ -124,16 +125,16 @@ public class LeadConversionControllerTest {
     
     @isTest
     static void testStartLeadConversionWithExistingRecords() {
-        Lead testLead = [SELECT Id, Company, Client_email__c FROM Lead WHERE LastName = 'Test Lead' LIMIT 1];
+        Lead testLead = [SELECT Id, FirstName, LastName, Client_email__c FROM Lead WHERE LastName = 'Lead' LIMIT 1];
         
         // Создаем существующий Account
-        Account existingAccount = new Account(Name = testLead.Company);
+        Account existingAccount = new Account(Name = testLead.LastName);
         insert existingAccount;
         
         // Создаем существующий Contact
         Contact existingContact = new Contact(
-            FirstName = 'Test',
-            LastName = 'Contact',
+            FirstName = testLead.FirstName,
+            LastName = testLead.LastName,
             Email = testLead.Client_email__c,
             AccountId = existingAccount.Id
         );
@@ -151,7 +152,7 @@ public class LeadConversionControllerTest {
     
     @isTest
     static void testStartLeadConversionMissingFields() {
-        Lead testLead = [SELECT Id FROM Lead WHERE LastName = 'Test Lead' LIMIT 1];
+        Lead testLead = [SELECT Id FROM Lead WHERE LastName = 'Lead' LIMIT 1];
         
         // Удаляем обязательное поле
         testLead.Final_Daily_payment__c = null;
