@@ -73,7 +73,8 @@ trigger CreateLeadTrigger on Lead (after insert,after update) {
                 'Factor_Rate_term_2__c'=>lead.Factor_Rate_term_2__c,
                 'BrokersFee__c'=>lead.BrokersFee__c,
                 'Brokers_Fee_term_2__c'=>lead.Brokers_Fee_term_2__c,
-                'Mail_Theme__c'=>lead.Mail_Theme__c
+                'Mail_Theme__c'=>lead.Mail_Theme__c,
+                'Datamerch__c'=>lead.Datamerch__c
             };
 
             leadsToSend.add(leadData);

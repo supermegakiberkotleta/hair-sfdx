@@ -13,9 +13,14 @@ export default class LeadConversionButton extends LightningElement {
     })
     wiredLead;
 
+
+
     handleClick() {
+        // Всегда показываем модальное окно для валидации и конвертации
         this.showModal = true;
     }
+
+
 
     handleClose() {
         this.showModal = false;
@@ -25,6 +30,8 @@ export default class LeadConversionButton extends LightningElement {
         // Prevent event bubbling to avoid closing modal when clicking inside
         event.stopPropagation();
     }
+
+
 
     // Show toast message
     showToast(title, message, variant) {

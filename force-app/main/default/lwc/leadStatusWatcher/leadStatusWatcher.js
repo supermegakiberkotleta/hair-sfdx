@@ -42,4 +42,4 @@ export default class LeadStatusWatcher extends LightningElement {
         // Предотвращаем закрытие модального окна при клике внутри
         event.stopPropagation();
     }
-} 
+}
