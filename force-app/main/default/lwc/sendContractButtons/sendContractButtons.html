@@ -1,0 +1,30 @@
+<template>
+    <lightning-card title="Send the contract to lender pro">
+        <div class="button-container">
+            <lightning-button
+                label="Boostra"
+                variant="brand"
+                class="button"
+                onclick={handleSendBoostra}
+            ></lightning-button>
+            <lightning-button
+                label="Biz capital"
+                variant="brand"
+                class="button"
+                onclick={handleSendLiberty}
+            ></lightning-button>
+            <lightning-button
+                label="Biz (cc + bank info)"
+                variant="brand"
+                class="button"
+                onclick={handleSendBiz}
+            ></lightning-button>
+            <lightning-button
+                label="Boostra (cc + bank info)"
+                variant="brand"
+                class="button"
+                onclick={handleSendEdu}
+            ></lightning-button>
+        </div>
+    </lightning-card>
+</template>

@@ -145,4 +145,4 @@ global class LeadStatusHistoryBatch implements Database.Batchable<SObject>, Data
         LeadStatusHistoryBatch batch = new LeadStatusHistoryBatch(customQuery);
         Database.executeBatch(batch, 200);
     }
-} 
+}

@@ -1,0 +1,23 @@
+<template>
+    <div class="slds-form-element">
+        <label class="slds-form-element__label">
+            <abbr class="slds-required" title="required" if:false={isLoading}>*</abbr>
+            Генерация ссылки
+        </label>
+        <div class="slds-form-element__control">
+            <lightning-button
+                label={buttonLabel}
+                onclick={handleClick}
+                variant={buttonVariant}
+                disabled={isLoading}
+                class="slds-m-top_x-small">
+                <lightning-icon 
+                    if:true={isLoading}
+                    icon-name="utility:spinner" 
+                    size="x-small" 
+                    class="slds-spinner slds-spinner_brand slds-spinner_x-small slds-m-right_x-small">
+                </lightning-icon>
+            </lightning-button>
+        </div>
+    </div>
+</template>

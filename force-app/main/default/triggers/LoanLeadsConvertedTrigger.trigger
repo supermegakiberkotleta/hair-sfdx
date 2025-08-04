@@ -7,7 +7,7 @@ trigger LoanLeadsConvertedTrigger on Lead (after update) {
         if (
             l.Status == 'Call after' &&
             old.Status != 'Call after' &&
-            l.RecordTypeId == '012Kc000000tenuIAA'
+            l.RecordType.DeveloperName == 'Loan_Leads'
         ) {
             List<String> missingFields = new List<String>();
 
@@ -23,11 +23,13 @@ trigger LoanLeadsConvertedTrigger on Lead (after update) {
                 missingFields.add('Final Term');
             if (String.isBlank(l.Client_email__c))
                 missingFields.add('Client Email');
+            // Lender_type__c picklist values: Boostra, Liberty, Eduelevator, Biz Capital
+            if (String.isBlank(l.Lender_type__c))
+                missingFields.add('Lender Type');
 
             if (!missingFields.isEmpty()) {
-                String message = 'Before changing the status to "Call after", you must fill in the fields: '
-                    + String.join(missingFields, ', ');
-                l.addError(message);
+                // Показываем информационное сообщение вместо ошибки
+                l.addError('Please use the "Validate & Convert" button to fill in required fields and convert this lead.');
             } else {
                 leadsToConvert.add(l.Id); // ✅ Только если нет ошибок
             }

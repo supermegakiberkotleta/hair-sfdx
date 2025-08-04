@@ -1,0 +1,15 @@
+<template>
+    <!-- Автоматическое модальное окно конвертации -->
+    <template if:true={showConversionModal}>
+        <div class="modal-overlay" onclick={handleCloseModal}>
+            <div class="modal-content" onclick={handleModalClick}>
+                <c-lead-conversion-modal 
+                    record-id={recordId}
+                    is-auto-open="true"
+                    previous-status={previousStatus}
+                    onclose={handleCloseModal}>
+                </c-lead-conversion-modal>
+            </div>
+        </div>
+    </template>
+</template> 

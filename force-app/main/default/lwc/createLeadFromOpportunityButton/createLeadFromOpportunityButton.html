@@ -1,0 +1,12 @@
+<template>
+    <lightning-button 
+        variant="brand" 
+        label="Создать нового лида" 
+        title="Создать нового лида на основе этой Opportunity" 
+        onclick={handleClick} 
+        disabled={isLoading}>
+    </lightning-button>
+    <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Создание лида..." size="small"></lightning-spinner>
+    </template>
+</template>

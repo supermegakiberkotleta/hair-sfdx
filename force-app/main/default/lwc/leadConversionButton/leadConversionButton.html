@@ -1,0 +1,23 @@
+<template>
+    <div>
+        <lightning-button 
+            variant="brand" 
+            label="Validate & Convert" 
+            icon-name="utility:convert"
+            onclick={handleClick}
+            disabled={isDisabled}>
+        </lightning-button>
+        
+        <!-- Modal Overlay -->
+        <template if:true={showModal}>
+            <div class="modal-overlay" onclick={handleClose}>
+                <div class="modal-content" onclick={handleModalClick}>
+                    <c-lead-conversion-modal 
+                        record-id={recordId}
+                        onclose={handleClose}>
+                    </c-lead-conversion-modal>
+                </div>
+            </div>
+        </template>
+    </div>
+</template>

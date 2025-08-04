@@ -1,0 +1,82 @@
+<template>
+    <div class="slds-card">
+        <header class="slds-card__header slds-grid slds-grid_align-spread slds-wrap">
+            <h1 >OCROLUS</h1>
+            <h2 class="slds-text-heading_small slds-m-bottom_x-small">Загруженные файлы</h2>
+              <template if:true={files}>
+                <ul class="slds-list_divided slds-m-top_small">
+                        <template for:each={files} for:item="item">
+                            <li class="slds-item" key={item.name}>
+                                <div class="slds-grid slds-grid_align-spread slds-p-vertical_x-small">
+                                    <div class="slds-truncate" title={item.name} style="max-width: 75%;">
+                                        {item.name}
+                                    </div>
+                                    <div>
+                                        <strong>{item.status}</strong>
+                                    </div>
+                                </div>
+                            </li>
+                        </template>
+                    </ul>
+                </template>
+            <div class="slds-grid">
+                <template if:true={isLoading}>
+                    <button 
+                        class="slds-button slds-button_neutral slds-m-right_small" 
+                        disabled
+                    >
+                        Загрузка...
+                    </button>
+                </template>
+                <template if:false={isLoading}>
+                    <button 
+                        class="slds-button slds-button_neutral slds-m-right_small" 
+                        onclick={handleRefresh}
+                    >
+                        Обновить
+                    </button>
+                </template>
+                <template if:false={isLoading}>
+                    <button 
+                        class="slds-button slds-button_neutral slds-m-right_small" 
+                        onclick={handleRescore}
+                    >
+                        Повторно сформировать скоринг
+                    </button>
+                </template>
+            </div>
+        </header>
+
+        <section class="slds-card__body slds-p-around_medium">
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Загрузка..."></lightning-spinner>
+            </template>
+
+          
+
+            <template if:true={error}>
+                <div class="slds-text-color_error slds-m-top_small">Ошибка: {error}</div>
+            </template>
+
+            <template if:true={uploadError}>
+                <div class="slds-text-color_error slds-m-top_small">Ошибка загрузки: {uploadError}</div>
+            </template>
+        </section>
+
+        <footer class="slds-card__footer">
+            <div class="slds-file-selector slds-file-selector_files">
+                <div class="slds-file-selector__body">
+                    <label class="slds-file-selector__label">
+                        <span class="slds-button slds-button_neutral">
+                            <svg class="slds-button__icon slds-button__icon_left" aria-hidden="true">
+                                <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#upload"></use>
+                            </svg>
+                            Выберите файлы
+                        </span>
+                        <input type="file" class="slds-assistive-text" multiple onchange={handleFileChange} />
+                    </label>
+                </div>
+            </div>
+        </footer>
+    </div>
+</template>

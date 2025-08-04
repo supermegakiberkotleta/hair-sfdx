@@ -1,0 +1,14 @@
+<template>
+    <lightning-button
+        label="Сгенерировать ссылку"
+        onclick={handleClick}
+        variant="brand"
+        disabled={isLoading}>
+        <lightning-icon 
+            if:true={isLoading}
+            icon-name="utility:spinner" 
+            size="x-small" 
+            class="slds-spinner slds-spinner_brand slds-spinner_x-small">
+        </lightning-icon>
+    </lightning-button>
+</template>
