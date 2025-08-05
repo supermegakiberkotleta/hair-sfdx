@@ -88,4 +88,4 @@ export default class SyncLoan23BDButton extends LightningElement {
     openSpreadsheet() {
         window.open('https://docs.google.com/spreadsheets/d/1l1OTJskRYTGpKBNAchoPixOtE2SbMJMdilIUoAiEFsg', '_blank');
     }
-} 
+}
