@@ -1,0 +1,20 @@
+.sync-section {
+    margin: 0.5rem 0;
+}
+
+.sync-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sync-row .slds-button_icon {
+    flex-shrink: 0;
+}
+
+.sync-time {
+    font-size: 0.75rem;
+    color: #706e6b;
+    margin-left: 0.75rem;
+    white-space: nowrap;
+} 

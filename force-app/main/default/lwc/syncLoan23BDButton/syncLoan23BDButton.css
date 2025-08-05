@@ -1,0 +1,15 @@
+.sync-section {
+    margin: 1rem 0;
+}
+
+.sync-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.sync-time {
+    font-size: 0.75rem;
+    color: #706e6b;
+    margin-left: 0.5rem;
+} 
