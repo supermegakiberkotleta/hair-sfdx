@@ -18,6 +18,8 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
     @track showModal = false; // Управление видимостью модального окна
     @track duplicateInfo = null; // Информация о дубликатах
     @track showDuplicateWarning = false; // Показывать ли предупреждение о дубликатах
+    @track conversionResult = null; // Результат конвертации
+    @track suppressToasts = false; // Подавление toast уведомлений
 
     // Computed properties for step visibility
     get isValidationStep() {
@@ -26,6 +28,10 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
 
     get isConversionStep() {
         return this.currentStep === 2;
+    }
+
+    get isResultStep() {
+        return this.currentStep === 3;
     }
 
     // Wire the lead record
@@ -40,7 +46,9 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
             'Lead.Client_email__c',
             'Lead.Lender_type__c',
             'Lead.Status',
-            'Lead.RecordTypeId'
+            'Lead.RecordTypeId',
+            'Lead.FirstName',
+            'Lead.LastName'
         ] 
     })
     wiredLead(result) {
@@ -50,33 +58,13 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
             // Если это автоматическое открытие и статус "Call after", показываем модальное окно
             if (this.isAutoOpen && this.leadData.fields.Status.value === 'Call after') {
                 this.showModal = true;
-                // Проверяем, заполнены ли все поля
-                this.checkRequiredFields();
             }
         } else if (result.error) {
             this.showToast('Error', 'Failed to load lead data', 'error');
         }
     }
 
-    // Проверка обязательных полей
-    checkRequiredFields() {
-        if (!this.leadData) return;
-        
-        const fields = this.leadData.fields;
-        const missingFields = [];
-        
-        if (!fields.Final_Daily_payment__c.value) missingFields.push('Final Daily Payment');
-        if (!fields.Final_purchased_Amount_of_Future_New__c.value) missingFields.push('Final Purchased Amount of Future');
-        if (!fields.Payment_Frequency__c.value) missingFields.push('Payment Frequency');
-        if (!fields.Loan_Start_Date__c.value) missingFields.push('Loan Start Date');
-        if (!fields.Final_Term__c.value) missingFields.push('Final Term');
-        if (!fields.Client_email__c.value) missingFields.push('Client Email');
-        if (!fields.Lender_type__c.value) missingFields.push('Lender Type');
-        
-        if (missingFields.length > 0) {
-            this.showToast('Warning', 'Please fill in all required fields: ' + missingFields.join(', '), 'warning');
-        }
-    }
+
 
     // Handle validation form submit
     handleValidationSubmit(event) {
@@ -134,6 +122,7 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
     // Handle conversion start
     handleConversionStart() {
         this.isConverting = true;
+        this.suppressToasts = true; // Подавляем toast уведомления во время конвертации
         
         // Сначала проверяем дубликаты
         checkForDuplicates({ leadId: this.recordId })
@@ -145,6 +134,7 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
                     if (duplicateResult.hasExistingAccount || duplicateResult.hasExistingContact) {
                         this.showDuplicateWarning = true;
                         this.isConverting = false;
+                        this.suppressToasts = false;
                         return;
                     }
                 }
@@ -154,6 +144,7 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
             })
             .catch(error => {
                 this.isConverting = false;
+                this.suppressToasts = false;
                 this.showToast('Error', 'Failed to check for duplicates: ' + error.body.message, 'error');
             });
     }
@@ -163,8 +154,11 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
         return startLeadConversion({ leadId: this.recordId })
             .then(result => {
                 this.isConverting = false;
+                this.suppressToasts = false;
+                
                 if (result.success) {
-                    this.isSuccess = true;
+                    this.conversionResult = result;
+                    this.currentStep = 3; // Переходим к шагу с результатом
                     this.showToast('Success', 'Lead converted successfully!', 'success');
                 } else {
                     // Показываем более подробную информацию об ошибке
@@ -177,6 +171,7 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
             })
             .catch(error => {
                 this.isConverting = false;
+                this.suppressToasts = false;
                 let errorMessage = 'Conversion failed: ' + error.body.message;
                 if (error.body.message && error.body.message.includes('DUPLICATES_DETECTED')) {
                     errorMessage = 'Duplicate records detected. The system found existing Account or Contact with the same information. Please check for existing records with the same email or company name.';
@@ -188,6 +183,7 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
     // Обработка подтверждения конвертации с дубликатами
     handleConfirmConversionWithDuplicates() {
         this.showDuplicateWarning = false;
+        this.suppressToasts = true;
         this.performConversion();
     }
     
@@ -195,6 +191,7 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
     handleCancelConversionWithDuplicates() {
         this.showDuplicateWarning = false;
         this.isConverting = false;
+        this.suppressToasts = false;
     }
     
     // Просмотр существующего Account
@@ -207,6 +204,12 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
     handleViewContact(event) {
         const contactId = event.currentTarget.dataset.id;
         this.navigateToRecord(contactId);
+    }
+    
+    // Просмотр созданного Opportunity
+    handleViewOpportunity(event) {
+        const opportunityId = event.currentTarget.dataset.id;
+        this.navigateToRecord(opportunityId);
     }
     
     // Навигация к записи
@@ -275,11 +278,14 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
         this.showModal = false;
         this.currentStep = 1;
         this.isSuccess = false;
+        this.conversionResult = null;
         this.dispatchEvent(new CustomEvent('close'));
     }
 
-    // Show toast message
+    // Show toast message (with suppression check)
     showToast(title, message, variant) {
+        if (this.suppressToasts) return;
+        
         this.dispatchEvent(
             new ShowToastEvent({
                 title: title,

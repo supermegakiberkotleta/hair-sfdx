@@ -16,7 +16,7 @@
     background: white;
     border-radius: 0.25rem;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    max-width: 90%;
+    max-width: 70%;
     max-height: 90%;
     overflow: auto;
     z-index: 9001;
@@ -51,6 +51,9 @@
 .slds-spinner_container {
     position: relative;
     min-height: 200px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .slds-text-align_center {
@@ -74,6 +77,21 @@ lightning-input-field {
     margin-bottom: 0.5rem;
 }
 
+/* Prevent layout shift during validation */
+.field-container {
+    min-height: 4rem;
+    position: relative;
+}
+
+.field-container lightning-input-field {
+    margin-bottom: 0;
+}
+
+.error-message-space {
+    min-height: 1.5rem;
+    margin-top: 0.25rem;
+}
+
 /* Success message styling */
 .slds-theme_success {
     background-color: #04844b;
@@ -84,4 +102,110 @@ lightning-input-field {
     color: white;
     font-size: 1rem;
     font-weight: 600;
+}
+
+/* Conversion info styling */
+
+
+.conversion-info h3 {
+    color: #16325c;
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.conversion-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+    padding: 0.5rem;
+    background-color: white;
+    border-radius: 0.25rem;
+    border-left: 3px solid #0070d2;
+}
+
+.conversion-item-icon {
+    margin-right: 0.5rem;
+    color: #0070d2;
+}
+
+.conversion-item-text {
+    flex: 1;
+    font-size: 0.875rem;
+}
+
+.conversion-item-link {
+    color: #0070d2;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.conversion-item-link:hover {
+    text-decoration: underline;
+}
+
+/* Improved spinner */
+.custom-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+}
+
+.spinner-text {
+    margin-top: 1rem;
+    color: #706e6b;
+    font-size: 0.875rem;
+}
+
+/* Result section styling */
+
+.result-section h3 {
+    color: #16325c;
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+}
+
+.result-section h3 lightning-icon {
+    margin-right: 0.5rem;
+}
+
+.result-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.75rem;
+    background-color: white;
+    border-radius: 0.25rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid #e1e1e1;
+}
+
+.result-item-info {
+    flex: 1;
+}
+
+.result-item-name {
+    font-weight: 600;
+    color: #16325c;
+    margin-bottom: 0.25rem;
+}
+
+.result-item-details {
+    font-size: 0.875rem;
+    color: #706e6b;
+}
+
+.result-item-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+/* Hide toast notifications during conversion */
+.toast-hidden {
+    display: none !important;
 }
