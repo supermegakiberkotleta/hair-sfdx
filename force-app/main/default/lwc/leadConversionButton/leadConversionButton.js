@@ -6,6 +6,7 @@ export default class LeadConversionButton extends LightningElement {
     @api recordId;
     @api isDisabled = false;
     @track showModal = false;
+    @track isAutoOpen = false;
 
     @wire(getRecord, { 
         recordId: '$recordId', 
@@ -13,25 +14,20 @@ export default class LeadConversionButton extends LightningElement {
     })
     wiredLead;
 
-
-
     handleClick() {
-        // Всегда показываем модальное окно для валидации и конвертации
         this.showModal = true;
+        this.isAutoOpen = true;
     }
-
-
 
     handleClose() {
         this.showModal = false;
+        this.isAutoOpen = false;
     }
 
     handleModalClick(event) {
         // Prevent event bubbling to avoid closing modal when clicking inside
         event.stopPropagation();
     }
-
-
 
     // Show toast message
     showToast(title, message, variant) {

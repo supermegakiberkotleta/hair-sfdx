@@ -8,16 +8,13 @@
             disabled={isDisabled}>
         </lightning-button>
         
-        <!-- Modal Overlay -->
+        <!-- Modal -->
         <template if:true={showModal}>
-            <div class="modal-overlay" onclick={handleClose}>
-                <div class="modal-content" onclick={handleModalClick}>
-                    <c-lead-conversion-modal 
-                        record-id={recordId}
-                        onclose={handleClose}>
-                    </c-lead-conversion-modal>
-                </div>
-            </div>
+            <c-lead-conversion-modal 
+                record-id={recordId}
+                is-auto-open={isAutoOpen}
+                onclose={handleClose}>
+            </c-lead-conversion-modal>
         </template>
     </div>
 </template>

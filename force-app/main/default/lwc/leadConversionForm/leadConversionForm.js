@@ -6,20 +6,17 @@ import { NavigationMixin } from 'lightning/navigation';
 import startLeadConversion from '@salesforce/apex/LeadConversionController.startLeadConversion';
 import checkForDuplicates from '@salesforce/apex/LeadConversionController.checkForDuplicates';
 
-export default class LeadConversionModal extends NavigationMixin(LightningElement) {
+export default class LeadConversionForm extends NavigationMixin(LightningElement) {
     @api recordId;
-    @api isAutoOpen = false; // Новый параметр для автоматического открытия
-    @api previousStatus; // Предыдущий статус для возврата
     @track currentStep = 1;
     @track isConverting = false;
     @track isSuccess = false;
     @track leadData;
     @track wiredLeadResult;
-    @track showModal = false; // Управление видимостью модального окна
-    @track duplicateInfo = null; // Информация о дубликатах
-    @track showDuplicateWarning = false; // Показывать ли предупреждение о дубликатах
-    @track conversionResult = null; // Результат конвертации
-    @track suppressToasts = false; // Подавление toast уведомлений
+    @track duplicateInfo = null;
+    @track showDuplicateWarning = false;
+    @track conversionResult = null;
+    @track suppressToasts = false;
 
     // Computed properties for step visibility
     get isValidationStep() {
@@ -55,16 +52,10 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
         this.wiredLeadResult = result;
         if (result.data) {
             this.leadData = result.data;
-            // Если это автоматическое открытие, показываем модальное окно
-            if (this.isAutoOpen) {
-                this.showModal = true;
-            }
         } else if (result.error) {
             this.showToast('Error', 'Failed to load lead data', 'error');
         }
     }
-
-
 
     // Handle validation form submit
     handleValidationSubmit(event) {
@@ -122,7 +113,7 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
     // Handle conversion start
     handleConversionStart() {
         this.isConverting = true;
-        this.suppressToasts = true; // Подавляем toast уведомления во время конвертации
+        this.suppressToasts = true;
         
         // Сначала проверяем дубликаты
         checkForDuplicates({ leadId: this.recordId })
@@ -158,10 +149,9 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
                 
                 if (result.success) {
                     this.conversionResult = result;
-                    this.currentStep = 3; // Переходим к шагу с результатом
+                    this.currentStep = 3;
                     this.showToast('Success', 'Lead converted successfully!', 'success');
                 } else {
-                    // Показываем более подробную информацию об ошибке
                     let errorMessage = result.message || 'Conversion failed';
                     if (errorMessage.includes('DUPLICATES_DETECTED')) {
                         errorMessage = 'Duplicate records detected. The system found existing Account or Contact with the same information. Please check for existing records with the same email or company name.';
@@ -230,56 +220,9 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
 
     // Handle cancel button
     handleCancel() {
-        if (this.isAutoOpen && this.previousStatus) {
-            // Если это автоматическое открытие, возвращаем к предыдущему статусу
-            this.returnToPreviousStatus();
-        } else {
-            this.closeModal();
-        }
-    }
-
-    // Handle close button
-    handleClose() {
-        if (this.isAutoOpen && this.previousStatus) {
-            // Если это автоматическое открытие, возвращаем к предыдущему статусу
-            this.returnToPreviousStatus();
-        } else {
-            this.closeModal();
-        }
-    }
-
-    // Return to previous status
-    returnToPreviousStatus() {
-        const recordInput = { 
-            fields: { 
-                Id: this.recordId, 
-                Status: this.previousStatus 
-            } 
-        };
-        
-        updateRecord(recordInput)
-            .then(() => {
-                this.showToast('Info', 'Lead returned to previous status', 'info');
-                this.closeModal();
-                return refreshApex(this.wiredLeadResult);
-            })
-            .catch(error => {
-                this.showToast('Error', 'Failed to return to previous status: ' + error.body.message, 'error');
-            });
-    }
-
-    // Handle modal click to prevent closing when clicking inside
-    handleModalClick(event) {
-        event.stopPropagation();
-    }
-
-    // Close modal
-    closeModal() {
-        this.showModal = false;
         this.currentStep = 1;
         this.isSuccess = false;
         this.conversionResult = null;
-        this.dispatchEvent(new CustomEvent('close'));
     }
 
     // Show toast message (with suppression check)

@@ -1,29 +1,3 @@
-/* Modal Overlay */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 9000;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-}
-
-.modal-content {
-    background: white;
-    border-radius: 0.25rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    width: 80%;
-    max-width: 800px;
-    max-height: 90vh;
-    overflow: auto;
-    z-index: 9001;
-    position: relative;
-}
-
 .slds-card {
     min-height: 400px;
 }
@@ -107,8 +81,6 @@ lightning-input-field {
 }
 
 /* Conversion info styling */
-
-
 .conversion-info h3 {
     color: #16325c;
     font-size: 1rem;
@@ -162,7 +134,6 @@ lightning-input-field {
 }
 
 /* Result section styling */
-
 .result-section h3 {
     color: #16325c;
     font-size: 1.125rem;
