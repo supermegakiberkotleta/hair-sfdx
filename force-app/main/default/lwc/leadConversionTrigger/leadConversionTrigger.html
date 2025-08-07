@@ -1,0 +1,287 @@
+<template>
+    <!-- Modal Overlay -->
+    <template if:true={showModal}>
+        <div class="modal-overlay" onclick={handleClose}>
+            <div class="modal-content" onclick={handleModalClick}>
+                <lightning-card title="Converting Lead to Account, Contact & Opportunity" icon-name="standard:lead">
+                    <div class="slds-p-around_medium">  
+                        <!-- Step 1: Validation -->
+                        <template if:true={isValidationStep}>
+                            <lightning-record-edit-form 
+                                record-id={recordId}
+                                object-api-name="Lead"
+                                onsubmit={handleValidationSubmit}
+                                onsuccess={handleValidationSuccess}
+                                onerror={handleError}>
+                                
+                                <div class="slds-grid slds-wrap slds-gutters">
+                                    <div class="slds-col slds-size_1-of-2">
+                                        <div class="field-container">
+                                            <lightning-input-field 
+                                                field-name="Final_Daily_payment__c" 
+                                                required>
+                                            </lightning-input-field>
+                                        </div>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-2">
+                                        <div class="field-container">
+                                            <lightning-input-field 
+                                                field-name="Final_purchased_Amount_of_Future_New__c" 
+                                                required>
+                                            </lightning-input-field>
+                                        </div>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-2">
+                                        <div class="field-container">
+                                            <lightning-input-field 
+                                                field-name="Payment_Frequency__c" 
+                                                required>
+                                            </lightning-input-field>
+                                        </div>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-2">
+                                        <div class="field-container">
+                                            <lightning-input-field 
+                                                field-name="Loan_Start_Date__c" 
+                                                required>
+                                            </lightning-input-field>
+                                        </div>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-2">
+                                        <div class="field-container">
+                                            <lightning-input-field 
+                                                field-name="Final_Term__c" 
+                                                required>
+                                            </lightning-input-field>
+                                        </div>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-2">
+                                        <div class="field-container">
+                                            <lightning-input-field 
+                                                field-name="Client_email__c" 
+                                                required>
+                                            </lightning-input-field>
+                                        </div>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-2">
+                                        <div class="field-container">
+                                            <lightning-input-field 
+                                                field-name="Lender_type__c" 
+                                                required>
+                                            </lightning-input-field>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="slds-m-top_medium slds-text-align_center">
+                                    <lightning-button 
+                                        variant="brand" 
+                                        label="Validate & Continue" 
+                                        type="submit"
+                                        class="slds-m-right_x-small">
+                                    </lightning-button>
+                                    <lightning-button 
+                                        variant="neutral" 
+                                        label="Cancel" 
+                                        onclick={handleCancel}>
+                                    </lightning-button>
+                                </div>
+                            </lightning-record-edit-form>
+                        </template>
+
+                        <!-- Step 2: Conversion -->
+                        <template if:true={isConversionStep}>
+                            <!-- Conversion Information -->
+                            <div class="conversion-info">
+                                <h3>
+                                    <lightning-icon icon-name="utility:info" size="x-small" class="slds-m-right_x-small"></lightning-icon>
+                                    What will be created:
+                                </h3>
+                                <div class="conversion-item">
+                                    <lightning-icon icon-name="standard:account" size="x-small" class="conversion-item-icon"></lightning-icon>
+                                    <div class="conversion-item-text">
+                                        <strong>Account:</strong> {leadData.fields.LastName.value}
+                                    </div>
+                                </div>
+                                <div class="conversion-item">
+                                    <lightning-icon icon-name="standard:contact" size="x-small" class="conversion-item-icon"></lightning-icon>
+                                    <div class="conversion-item-text">
+                                        <strong>Contact:</strong> {leadData.fields.FirstName.value} {leadData.fields.LastName.value} ({leadData.fields.Client_email__c.value})
+                                    </div>
+                                </div>
+                                <div class="conversion-item">
+                                    <lightning-icon icon-name="standard:opportunity" size="x-small" class="conversion-item-icon"></lightning-icon>
+                                    <div class="conversion-item-text">
+                                        <strong>Opportunity:</strong> {leadData.fields.LastName.value} - {leadData.fields.Final_purchased_Amount_of_Future_New__c.value}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Duplicate Warning -->
+                            <template if:true={showDuplicateWarning}>
+                                <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_warning" role="alert">
+                                    <span class="slds-assistive-text">warning</span>
+                                    <h2>
+                                        <lightning-icon icon-name="utility:warning" size="small" class="slds-m-right_x-small"></lightning-icon>
+                                        Duplicate Records Found
+                                    </h2>
+                                </div>
+                                
+                                <div class="slds-box slds-theme_shade slds-m-vertical_medium">
+                                    <div class="slds-text-heading_small slds-m-bottom_small">The following existing records were found:</div>
+                                    
+                                    <template if:true={duplicateInfo.hasExistingAccount}>
+                                        <div class="slds-m-bottom_small">
+                                            <strong>Account:</strong> {duplicateInfo.existingAccountName} 
+                                            <lightning-button-icon 
+                                                icon-name="utility:preview" 
+                                                variant="bare" 
+                                                size="small"
+                                                onclick={handleViewAccount}
+                                                data-id={duplicateInfo.existingAccountId}
+                                                class="slds-m-left_x-small">
+                                            </lightning-button-icon>
+                                        </div>
+                                    </template>
+                                    
+                                    <template if:true={duplicateInfo.hasExistingContact}>
+                                        <div class="slds-m-bottom_small">
+                                            <strong>Contact:</strong> {duplicateInfo.existingContactEmail}
+                                            <template if:true={duplicateInfo.existingContactAccountName}>
+                                                (Account: {duplicateInfo.existingContactAccountName})
+                                            </template>
+                                            <lightning-button-icon 
+                                                icon-name="utility:preview" 
+                                                variant="bare" 
+                                                size="small"
+                                                onclick={handleViewContact}
+                                                data-id={duplicateInfo.existingContactId}
+                                                class="slds-m-left_x-small">
+                                            </lightning-button-icon>
+                                        </div>
+                                    </template>
+                                    
+                                    <div class="slds-text-body_small slds-text-color_weak">
+                                        The system will use these existing records instead of creating new ones.
+                                    </div>
+                                </div>
+                                
+                                <div class="slds-text-align_center">
+                                    <lightning-button 
+                                        variant="brand" 
+                                        label="Continue with Existing Records" 
+                                        onclick={handleConfirmConversionWithDuplicates}
+                                        class="slds-m-right_x-small">
+                                    </lightning-button>
+                                    <lightning-button 
+                                        variant="neutral" 
+                                        label="Cancel" 
+                                        onclick={handleCancelConversionWithDuplicates}>
+                                    </lightning-button>
+                                </div>
+                            </template>
+                            
+                            <!-- Normal Conversion -->
+                            <template if:false={showDuplicateWarning}>
+                                <div class="custom-spinner" if:true={isConverting}>
+                                    <lightning-spinner 
+                                        alternative-text="Converting lead..." 
+                                        size="medium">
+                                    </lightning-spinner>
+                                    <div class="spinner-text">Converting lead to Account, Contact & Opportunity...</div>
+                                </div>
+                                
+                                <div class="slds-text-align_center" if:false={isConverting}>
+                                    <lightning-button 
+                                        variant="brand" 
+                                        label="Start Conversion" 
+                                        onclick={handleConversionStart}
+                                        class="slds-m-right_x-small">
+                                    </lightning-button>
+                                    <lightning-button 
+                                        variant="neutral" 
+                                        label="Back" 
+                                        onclick={handleBack}>
+                                    </lightning-button>
+                                </div>
+                            </template>
+                        </template>
+
+                        <!-- Step 3: Result -->
+                        <template if:true={isResultStep}>
+                         
+                            <div class="result-section">
+                                <h3>
+                                    <lightning-icon icon-name="utility:success" size="small"></lightning-icon>
+                                    Conversion Completed Successfully!
+                                </h3>
+                                
+                                <template if:true={conversionResult.accountId}>
+                                    <div class="result-item">
+                                        <div class="result-item-info">
+                                            <div class="result-item-name">Account</div>
+                                            <div class="result-item-details">Created successfully</div>
+                                        </div>
+                                        <div class="result-item-actions">
+                                            <lightning-button 
+                                                variant="brand" 
+                                                label="View Account" 
+                                                onclick={handleViewAccount}
+                                                data-id={conversionResult.accountId}
+                                                size="small">
+                                            </lightning-button>
+                                        </div>
+                                    </div>
+                                </template>
+                                
+                                <template if:true={conversionResult.contactId}>
+                                    <div class="result-item">
+                                        <div class="result-item-info">
+                                            <div class="result-item-name">Contact</div>
+                                            <div class="result-item-details">Created successfully</div>
+                                        </div>
+                                        <div class="result-item-actions">
+                                            <lightning-button 
+                                                variant="brand" 
+                                                label="View Contact" 
+                                                onclick={handleViewContact}
+                                                data-id={conversionResult.contactId}
+                                                size="small">
+                                            </lightning-button>
+                                        </div>
+                                    </div>
+                                </template>
+                                
+                                <template if:true={conversionResult.opportunityId}>
+                                    <div class="result-item">
+                                        <div class="result-item-info">
+                                            <div class="result-item-name">Opportunity</div>
+                                            <div class="result-item-details">Created successfully</div>
+                                        </div>
+                                        <div class="result-item-actions">
+                                            <lightning-button 
+                                                variant="brand" 
+                                                label="View Opportunity" 
+                                                onclick={handleViewOpportunity}
+                                                data-id={conversionResult.opportunityId}
+                                                size="small">
+                                            </lightning-button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                            
+                            <div class="slds-m-top_medium slds-text-align_center">
+                                <lightning-button 
+                                    variant="brand" 
+                                    label="Close" 
+                                    onclick={handleClose}>
+                                </lightning-button>
+                            </div>
+                        </template>
+                    </div>
+                </lightning-card>
+            </div>
+        </div>
+    </template>
+</template>
