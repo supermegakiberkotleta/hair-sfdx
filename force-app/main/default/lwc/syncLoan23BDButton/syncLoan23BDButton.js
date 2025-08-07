@@ -40,7 +40,7 @@ export default class SyncLoan23BDButton extends LightningElement {
         this.isProcessing = true;
 
         try {
-            const response = await fetch('https://lenderpro.itprofit.net/api/v1/parse-sheet-salesforce', {
+            const response = await fetch('https://lenderpro.ai/api/v1/parse-sheet-salesforce', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -86,6 +86,6 @@ export default class SyncLoan23BDButton extends LightningElement {
     }
 
     openSpreadsheet() {
-        window.open('https://docs.google.com/spreadsheets/d/1l1OTJskRYTGpKBNAchoPixOtE2SbMJMdilIUoAiEFsg', '_blank');
+        window.open('https://docs.google.com/spreadsheets/d/1RNZJv7kHQopeCnJd9whcTcBwyrrDwzU6Cou_5twE51w', '_blank');
     }
 }
