@@ -19,7 +19,6 @@ export default class ScanLicence extends LightningElement {
     @track fileType;
     @track isLoading = false;
     @track scannedName;
-    @track errorMessage;
     @track scanDataId;
     @track hasExistingData = false;
     @track fileId;
@@ -122,7 +121,6 @@ export default class ScanLicence extends LightningElement {
     }
 
     async handleFileChange(event) {
-        this.errorMessage = undefined;
         const file = event.target.files && event.target.files[0];
         if (!file) {
             this.resetFileData();
@@ -199,7 +197,6 @@ export default class ScanLicence extends LightningElement {
             } else if (error && error.message) {
                 message = error.message;
             }
-            this.errorMessage = message;
             this.showToast('Error', message, 'error');
             this.resetFileData();
         } finally {
@@ -236,7 +233,6 @@ export default class ScanLicence extends LightningElement {
         }
 
         this.isLoading = true;
-        this.errorMessage = undefined;
         
         try {
             console.log('Starting scan with recordId:', this.recordId);
@@ -323,7 +319,6 @@ export default class ScanLicence extends LightningElement {
                 message = error.message;
             }
             
-            this.errorMessage = message;
             this.showToast('Error', message, 'error');
         } finally {
             this.isLoading = false;
@@ -409,4 +404,4 @@ export default class ScanLicence extends LightningElement {
     showToast(title, message, variant) {
         this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
     }
-} 
+}

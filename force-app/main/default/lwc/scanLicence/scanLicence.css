@@ -1,26 +1,70 @@
-.container {
-    padding: 0.75rem;
+.scan-licence-container {
+    position: relative;
+    width: 100%;
+}
+
+.scan-licence-card {
+    background: white;
+    border-radius: 1.25rem;
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
+    border: 1px solid #e1e5e9;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.scan-licence-card:hover {
+    box-shadow: 0 1px 8px rgba(0, 0, 0, 0.06);
+    transform: none;
+}
+
+.card-header {
+    background: white;
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e1e5e9;
+}
+
+.card-title {
+    color: #2c3e50;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.card-content {
+    padding: 1rem;
 }
 
 .uploader {
-    margin-bottom: 0.75rem;
+    margin-bottom: 0.5rem;
 }
+
 .flex {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.5rem;
 }
 
 .file-info {
     display: flex;
     align-items: flex-start;
     gap: 0.75rem;
-    margin-top: 0.75rem;
+    margin-top: 0.5rem;
     padding: 0.75rem;
     background: #f8f9fa;
     border: 1px solid #e9ecef;
-    border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.file-info:hover {
+    background: #f1f3f4;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
 .file-icon {
@@ -35,9 +79,10 @@
 
 .file-name {
     font-weight: 600;
-    color: #495057;
-    margin-bottom: 0.25rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
     word-break: break-word;
+    font-size: 1rem;
 }
 
 .file-meta {
@@ -50,17 +95,18 @@
 .file-type {
     color: #6c757d;
     background: #e9ecef;
-    padding: 0.125rem 0.375rem;
-    border-radius: 3px;
-    font-family: monospace;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+    font-size: 0.75rem;
 }
 
 .file-size {
     color: #6c757d;
+    font-weight: 500;
 }
 
 .actions {
-    margin: 0.75rem 0;
     display: flex;
     gap: 0.5rem;
     align-items: center;
@@ -69,34 +115,103 @@
 .result {
     display: flex;
     align-items: baseline;
-    gap: 0.5rem;
-    margin-top: 0.75rem;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
     padding: 0.75rem;
-    border-left: 4px solid #1b96ff;
-    background: #f5faff;
-    border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #28a745;
+    background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .result-label {
     font-weight: 600;
-    color: #1b96ff;
+    color: #155724;
+    font-size: 0.9rem;
 }
 
 .result-value {
     font-weight: 500;
-    color: #495057;
+    color: #2c3e50;
+    font-size: 1rem;
 }
 
-.error {
+/* Модальное окно для спиннера - только для карточки */
+.modal-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.9);
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    color: var(--lwc-colorTextError, #c23934);
-    margin-top: 0.75rem;
-    padding: 0.75rem;
-    background: #fef7f7;
-    border: 1px solid #f5c6cb;
-    border-radius: 6px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-} 
+    justify-content: center;
+    z-index: 10;
+    border-radius: 12px;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.modal-content {
+    text-align: center;
+    animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.loading-text {
+    margin-top: 0.5rem;
+    color: #6c757d;
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .flex {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .card-content {
+        padding: 0.75rem;
+    }
+    
+    .card-header {
+        padding: 0.75rem;
+    }
+    
+    .card-title {
+        font-size: 1.25rem;
+    }
+}
