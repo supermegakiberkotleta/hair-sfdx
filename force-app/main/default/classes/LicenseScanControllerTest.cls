@@ -58,4 +58,4 @@ private class LicenseScanControllerTest {
         } catch (AuraHandledException ex) {
         }
     }
-} 
+}

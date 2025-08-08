@@ -40,6 +40,7 @@ private class ScanDataControllerTest {
         System.assertNotEquals(null, result.File_Id__c, 'File Id should be set');
         System.assertEquals(testName, result.Name__c, 'Scanned name should match');
         System.assertNotEquals(null, result.Scan_Date__c, 'Scan date should be set');
+        System.assertEquals('drive', result.Type__c, 'Type should be set to drive');
     }
     
     @isTest
@@ -61,9 +62,9 @@ private class ScanDataControllerTest {
         Scan_Data__c result = ScanDataController.saveScanData(testLead.Id, newFileName, newBase64, newName);
         Test.stopTest();
         
-        // Проверяем, что осталась только одна запись
-        List<Scan_Data__c> allRecords = [SELECT Id FROM Scan_Data__c WHERE Lead__c = :testLead.Id];
-        System.assertEquals(1, allRecords.size(), 'Should have only one record');
+        // Проверяем, что осталась только одна запись с типом 'drive'
+        List<Scan_Data__c> allRecords = [SELECT Id FROM Scan_Data__c WHERE Lead__c = :testLead.Id AND Type__c = 'drive'];
+        System.assertEquals(1, allRecords.size(), 'Should have only one record with type drive');
         
         System.assertNotEquals(null, result.File_Id__c, 'Should have new file id');
         System.assertEquals(newName, result.Name__c, 'Should have new name');
@@ -87,6 +88,7 @@ private class ScanDataControllerTest {
         System.assertEquals(testLead.Id, result.Lead__c, 'Lead should match');
         System.assertNotEquals(null, result.File_Id__c, 'File Id should be set');
         System.assertEquals(testName, result.Name__c, 'Scanned name should match');
+        System.assertEquals('drive', result.Type__c, 'Type should be drive');
     }
     
     @isTest
@@ -100,7 +102,7 @@ private class ScanDataControllerTest {
         ScanDataController.saveScanData(testLead.Id, fileName, testBase64, testName);
         
         // Проверяем, что запись создана
-        List<Scan_Data__c> recordsBefore = [SELECT Id FROM Scan_Data__c WHERE Lead__c = :testLead.Id];
+        List<Scan_Data__c> recordsBefore = [SELECT Id FROM Scan_Data__c WHERE Lead__c = :testLead.Id AND Type__c = 'drive'];
         System.assertEquals(1, recordsBefore.size(), 'Should have one record before deletion');
         
         Test.startTest();
@@ -108,7 +110,7 @@ private class ScanDataControllerTest {
         Test.stopTest();
         
         // Проверяем, что запись удалена
-        List<Scan_Data__c> recordsAfter = [SELECT Id FROM Scan_Data__c WHERE Lead__c = :testLead.Id];
+        List<Scan_Data__c> recordsAfter = [SELECT Id FROM Scan_Data__c WHERE Lead__c = :testLead.Id AND Type__c = 'drive'];
         System.assertEquals(0, recordsAfter.size(), 'Should have no records after deletion');
     }
     
@@ -122,7 +124,7 @@ private class ScanDataControllerTest {
         Test.stopTest();
         
         // Проверяем, что нет записей
-        List<Scan_Data__c> records = [SELECT Id FROM Scan_Data__c WHERE Lead__c = :testLead.Id];
+        List<Scan_Data__c> records = [SELECT Id FROM Scan_Data__c WHERE Lead__c = :testLead.Id AND Type__c = 'drive'];
         System.assertEquals(0, records.size(), 'Should have no records');
     }
     
@@ -151,5 +153,29 @@ private class ScanDataControllerTest {
         Test.stopTest();
         
         System.assertEquals(null, fileUrl, 'Should return null for invalid file ID');
+    }
+    
+    @isTest
+    static void testTypeFieldFiltering() {
+        Lead testLead = [SELECT Id FROM Lead LIMIT 1];
+        String testBase64 = 'dGVzdA=='; // base64 для "test"
+        String fileName = 'test.pdf';
+        String testName = 'John Doe';
+        
+        // Создаем запись с типом 'drive'
+        ScanDataController.saveScanData(testLead.Id, fileName, testBase64, testName);
+        
+        // Проверяем, что getScanDataByLeadId возвращает только записи с типом 'drive'
+        Scan_Data__c result = ScanDataController.getScanDataByLeadId(testLead.Id);
+        System.assertNotEquals(null, result, 'Should return scan data record');
+        System.assertEquals('drive', result.Type__c, 'Type should be drive');
+        
+        // Проверяем, что общее количество записей (включая другие типы) может быть больше
+        List<Scan_Data__c> allRecords = [SELECT Id, Type__c FROM Scan_Data__c WHERE Lead__c = :testLead.Id];
+        System.assert(allRecords.size() >= 1, 'Should have at least one record');
+        
+        // Проверяем, что есть хотя бы одна запись с типом 'drive'
+        List<Scan_Data__c> driveRecords = [SELECT Id FROM Scan_Data__c WHERE Lead__c = :testLead.Id AND Type__c = 'drive'];
+        System.assertEquals(1, driveRecords.size(), 'Should have exactly one drive record');
     }
 } 

@@ -21,11 +21,6 @@ public with sharing class LicenseScanController {
             try {
                 Blob testBlob = EncodingUtil.base64Decode(base64Data);
                 System.debug('Base64 decode successful, blob size: ' + testBlob.size());
-                
-                // Проверяем размер файла (максимум 5MB)
-                if (testBlob.size() > 5 * 1024 * 1024) {
-                    throw new AuraHandledException('File size exceeds 5MB limit');
-                }
             } catch (Exception decodeEx) {
                 System.debug('Base64 decode failed: ' + decodeEx.getMessage());
                 throw new AuraHandledException('Invalid base64 data provided: ' + decodeEx.getMessage());
@@ -97,32 +92,6 @@ public with sharing class LicenseScanController {
             System.debug('Exception type: ' + ex.getTypeName());
             System.debug('Exception stack trace: ' + ex.getStackTraceString());
             throw new AuraHandledException('Unexpected error: ' + ex.getMessage());
-        }
-    }
-
-    @AuraEnabled(cacheable=false)
-    public static String testConnection(String endpointUrl) {
-        try {
-            System.debug('Testing connection to: ' + endpointUrl);
-            
-            Http http = new Http();
-            HttpRequest request = new HttpRequest();
-            request.setMethod('GET');
-            request.setEndpoint(endpointUrl);
-            request.setTimeout(30000);
-            
-            HttpResponse response = http.send(request);
-            Integer statusCode = response.getStatusCode();
-            System.debug('Test response status: ' + statusCode);
-            
-            if (statusCode >= 200 && statusCode < 300) {
-                return 'Connection successful. Status: ' + statusCode;
-            } else {
-                return 'Connection failed. Status: ' + statusCode + ' - ' + response.getBody();
-            }
-        } catch (Exception ex) {
-            System.debug('Test connection error: ' + ex.getMessage());
-            return 'Connection error: ' + ex.getMessage();
         }
     }
 } 

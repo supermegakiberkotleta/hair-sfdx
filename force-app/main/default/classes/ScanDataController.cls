@@ -4,9 +4,10 @@ public with sharing class ScanDataController {
     public static Scan_Data__c getScanDataByLeadId(String leadId) {
         try {
             return [
-                SELECT Id, Lead__c, File_Id__c, Name__c, Scan_Date__c
+                SELECT Id, Lead__c, File_Id__c, Name__c, Scan_Date__c, Type__c
                 FROM Scan_Data__c 
                 WHERE Lead__c = :leadId 
+                AND Type__c = 'drive'
                 ORDER BY Scan_Date__c DESC 
                 LIMIT 1
             ];
@@ -24,11 +25,12 @@ public with sharing class ScanDataController {
             System.debug('scannedName: ' + scannedName);
             System.debug('base64Data length: ' + (base64Data != null ? base64Data.length() : 0));
             
-            // Удаляем старые записи для этого Lead
+            // Удаляем старые записи для этого Lead с типом 'drive'
             List<Scan_Data__c> existingRecords = [
                 SELECT Id, File_Id__c
                 FROM Scan_Data__c 
                 WHERE Lead__c = :leadId
+                AND Type__c = 'drive'
             ];
             
             System.debug('Found ' + existingRecords.size() + ' existing records');
@@ -88,12 +90,13 @@ public with sharing class ScanDataController {
             insert cdl;
             System.debug('ContentDocumentLink created');
             
-            // Создаем новую запись Scan_Data__c
+            // Создаем новую запись Scan_Data__c с типом 'drive'
             Scan_Data__c scanData = new Scan_Data__c(
                 Lead__c = leadId,
                 File_Id__c = contentDocumentId,
                 Name__c = scannedName,
-                Scan_Date__c = Datetime.now()
+                Scan_Date__c = Datetime.now(),
+                Type__c = 'drive'
             );
             
             insert scanData;
@@ -214,9 +217,10 @@ public with sharing class ScanDataController {
             }
             
             Scan_Data__c scanData = [
-                SELECT Id, Name__c
+                SELECT Id, Name__c, Type__c
                 FROM Scan_Data__c 
                 WHERE Id = :scanDataId
+                AND Type__c = 'drive'
                 LIMIT 1
             ];
             
@@ -241,6 +245,7 @@ public with sharing class ScanDataController {
                 SELECT Id, File_Id__c
                 FROM Scan_Data__c 
                 WHERE Lead__c = :leadId
+                AND Type__c = 'drive'
             ];
             
             // Удаляем файлы
