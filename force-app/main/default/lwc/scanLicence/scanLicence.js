@@ -3,6 +3,7 @@ import scanLicence from '@salesforce/apex/LicenseScanController.scanLicence';
 import getScanDataByLeadId from '@salesforce/apex/ScanDataController.getScanDataByLeadId';
 import saveScanData from '@salesforce/apex/ScanDataController.saveScanData';
 import getFileInfo from '@salesforce/apex/ScanDataController.getFileInfo';
+import getFileBase64Data from '@salesforce/apex/ScanDataController.getFileBase64Data';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import { updateRecord } from 'lightning/uiRecordApi';
 import ID_FIELD from '@salesforce/schema/Lead.Id';
@@ -27,7 +28,7 @@ export default class ScanLicence extends LightningElement {
     @track existingFileType;
 
     get isScanDisabled() {
-        return !this.hasExistingData || this.isLoading;
+        return !this.recordId || this.isLoading;
     }
 
     get hasFileToDisplay() {
@@ -229,8 +230,8 @@ export default class ScanLicence extends LightningElement {
     }
 
     async handleScan() {
-        if (!this.hasExistingData) {
-            this.showToast('Error', 'No file uploaded', 'error');
+        if (!this.recordId) {
+            this.showToast('Error', 'No Lead ID provided', 'error');
             return;
         }
 
@@ -239,19 +240,63 @@ export default class ScanLicence extends LightningElement {
         
         try {
             console.log('Starting scan with recordId:', this.recordId);
-            console.log('File type:', this.existingFileType);
-            console.log('File size:', this.existingFileSize);
             
-            // Получаем base64 данные из сохраненного файла
+            let scanData, fileInfo, fileId;
+            
+            // Проверяем, есть ли у нас локальные данные
+            if (this.scanDataId && this.fileId && this.existingFileName) {
+                console.log('Using local data for scanning...');
+                scanData = {
+                    Id: this.scanDataId,
+                    File_Id__c: this.fileId
+                };
+                fileInfo = {
+                    fileName: this.existingFileName,
+                    fileSize: this.existingFileSize,
+                    fileType: this.existingFileType
+                };
+                fileId = this.fileId;
+            } else {
+                // Получаем данные из Scan_Data__c по Lead__c
+                console.log('Getting scan data from database...');
+                scanData = await getScanDataByLeadId({ leadId: this.recordId });
+                console.log('Raw scan data response:', scanData);
+                
+                if (!scanData) {
+                    throw new Error('No scan data found for this Lead. Please upload a file first.');
+                }
+                
+                if (!scanData.File_Id__c) {
+                    throw new Error('No file ID found in scan data. The file may have been corrupted.');
+                }
+                
+                console.log('Scan data found:', scanData);
+                console.log('File ID:', scanData.File_Id__c);
+                
+                // Получаем информацию о файле
+                console.log('Getting file info for fileId:', scanData.File_Id__c);
+                fileInfo = await getFileInfo({ fileId: scanData.File_Id__c });
+                console.log('File info response:', fileInfo);
+                
+                if (!fileInfo) {
+                    throw new Error('File information not found. The file may have been deleted or is not accessible.');
+                }
+                
+                fileId = scanData.File_Id__c;
+            }
+            
+            console.log('File info:', fileInfo);
+            
+            // Получаем base64 данные из сохраненного файла используя серверный метод
             console.log('Getting file data for scanning...');
-            const base64Data = await this.getFileBase64Data(this.fileId);
+            const base64Data = await this.getFileBase64DataFromServer(fileId);
             console.log('Base64 data length:', base64Data.length);
             
             // Отправляем запрос на сканирование
             console.log('Sending scan request...');
             const nameValue = await scanLicence({ 
                 base64Data: base64Data,
-                fileName: this.existingFileName,
+                fileName: fileInfo.fileName,
                 endpointUrl: this.endpointUrl 
             });
             console.log('Scanned name:', nameValue);
@@ -259,7 +304,7 @@ export default class ScanLicence extends LightningElement {
             
             // Обновляем запись в Scan_Data__c с результатом сканирования
             console.log('Updating scan data with result...');
-            await this.updateScanDataWithResult(nameValue);
+            await this.updateScanDataWithResult(nameValue, scanData.Id);
             
             await this.updateLeadName(nameValue);
             this.showToast('Success', 'Document scanned successfully', 'success');
@@ -285,29 +330,22 @@ export default class ScanLicence extends LightningElement {
         }
     }
 
-    async getFileBase64Data(fileId) {
+    async getFileBase64DataFromServer(fileId) {
         try {
-            const response = await fetch(`/sfc/servlet.shepherd/document/download/${fileId}`);
-            const blob = await response.blob();
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                    const base64 = reader.result.split(',')[1];
-                    resolve(base64);
-                };
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-            });
+            console.log('Getting file base64 data from server for fileId:', fileId);
+            const base64Data = await getFileBase64Data({ fileId: fileId });
+            console.log('Base64 data received from server, length:', base64Data.length);
+            return base64Data;
         } catch (error) {
-            console.error('Error getting file base64 data:', error);
-            throw new Error('Error getting file data: ' + error.message);
+            console.error('Error getting file base64 data from server:', error);
+            throw new Error('Error getting file data from server: ' + error.message);
         }
     }
 
-    async updateScanDataWithResult(scannedName) {
+    async updateScanDataWithResult(scannedName, scanDataId) {
         try {
             const fields = {};
-            fields[ID_FIELD.fieldApiName] = this.scanDataId;
+            fields[ID_FIELD.fieldApiName] = scanDataId;
             fields['Name__c'] = scannedName;
             await updateRecord({ fields });
             console.log('Updated scan data with name:', scannedName);

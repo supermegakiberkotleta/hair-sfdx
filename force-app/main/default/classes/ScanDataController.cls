@@ -1,6 +1,6 @@
 public with sharing class ScanDataController {
     
-    @AuraEnabled(cacheable=true)
+    @AuraEnabled(cacheable=false)
     public static Scan_Data__c getScanDataByLeadId(String leadId) {
         try {
             return [
@@ -111,10 +111,13 @@ public with sharing class ScanDataController {
     public static Map<String, Object> getFileInfo(String fileId) {
         try {
             if (String.isBlank(fileId)) {
+                System.debug('File ID is blank');
                 return null;
             }
             
-            ContentVersion cv = [
+            System.debug('Looking for ContentVersion with ContentDocumentId: ' + fileId);
+            
+            List<ContentVersion> contentVersions = [
                 SELECT Id, Title, PathOnClient, ContentSize, FileType
                 FROM ContentVersion 
                 WHERE ContentDocumentId = :fileId 
@@ -122,9 +125,13 @@ public with sharing class ScanDataController {
                 LIMIT 1
             ];
             
-            if (cv == null) {
+            if (contentVersions.isEmpty()) {
+                System.debug('No ContentVersion found for ContentDocumentId: ' + fileId);
                 return null;
             }
+            
+            ContentVersion cv = contentVersions[0];
+            System.debug('Found ContentVersion: ' + cv);
             
             Map<String, Object> fileInfo = new Map<String, Object>();
             fileInfo.put('fileName', cv.PathOnClient);
@@ -135,6 +142,8 @@ public with sharing class ScanDataController {
             return fileInfo;
         } catch (Exception e) {
             System.debug('Error getting file info: ' + e.getMessage());
+            System.debug('Error type: ' + e.getTypeName());
+            System.debug('Stack trace: ' + e.getStackTraceString());
             return null;
         }
     }
@@ -168,7 +177,9 @@ public with sharing class ScanDataController {
                 throw new AuraHandledException('File ID is required');
             }
             
-            ContentVersion cv = [
+            System.debug('Looking for ContentVersion with ContentDocumentId: ' + fileId);
+            
+            List<ContentVersion> contentVersions = [
                 SELECT Id, VersionData, Title, PathOnClient
                 FROM ContentVersion 
                 WHERE ContentDocumentId = :fileId 
@@ -176,15 +187,21 @@ public with sharing class ScanDataController {
                 LIMIT 1
             ];
             
-            if (cv == null) {
+            if (contentVersions.isEmpty()) {
+                System.debug('No ContentVersion found for ContentDocumentId: ' + fileId);
                 throw new AuraHandledException('File not found');
             }
+            
+            ContentVersion cv = contentVersions[0];
+            System.debug('Found ContentVersion: ' + cv);
             
             String base64Data = EncodingUtil.base64Encode(cv.VersionData);
             System.debug('Retrieved base64 data length: ' + base64Data.length());
             return base64Data;
         } catch (Exception e) {
             System.debug('Error getting file base64 data: ' + e.getMessage());
+            System.debug('Error type: ' + e.getTypeName());
+            System.debug('Stack trace: ' + e.getStackTraceString());
             throw new AuraHandledException('Error getting file data: ' + e.getMessage());
         }
     }
