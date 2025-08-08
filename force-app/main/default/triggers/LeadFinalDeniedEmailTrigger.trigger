@@ -26,4 +26,4 @@ trigger LeadFinalDeniedEmailTrigger on Lead (after update) {
             System.debug('Processing ' + leadsToProcess.size() + ' leads for denied email notifications');
         }
     }
-} 
+}

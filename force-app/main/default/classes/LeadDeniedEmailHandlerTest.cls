@@ -178,4 +178,4 @@ public class LeadDeniedEmailHandlerTest {
         Lead updatedLead = [SELECT Id, Status FROM Lead WHERE Id = :testLead.Id];
         System.assertEquals('Final Denied', updatedLead.Status, 'Lead status should be updated to Final Denied');
     }
-} 
+}
