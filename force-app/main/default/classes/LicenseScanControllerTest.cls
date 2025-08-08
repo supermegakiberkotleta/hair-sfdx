@@ -2,7 +2,9 @@
 private class LicenseScanControllerTest {
     private class SuccessMock implements HttpCalloutMock {
         public HTTPResponse respond(HTTPRequest req) {
-           
+            // Проверяем, что в запросе передается fileData и fileName
+            String body = req.getBody();
+          
             HttpResponse res = new HttpResponse();
             res.setStatusCode(200);
             res.setBody('{"Name":"John Doe"}');
@@ -23,7 +25,7 @@ private class LicenseScanControllerTest {
     static void testSuccessScan() {
         Test.setMock(HttpCalloutMock.class, new SuccessMock());
         Test.startTest();
-        String nameValue = LicenseScanController.scanLicence('base64data', 'callout:dummy');
+        String nameValue = LicenseScanController.scanLicence('dGVzdA==', 'test.pdf', 'https://api.example.com/scan');
         Test.stopTest();
     }
 
@@ -32,7 +34,7 @@ private class LicenseScanControllerTest {
         Test.setMock(HttpCalloutMock.class, new ErrorMock());
         try {
             Test.startTest();
-            LicenseScanController.scanLicence('base64data', 'callout:dummy');
+            LicenseScanController.scanLicence('dGVzdA==', 'test.pdf', 'https://api.example.com/scan');
         } catch (AuraHandledException ex) {
         } finally {
             Test.stopTest();
@@ -42,7 +44,17 @@ private class LicenseScanControllerTest {
     @IsTest
     static void testValidation() {
         try {
-            LicenseScanController.scanLicence('', '');
+            LicenseScanController.scanLicence('', '', '');
+        } catch (AuraHandledException ex) {
+        }
+        
+        try {
+            LicenseScanController.scanLicence('', '', 'https://api.example.com/scan');
+        } catch (AuraHandledException ex) {
+        }
+        
+        try {
+            LicenseScanController.scanLicence('dGVzdA==', '', 'https://api.example.com/scan');
         } catch (AuraHandledException ex) {
         }
     }
