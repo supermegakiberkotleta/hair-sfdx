@@ -12,7 +12,7 @@ import ACCOUNT_NUMBER_FIELD from '@salesforce/schema/Lead.Account_Number__c';
 
 export default class ScanCheck extends LightningElement {
     @api recordId; // Lead Id
-    endpointUrl = 'https://lenderpro.itprofit.net/api/v1/check/analyze';
+    endpointUrl = 'https://lenderpro.ai/api/v1/check/analyze';
 
     @track selectedFile;
     @track fileName;

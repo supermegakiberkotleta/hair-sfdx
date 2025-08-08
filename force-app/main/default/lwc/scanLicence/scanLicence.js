@@ -11,7 +11,7 @@ import COMPANY_OWNER_NAME_FIELD from '@salesforce/schema/Lead.Company_owner_name
 
 export default class ScanLicence extends LightningElement {
     @api recordId; // Lead Id
-    endpointUrl = 'https://lenderpro.itprofit.net/api/v1/driver-license/analyze';
+    endpointUrl = 'https://lenderpro.ai/api/v1/driver-license/analyze';
 
     @track selectedFile;
     @track fileName;
