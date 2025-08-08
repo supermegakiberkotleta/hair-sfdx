@@ -1,0 +1,27 @@
+<template>
+    <div class="container">
+        <div class="uploader">
+            <lightning-input type="file" label="Upload licence image" accept="image/*" onchange={handleFileChange}></lightning-input>
+            <template if:true={imageDataUrl}>
+                <div class="preview">
+                    <img src={imageDataUrl} alt="Preview"/>
+                </div>
+            </template>
+        </div>
+        <div class="actions">
+            <lightning-button variant="brand" label="Scan" onclick={handleScan} disabled={isScanDisabled}></lightning-button>
+        </div>
+        <template if:true={isLoading}>
+            <lightning-spinner alternative-text="Scanning..." size="medium"></lightning-spinner>
+        </template>
+        <template if:true={scannedName}>
+            <div class="result">
+                <span class="result-label">Name:</span>
+                <span class="result-value">{scannedName}</span>
+            </div>
+        </template>
+        <template if:true={errorMessage}>
+            <div class="error">{errorMessage}</div>
+        </template>
+    </div>
+</template> 
