@@ -14,7 +14,8 @@ public class LeadDeniedEmailHandlerTest {
             Status = 'New',
             RecordTypeId = '012Kc000000tenuIAA',
             Broker_email__c = 'broker1@test.com',
-            ClosingReasonNew__c = 'Avg Monthly Revenue'
+            ClosingReasonNew__c = 'Avg Monthly Revenue',
+            First_Mail_Message_Id__c = 'CAC+1iPWAeyezEkcDuRcH09aRm7wLML1fP1DY-m=BepPpMMHj=A@mail.gmail.com'
         );
         testLeads.add(lead1);
         
@@ -60,7 +61,8 @@ public class LeadDeniedEmailHandlerTest {
             Status = 'New',
             RecordTypeId = '012Kc000000tenuIAA',
             Broker_email__c = 'broker5@test.com',
-            ClosingReasonNew__c = 'Avg Monthly Revenue;Min Single Month Revenue'
+            ClosingReasonNew__c = 'Avg Monthly Revenue;Min Single Month Revenue',
+            First_Mail_Message_Id__c = 'CAC+2iPWAeyezEkcDuRcH09aRm7wLML1fP1DY-m=BepPpMMHj=B@mail.gmail.com'
         );
         testLeads.add(lead5);
         
@@ -70,7 +72,7 @@ public class LeadDeniedEmailHandlerTest {
     @isTest
     static void testSendDeniedEmail() {
         // Получаем тестовый лид
-        Lead testLead = [SELECT Id, Broker_email__c, ClosingReasonNew__c 
+        Lead testLead = [SELECT Id, Broker_email__c, ClosingReasonNew__c, First_Mail_Message_Id__c
                         FROM Lead 
                         WHERE Broker_email__c = 'broker1@test.com' 
                         AND ClosingReasonNew__c = 'Avg Monthly Revenue'
@@ -82,7 +84,8 @@ public class LeadDeniedEmailHandlerTest {
         LeadDeniedEmailHandler.sendDeniedEmail(
             testLead.Id, 
             testLead.Broker_email__c, 
-            testLead.ClosingReasonNew__c
+            testLead.ClosingReasonNew__c,
+            testLead.First_Mail_Message_Id__c
         );
         
         Test.stopTest();
@@ -95,7 +98,7 @@ public class LeadDeniedEmailHandlerTest {
     @isTest
     static void testProcessLeadsForEmail() {
         // Получаем все тестовые лиды
-        List<Lead> testLeads = [SELECT Id, Broker_email__c, ClosingReasonNew__c 
+        List<Lead> testLeads = [SELECT Id, Broker_email__c, ClosingReasonNew__c, First_Mail_Message_Id__c
                                FROM Lead 
                                WHERE Broker_email__c != null 
                                AND ClosingReasonNew__c != null];

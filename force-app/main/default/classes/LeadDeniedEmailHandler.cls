@@ -7,17 +7,19 @@ public class LeadDeniedEmailHandler {
      * @param closingReason - причина закрытия
      */
     @future
-    public static void sendDeniedEmail(Id leadId, String brokerEmail, String closingReason) {
+    public static void sendDeniedEmail(Id leadId, String brokerEmail, String closingReason, String firstMailMessageId) {
         // Добавляем логирование в начало метода
         System.debug('=== FUTURE METHOD START ===');
         System.debug('Method called with parameters:');
         System.debug('leadId: ' + leadId);
         System.debug('brokerEmail: ' + brokerEmail);
         System.debug('closingReason: ' + closingReason);
+        System.debug('firstMailMessageId: ' + firstMailMessageId);
         System.debug('=== LEAD DENIED EMAIL HANDLER START ===');
         System.debug('Lead ID: ' + leadId);
         System.debug('Broker Email: ' + brokerEmail);
         System.debug('Closing Reason: ' + closingReason);
+        System.debug('First Mail Message ID: ' + firstMailMessageId);
         
         try {
             // Создаем email сообщение
@@ -53,11 +55,36 @@ public class LeadDeniedEmailHandler {
             mail.setToAddresses(toAddresses);
             System.debug('Recipients set: ' + toAddresses);
             
+            // Получаем тему письма из лида
+            String mailTheme;
+            try {
+                List<Lead> leadList = [SELECT Mail_Theme__c FROM Lead WHERE Id = :leadId LIMIT 1];
+                if (!leadList.isEmpty()) {
+                    mailTheme = leadList[0].Mail_Theme__c;
+                }
+                System.debug('Mail theme from Lead: ' + mailTheme);
+            } catch (Exception e) {
+                System.debug('Error querying Mail_Theme__c: ' + e.getMessage());
+            }
+            
             // Устанавливаем тему и тело письма
-            mail.setSubject('Denied');
+            if (String.isNotBlank(mailTheme)) {
+                mail.setSubject(mailTheme);
+            } else {
+                mail.setSubject('Denied');
+            }
             mail.setPlainTextBody('Denied, ' + closingReason);
             System.debug('Subject and body set');
             System.debug('Email body: Denied, ' + closingReason);
+            
+            // Если есть ID первого письма, устанавливаем его как In-Reply-To и References
+            if (String.isNotBlank(firstMailMessageId)) {
+                mail.setInReplyTo(firstMailMessageId);
+                mail.setReferences(firstMailMessageId);
+                System.debug('Set as reply to message: ' + firstMailMessageId);
+            } else {
+                System.debug('No first mail message ID provided, sending as new email');
+            }
             
             // Отправляем email
             System.debug('About to send email...');
@@ -87,16 +114,19 @@ public class LeadDeniedEmailHandler {
         List<Id> leadIds = new List<Id>();
         List<String> brokerEmails = new List<String>();
         List<String> closingReasons = new List<String>();
+        List<String> firstMailMessageIds = new List<String>();
         
         for (Lead lead : leads) {
             System.debug('Processing lead: ' + lead.Id);
             System.debug('Lead Broker_email__c: ' + lead.Broker_email__c);
             System.debug('Lead ClosingReasonNew__c: ' + lead.ClosingReasonNew__c);
+            System.debug('Lead First_Mail_Message_Id__c: ' + lead.First_Mail_Message_Id__c);
             
             if (String.isNotBlank(lead.Broker_email__c) && String.isNotBlank(lead.ClosingReasonNew__c)) {
                 leadIds.add(lead.Id);
                 brokerEmails.add(lead.Broker_email__c);
                 closingReasons.add(lead.ClosingReasonNew__c);
+                firstMailMessageIds.add(lead.First_Mail_Message_Id__c);
                 System.debug('Added lead to email list: ' + lead.Id);
             } else {
                 System.debug('Lead skipped - missing email or closing reason: ' + lead.Id);
@@ -108,7 +138,7 @@ public class LeadDeniedEmailHandler {
         // Отправляем email для каждого лида
         for (Integer i = 0; i < leadIds.size(); i++) {
             System.debug('Calling sendDeniedEmail for lead: ' + leadIds[i]);
-            sendDeniedEmail(leadIds[i], brokerEmails[i], closingReasons[i]);
+            sendDeniedEmail(leadIds[i], brokerEmails[i], closingReasons[i], firstMailMessageIds[i]);
         }
         
         System.debug('=== PROCESS LEADS FOR EMAIL END ===');
