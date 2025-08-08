@@ -73,6 +73,10 @@ export default class ScanLicence extends LightningElement {
         return this.existingFileType && !this.isExistingImageFile && !this.isExistingPdfFile;
     }
 
+    get hasValidScannedName() {
+        return this.scannedName && this.scannedName !== 'null' && this.scannedName.trim() !== '';
+    }
+
     connectedCallback() {
         if (this.recordId) {
             this.loadExistingScanData();
@@ -94,7 +98,7 @@ export default class ScanLicence extends LightningElement {
         if (scanData) {
             this.scanDataId = scanData.Id;
             this.fileId = scanData.File_Id__c;
-            this.scannedName = scanData.Name__c;
+            this.scannedName = (scanData.Name__c && scanData.Name__c !== 'null' && scanData.Name__c.trim() !== '') ? scanData.Name__c : '';
             this.hasExistingData = true;
             
             console.log('Loading existing data:', {
@@ -296,14 +300,20 @@ export default class ScanLicence extends LightningElement {
                 endpointUrl: this.endpointUrl 
             });
             console.log('Scanned name:', nameValue);
-            this.scannedName = nameValue;
+            // Проверяем, что nameValue не null, undefined, пустая строка или строка "null"
+            this.scannedName = (nameValue && nameValue !== 'null' && nameValue.trim() !== '') ? nameValue : '';
             
             // Обновляем запись в Scan_Data__c с результатом сканирования
             console.log('Updating scan data with result...');
-            await this.updateScanDataWithResult(nameValue, scanData.Id);
+            await this.updateScanDataWithResult(this.scannedName, scanData.Id);
             
-            await this.updateLeadName(nameValue);
-            this.showToast('Success', 'Document scanned successfully', 'success');
+            await this.updateLeadName(this.scannedName);
+            
+            if (this.hasValidScannedName) {
+                this.showToast('Success', 'Document scanned successfully', 'success');
+            } else {
+                this.showToast('Warning', 'Document scanned but no name was found', 'warning');
+            }
         } catch (error) {
             console.error('Error in handleScan:', error);
             console.error('Error details:', {
@@ -341,7 +351,7 @@ export default class ScanLicence extends LightningElement {
         try {
             const fields = {};
             fields[ID_FIELD.fieldApiName] = scanDataId;
-            fields['Name__c'] = scannedName;
+            fields['Name__c'] = (scannedName && scannedName !== 'null' && scannedName.trim() !== '') ? scannedName : '';
             await updateRecord({ fields });
             console.log('Updated scan data with name:', scannedName);
         } catch (error) {
@@ -386,7 +396,9 @@ export default class ScanLicence extends LightningElement {
         }
         const fields = {};
         fields[ID_FIELD.fieldApiName] = this.recordId;
-        fields[COMPANY_OWNER_NAME_FIELD.fieldApiName] = nameValue;
+        if (nameValue && nameValue !== 'null' && nameValue.trim() !== '') {
+            fields[COMPANY_OWNER_NAME_FIELD.fieldApiName] = nameValue;
+        }
         await updateRecord({ fields });
     }
 
