@@ -4,7 +4,7 @@ public with sharing class CheckScanDataController {
     public static Scan_Data__c getScanDataByLeadId(String leadId) {
         try {
             return [
-                SELECT Id, Lead__c, File_Id__c, Routing_Number__c, Account_Number__c, Scan_Date__c, Type__c
+                SELECT Id, Lead__c, File_Id__c, Routing_Number__c, Account_Number__c, Company_name__c, Address__c, Scan_Date__c, Type__c
                 FROM Scan_Data__c 
                 WHERE Lead__c = :leadId 
                 AND Type__c = 'check'
@@ -18,7 +18,7 @@ public with sharing class CheckScanDataController {
     }
     
     @AuraEnabled
-    public static Scan_Data__c saveScanData(String leadId, String fileName, String base64Data, String routingNumber, String accountNumber) {
+    public static Scan_Data__c saveScanData(String leadId, String fileName, String base64Data, String routingNumber, String accountNumber, String companyName, String address) {
         try {
             System.debug('saveScanData called with leadId: ' + leadId);
             System.debug('fileName: ' + fileName);
@@ -97,6 +97,8 @@ public with sharing class CheckScanDataController {
                 File_Id__c = contentDocumentId,
                 Routing_Number__c = routingNumber,
                 Account_Number__c = accountNumber,
+                Company_name__c = companyName,
+                Address__c = address,
                 Scan_Date__c = Datetime.now(),
                 Type__c = 'check'
             );
@@ -212,14 +214,14 @@ public with sharing class CheckScanDataController {
     }
     
     @AuraEnabled
-    public static void updateScanDataWithResult(String scanDataId, String routingNumber, String accountNumber) {
+    public static void updateScanDataWithResult(String scanDataId, String routingNumber, String accountNumber, String companyName, String address) {
         try {
             if (String.isBlank(scanDataId)) {
                 throw new AuraHandledException('Scan Data ID is required');
             }
             
             Scan_Data__c scanData = [
-                SELECT Id, Routing_Number__c, Account_Number__c, Type__c
+                SELECT Id, Routing_Number__c, Account_Number__c, Company_name__c, Address__c, Type__c
                 FROM Scan_Data__c 
                 WHERE Id = :scanDataId
                 AND Type__c = 'check'
@@ -232,9 +234,11 @@ public with sharing class CheckScanDataController {
             
             scanData.Routing_Number__c = routingNumber;
             scanData.Account_Number__c = accountNumber;
+            scanData.Company_name__c = companyName;
+            scanData.Address__c = address;
             update scanData;
             
-            System.debug('Updated scan data with routing number: ' + routingNumber + ', account number: ' + accountNumber);
+            System.debug('Updated scan data with routing number: ' + routingNumber + ', account number: ' + accountNumber + ', company name: ' + companyName + ', address: ' + address);
         } catch (Exception e) {
             System.debug('Error updating scan data: ' + e.getMessage());
             throw new AuraHandledException('Error updating scan data: ' + e.getMessage());

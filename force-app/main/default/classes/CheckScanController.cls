@@ -81,6 +81,8 @@ public with sharing class CheckScanController {
             // Извлекаем routing_number и account_number
             String routingNumber = (String) mapResponse.get('routing_number');
             String accountNumber = (String) mapResponse.get('account_number');
+            String companyName = (String) mapResponse.get('company_name');
+            String address = (String) mapResponse.get('address');
             
             if (String.isBlank(routingNumber) && String.isBlank(accountNumber)) {
                 throw new AuraHandledException('Scan completed, but no routing number or account number found in the response.');
@@ -93,9 +95,17 @@ public with sharing class CheckScanController {
             if (String.isNotBlank(accountNumber)) {
                 result.put('account_number', accountNumber);
             }
+            if (String.isNotBlank(companyName)) {
+                result.put('company_name', companyName);
+            }
+            if (String.isNotBlank(address)) {
+                result.put('address', address);
+            }
             
             System.debug('Extracted routing number: ' + routingNumber);
             System.debug('Extracted account number: ' + accountNumber);
+            System.debug('Extracted company name: ' + companyName);
+            System.debug('Extracted address: ' + address);
             return result;
             
         } catch (System.CalloutException ex) {

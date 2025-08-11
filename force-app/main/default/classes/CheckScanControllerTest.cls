@@ -7,7 +7,7 @@ private class CheckScanControllerTest {
           
             HttpResponse res = new HttpResponse();
             res.setStatusCode(200);
-            res.setBody('{"success":true,"routing_number":"072403004","account_number":"9950106444","message":"Check numbers extracted successfully","fileType":"jpg"}');
+            res.setBody('{"success":true,"routing_number":"072403004","account_number":"9950106444","company_name":"Test Company Inc","address":"123 Test Street, Test City, TS 12345","message":"Check numbers extracted successfully","fileType":"jpg"}');
             return res;
         }
     }
@@ -31,6 +31,8 @@ private class CheckScanControllerTest {
         System.assertNotEquals(null, result, 'Should return result map');
         System.assertEquals('072403004', result.get('routing_number'), 'Should have correct routing number');
         System.assertEquals('9950106444', result.get('account_number'), 'Should have correct account number');
+        System.assertEquals('Test Company Inc', result.get('company_name'), 'Should have correct company name');
+        System.assertEquals('123 Test Street, Test City, TS 12345', result.get('address'), 'Should have correct address');
     }
 
     @IsTest

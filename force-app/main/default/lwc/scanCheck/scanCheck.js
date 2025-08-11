@@ -9,6 +9,8 @@ import { updateRecord } from 'lightning/uiRecordApi';
 import ID_FIELD from '@salesforce/schema/Lead.Id';
 import ROUTING_NUMBER_FIELD from '@salesforce/schema/Lead.Routing_Number__c';
 import ACCOUNT_NUMBER_FIELD from '@salesforce/schema/Lead.Account_Number__c';
+import COMPANY_NAME_FIELD from '@salesforce/schema/Lead.Company_name__c';
+import ADDRESS_FIELD from '@salesforce/schema/Lead.Address__c';
 
 export default class ScanCheck extends LightningElement {
     @api recordId; // Lead Id
@@ -21,6 +23,8 @@ export default class ScanCheck extends LightningElement {
     @track isLoading = false;
     @track routingNumber;
     @track accountNumber;
+    @track companyName;
+    @track address;
     @track scanDataId;
     @track hasExistingData = false;
     @track fileId;
@@ -98,13 +102,17 @@ export default class ScanCheck extends LightningElement {
             this.fileId = scanData.File_Id__c;
             this.routingNumber = scanData.Routing_Number__c;
             this.accountNumber = scanData.Account_Number__c;
+            this.companyName = scanData.Company_name__c;
+            this.address = scanData.Address__c;
             this.hasExistingData = true;
             
             console.log('Loading existing data:', {
                 scanDataId: this.scanDataId,
                 fileId: this.fileId,
                 routingNumber: this.routingNumber,
-                accountNumber: this.accountNumber
+                accountNumber: this.accountNumber,
+                companyName: this.companyName,
+                address: this.address
             });
             
             // Получаем информацию о файле
@@ -173,7 +181,9 @@ export default class ScanCheck extends LightningElement {
                 fileName: file.name,
                 base64Data: base64Data,
                 routingNumber: '', // Пока пустое, заполним после сканирования
-                accountNumber: '' // Пока пустое, заполним после сканирования
+                accountNumber: '', // Пока пустое, заполним после сканирования
+                companyName: '', // Пока пустое, заполним после сканирования
+                address: '' // Пока пустое, заполним после сканирования
             });
             console.log('File saved:', savedData);
             
@@ -187,6 +197,8 @@ export default class ScanCheck extends LightningElement {
             this.hasExistingData = true;
             this.routingNumber = undefined; // Сбрасываем результат сканирования
             this.accountNumber = undefined; // Сбрасываем результат сканирования
+            this.companyName = undefined; // Сбрасываем результат сканирования
+            this.address = undefined; // Сбрасываем результат сканирования
             
             // Обновляем информацию о существующем файле
             this.existingFileName = file.name;
@@ -218,6 +230,8 @@ export default class ScanCheck extends LightningElement {
         this.hasExistingData = false;
         this.routingNumber = undefined;
         this.accountNumber = undefined;
+        this.companyName = undefined;
+        this.address = undefined;
         this.scanDataId = undefined;
         this.fileId = undefined;
         this.existingFileName = undefined;
@@ -307,13 +321,15 @@ export default class ScanCheck extends LightningElement {
             // Извлекаем routing_number и account_number из результата
             this.routingNumber = scanResult.routing_number || '';
             this.accountNumber = scanResult.account_number || '';
+            this.companyName = scanResult.company_name || '';
+            this.address = scanResult.address || '';
             
             // Обновляем запись в Scan_Data__c с результатом сканирования
             console.log('Updating scan data with result...');
-            await this.updateScanDataWithResult(this.routingNumber, this.accountNumber, scanData.Id);
+            await this.updateScanDataWithResult(this.routingNumber, this.accountNumber, this.companyName, this.address, scanData.Id);
             
             // Обновляем поля в Lead
-            await this.updateLeadFields(this.routingNumber, this.accountNumber);
+            await this.updateLeadFields(this.routingNumber, this.accountNumber, this.companyName, this.address);
             this.showToast('Success', 'Check scanned successfully', 'success');
         } catch (error) {
             console.error('Error in handleScan:', error);
@@ -348,14 +364,16 @@ export default class ScanCheck extends LightningElement {
         }
     }
 
-    async updateScanDataWithResult(routingNumber, accountNumber, scanDataId) {
+    async updateScanDataWithResult(routingNumber, accountNumber, companyName, address, scanDataId) {
         try {
             const fields = {};
             fields[ID_FIELD.fieldApiName] = scanDataId;
             fields['Routing_Number__c'] = routingNumber;
             fields['Account_Number__c'] = accountNumber;
+            fields['Company_name__c'] = companyName;
+            fields['Address__c'] = address;
             await updateRecord({ fields });
-            console.log('Updated scan data with routing number:', routingNumber, 'account number:', accountNumber);
+            console.log('Updated scan data with routing number:', routingNumber, 'account number:', accountNumber, 'company name:', companyName, 'address:', address);
         } catch (error) {
             console.error('Error updating scan data:', error);
             throw new Error('Error updating scan data: ' + error.message);
@@ -392,7 +410,7 @@ export default class ScanCheck extends LightningElement {
         });
     }
 
-    async updateLeadFields(routingNumber, accountNumber) {
+    async updateLeadFields(routingNumber, accountNumber, companyName, address) {
         if (!this.recordId) {
             return;
         }
@@ -403,6 +421,12 @@ export default class ScanCheck extends LightningElement {
         }
         if (accountNumber) {
             fields[ACCOUNT_NUMBER_FIELD.fieldApiName] = accountNumber;
+        }
+        if (companyName) {
+            fields[COMPANY_NAME_FIELD.fieldApiName] = companyName;
+        }
+        if (address) {
+            fields[ADDRESS_FIELD.fieldApiName] = address;
         }
         await updateRecord({ fields });
     }

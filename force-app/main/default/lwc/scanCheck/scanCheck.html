@@ -57,6 +57,20 @@
                         <span class="result-value">{accountNumber}</span>
                     </div>
                 </template>
+                
+                <template if:true={companyName}>
+                    <div class="result">
+                        <span class="result-label">Company Name:</span>
+                        <span class="result-value">{companyName}</span>
+                    </div>
+                </template>
+                
+                <template if:true={address}>
+                    <div class="result">
+                        <span class="result-label">Address:</span>
+                        <span class="result-value">{address}</span>
+                    </div>
+                </template>
             </div>
         </div>
         
