@@ -9,16 +9,21 @@ export default class LeadStatusWatcher extends LightningElement {
     @track previousStatus = '';
     @track wiredLeadResult;
     @track isLoadingPreviousStatus = false;
+    @track isLeadConverted = false;
 
     @wire(getRecord, { 
         recordId: '$recordId', 
-        fields: ['Lead.Status', 'Lead.RecordTypeId'] 
+        fields: ['Lead.Status', 'Lead.RecordTypeId', 'Lead.IsConverted'] 
     })
     wiredLead(result) {
         this.wiredLeadResult = result;
         if (result.data) {
             const currentStatus = result.data.fields.Status.value;
             const recordTypeId = result.data.fields.RecordTypeId.value;
+            const isConverted = result.data.fields.IsConverted.value;
+            
+            // Обновляем статус конвертации
+            this.isLeadConverted = isConverted;
             
             // Проверяем, изменился ли статус на "Call after"
             if (currentStatus === 'Call after' && this.previousStatus !== 'Call after') {
@@ -68,6 +73,15 @@ export default class LeadStatusWatcher extends LightningElement {
 
     handleCloseModal() {
         this.showConversionModal = false;
+        
+        // Проверяем, не сконвертирован ли уже лид
+        if (this.isLeadConverted) {
+            console.log('Lead is already converted, not reverting status');
+            // Обновляем данные лида после закрытия модального окна
+            return refreshApex(this.wiredLeadResult);
+        }
+        
+        // Если лид не сконвертирован, продолжаем с обычной логикой
         // Обновляем данные лида после закрытия модального окна
         return refreshApex(this.wiredLeadResult);
     }

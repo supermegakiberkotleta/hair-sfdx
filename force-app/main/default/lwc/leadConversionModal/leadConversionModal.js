@@ -20,6 +20,11 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
     @track showDuplicateWarning = false; // Показывать ли предупреждение о дубликатах
     @track conversionResult = null; // Результат конвертации
     @track suppressToasts = false; // Подавление toast уведомлений
+    @track isConversionSuccessful = false; // Флаг успешной конвертации
+
+    connectedCallback() {
+        // Компонент подключен
+    }
 
     // Computed properties for step visibility
     get isValidationStep() {
@@ -32,6 +37,11 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
 
     get isResultStep() {
         return this.currentStep === 3;
+    }
+
+    // Computed property для отображения кнопки Close
+    get showCloseButton() {
+        return !this.isConversionSuccessful;
     }
 
     // Wire the lead record
@@ -158,6 +168,7 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
                 
                 if (result.success) {
                     this.conversionResult = result;
+                    this.isConversionSuccessful = true; // Устанавливаем флаг успешной конвертации
                     this.currentStep = 3; // Переходим к шагу с результатом
                     this.showToast('Success', 'Lead converted successfully!', 'success');
                 } else {
@@ -260,6 +271,7 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
         updateRecord(recordInput)
             .then(() => {
                 this.showToast('Info', 'Lead returned to previous status', 'info');
+                this.isConversionSuccessful = false; // Сбрасываем флаг успешной конвертации
                 this.closeModal();
                 return refreshApex(this.wiredLeadResult);
             })
@@ -278,6 +290,7 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
         this.showModal = false;
         this.currentStep = 1;
         this.isSuccess = false;
+        this.isConversionSuccessful = false; // Сбрасываем флаг успешной конвертации
         this.conversionResult = null;
         this.dispatchEvent(new CustomEvent('close'));
     }

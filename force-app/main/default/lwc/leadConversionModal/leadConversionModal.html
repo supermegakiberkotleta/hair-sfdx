@@ -209,7 +209,6 @@
 
                         <!-- Step 3: Result -->
                         <template if:true={isResultStep}>
-                         
                             <div class="result-section">
                                 <h3>
                                     <lightning-icon icon-name="utility:success" size="small"></lightning-icon>
@@ -272,11 +271,13 @@
                             </div>
                             
                             <div class="slds-m-top_medium slds-text-align_center">
-                                <lightning-button 
-                                    variant="brand" 
-                                    label="Close" 
-                                    onclick={handleClose}>
-                                </lightning-button>
+                                <template if:true={showCloseButton}>
+                                    <lightning-button 
+                                        variant="brand" 
+                                        label="Close" 
+                                        onclick={handleClose}>
+                                    </lightning-button>
+                                </template>
                             </div>
                         </template>
                     </div>
