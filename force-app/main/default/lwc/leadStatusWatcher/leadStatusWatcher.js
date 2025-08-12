@@ -25,6 +25,13 @@ export default class LeadStatusWatcher extends LightningElement {
             // Обновляем статус конвертации
             this.isLeadConverted = isConverted;
             
+            // Если лид уже сконвертирован, очищаем предыдущий статус
+            if (isConverted) {
+                this.previousStatus = '';
+                console.log('Lead is already converted, clearing previous status');
+                return;
+            }
+            
             // Проверяем, изменился ли статус на "Call after"
             if (currentStatus === 'Call after' && this.previousStatus !== 'Call after') {
                 // Проверяем, что это правильный RecordType (Loan_Leads)
@@ -46,6 +53,12 @@ export default class LeadStatusWatcher extends LightningElement {
     // Получение предыдущего статуса из Lead History
     async getPreviousStatusFromHistory() {
         if (this.isLoadingPreviousStatus) return;
+        
+        // Проверяем, не сконвертирован ли уже лид
+        if (this.isLeadConverted) {
+            console.log('Lead is already converted, skipping previous status retrieval');
+            return;
+        }
         
         this.isLoadingPreviousStatus = true;
         
@@ -77,11 +90,12 @@ export default class LeadStatusWatcher extends LightningElement {
         // Проверяем, не сконвертирован ли уже лид
         if (this.isLeadConverted) {
             console.log('Lead is already converted, not reverting status');
-            // Обновляем данные лида после закрытия модального окна
-            return refreshApex(this.wiredLeadResult);
+            // Очищаем предыдущий статус, чтобы предотвратить возврат
+            this.previousStatus = '';
+        } else {
+            console.log('Lead is not converted, status reversion may occur');
         }
         
-        // Если лид не сконвертирован, продолжаем с обычной логикой
         // Обновляем данные лида после закрытия модального окна
         return refreshApex(this.wiredLeadResult);
     }

@@ -445,4 +445,4 @@ export default class ScanCheck extends LightningElement {
     showToast(title, message, variant) {
         this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
     }
-} 
+}

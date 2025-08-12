@@ -1,8 +1,8 @@
 <template>
-    <div class="scan-check-container">
-        <div class="scan-check-card">
+    <div class="scan-licence-container">
+        <div class="scan-licence-card">
             <div class="card-header">
-                <h2 class="card-title">Scan Check</h2>
+                <h2 class="card-title">Scan Drive License</h2>
             </div>
             
             <div class="card-content">
@@ -10,7 +10,7 @@
                     <div class="flex">
                         <lightning-input 
                         type="file" 
-                        label="Upload check file" 
+                        label="Upload license file" 
                         accept=".jpg,.jpeg,.png,.gif,.bmp,.pdf,.doc,.docx" 
                         onchange={handleFileChange}
                         variant="label-hidden">
@@ -18,7 +18,7 @@
                     <div class="actions">
                         <lightning-button 
                             variant="brand" 
-                            label="Scan check" 
+                            label="Scan document" 
                             onclick={handleScan} 
                             disabled={isScanDisabled}>
                         </lightning-button>
@@ -44,31 +44,10 @@
                     </template>
                 </div>
                 
-                <template if:true={routingNumber}>
+                <template if:true={hasValidScannedName}>
                     <div class="result">
-                        <span class="result-label">Routing Number:</span>
-                        <span class="result-value">{routingNumber}</span>
-                    </div>
-                </template>
-                
-                <template if:true={accountNumber}>
-                    <div class="result">
-                        <span class="result-label">Account Number:</span>
-                        <span class="result-value">{accountNumber}</span>
-                    </div>
-                </template>
-                
-                <template if:true={companyName}>
-                    <div class="result">
-                        <span class="result-label">Company Name:</span>
-                        <span class="result-value">{companyName}</span>
-                    </div>
-                </template>
-                
-                <template if:true={address}>
-                    <div class="result">
-                        <span class="result-label">Address:</span>
-                        <span class="result-value">{address}</span>
+                        <span class="result-label">Company owner name:</span>
+                        <span class="result-value">{scannedName}</span>
                     </div>
                 </template>
             </div>
@@ -78,8 +57,8 @@
         <template if:true={isLoading}>
             <div class="modal-overlay">
                 <div class="modal-content">
-                    <lightning-spinner alternative-text="Scanning check..." size="medium"></lightning-spinner>
-                    <div class="loading-text">Processing your check...</div>
+                    <lightning-spinner alternative-text="Scanning document..." size="medium"></lightning-spinner>
+                    <div class="loading-text">Processing your document...</div>
                 </div>
             </div>
         </template>

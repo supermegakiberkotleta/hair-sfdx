@@ -10,6 +10,7 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
     @api recordId;
     @api isAutoOpen = false; // Новый параметр для автоматического открытия
     @api previousStatus; // Предыдущий статус для возврата
+    @api skipStatusRevert = false; // Флаг для пропуска возврата статуса
     @track currentStep = 1;
     @track isConverting = false;
     @track isSuccess = false;
@@ -24,6 +25,12 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
 
     connectedCallback() {
         // Компонент подключен
+        console.log('LeadConversionModal connected with params:', {
+            recordId: this.recordId,
+            isAutoOpen: this.isAutoOpen,
+            previousStatus: this.previousStatus,
+            skipStatusRevert: this.skipStatusRevert
+        });
     }
 
     // Computed properties for step visibility
@@ -241,26 +248,37 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
 
     // Handle cancel button
     handleCancel() {
-        if (this.isAutoOpen && this.previousStatus) {
+        console.log('handleCancel called - isAutoOpen:', this.isAutoOpen, 'previousStatus:', this.previousStatus, 'skipStatusRevert:', this.skipStatusRevert);
+        
+        if (this.isAutoOpen && this.previousStatus && !this.skipStatusRevert) {
             // Если это автоматическое открытие, возвращаем к предыдущему статусу
+            console.log('Returning to previous status via cancel');
             this.returnToPreviousStatus();
         } else {
+            console.log('Closing modal without status reversion');
             this.closeModal();
         }
     }
 
     // Handle close button
     handleClose() {
-        if (this.isAutoOpen && this.previousStatus) {
+        console.log('handleClose called - isAutoOpen:', this.isAutoOpen, 'previousStatus:', this.previousStatus, 'skipStatusRevert:', this.skipStatusRevert);
+        
+        if (this.isAutoOpen && this.previousStatus && !this.skipStatusRevert) {
             // Если это автоматическое открытие, возвращаем к предыдущему статусу
+            console.log('Returning to previous status via close');
             this.returnToPreviousStatus();
         } else {
+            console.log('Closing modal without status reversion');
             this.closeModal();
         }
     }
 
     // Return to previous status
     returnToPreviousStatus() {
+        console.log('Attempting to return to previous status:', this.previousStatus);
+        console.log('skipStatusRevert flag:', this.skipStatusRevert);
+        
         const recordInput = { 
             fields: { 
                 Id: this.recordId, 
@@ -276,6 +294,7 @@ export default class LeadConversionModal extends NavigationMixin(LightningElemen
                 return refreshApex(this.wiredLeadResult);
             })
             .catch(error => {
+                console.error('Error returning to previous status:', error);
                 this.showToast('Error', 'Failed to return to previous status: ' + error.body.message, 'error');
             });
     }
