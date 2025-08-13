@@ -6,24 +6,24 @@ public class LeadDeniedStatusHandlerTest {
         // Создаем тестовые лиды
         List<Lead> testLeads = new List<Lead>();
         
-        // Лид с Parsing_Status__c = 'Black list' (должен быть обновлен)
+        // Лид с ClosingReasonNew__c = 'Unacceptable Banks' (должен быть обновлен)
         testLeads.add(new Lead(
             FirstName = 'Test',
             LastName = 'User1',
             Company = 'Test Company 1',
             Status = 'DENIED',
             RecordTypeId = '012Kc000000tenuIAA',
-            Parsing_Status__c = 'Black list'
+            ClosingReasonNew__c = 'Unacceptable Banks'
         ));
         
-        // Лид с Parsing_Status__c = 'Valid' (не должен быть обновлен)
+        // Лид с ClosingReasonNew__c = 'Valid' (не должен быть обновлен)
         testLeads.add(new Lead(
             FirstName = 'Test',
             LastName = 'User2',
             Company = 'Test Company 2',
             Status = 'DENIED',
             RecordTypeId = '012Kc000000tenuIAA',
-            Parsing_Status__c = 'Valid'
+            ClosingReasonNew__c = 'Avg Monthly Revenue'
         ));
         
         // Лид с другим RecordTypeId (не должен быть обновлен)
@@ -33,7 +33,7 @@ public class LeadDeniedStatusHandlerTest {
             Company = 'Test Company 3',
             Status = 'DENIED',
             RecordTypeId = '012Kc000000ten6IAA', // Другой RecordTypeId
-            Parsing_Status__c = 'Black list'
+            ClosingReasonNew__c = 'Unacceptable Banks'
         ));
         
         insert testLeads;
@@ -43,7 +43,7 @@ public class LeadDeniedStatusHandlerTest {
     static void testProcessLeads() {
         // Получаем тестовые лиды
         List<Lead> testLeads = [
-            SELECT Id, Status, Parsing_Status__c, RecordTypeId 
+            SELECT Id, Status, ClosingReasonNew__c, RecordTypeId 
             FROM Lead 
             WHERE RecordTypeId = '012Kc000000tenuIAA'
         ];
@@ -69,14 +69,14 @@ public class LeadDeniedStatusHandlerTest {
             FirstName = 'Test',
             LastName = 'User',
             Company = 'Test Company',
-            Parsing_Status__c = 'Black list'
+            ClosingReasonNew__c = 'Unacceptable Banks'
         );
         
         // Проверяем, что лид должен быть обновлен
         Boolean shouldUpdate = LeadDeniedStatusHandler.shouldUpdateLead(testLead);
         
         // Проверяем лид, который не должен быть обновлен
-        testLead.Parsing_Status__c = 'Valid';
+        testLead.ClosingReasonNew__c = 'Avg Monthly Revenue';
         shouldUpdate = LeadDeniedStatusHandler.shouldUpdateLead(testLead);
     }
     
@@ -87,14 +87,14 @@ public class LeadDeniedStatusHandlerTest {
             FirstName = 'Test',
             LastName = 'User',
             Company = 'Test Company',
-            Parsing_Status__c = 'Black list'
+            ClosingReasonNew__c = 'Unacceptable Banks'
         );
         
         // Проверяем целевой статус
         String targetStatus = LeadDeniedStatusHandler.getTargetStatus(testLead);
         
         // Проверяем лид без условий для обновления
-        testLead.Parsing_Status__c = 'Valid';
+        testLead.ClosingReasonNew__c = 'Avg Monthly Revenue';
         targetStatus = LeadDeniedStatusHandler.getTargetStatus(testLead);
     }
     
@@ -102,9 +102,9 @@ public class LeadDeniedStatusHandlerTest {
     static void testTriggerIntegration() {
         // Получаем лид для обновления
         Lead testLead = [
-            SELECT Id, Status, Parsing_Status__c 
+            SELECT Id, Status, ClosingReasonNew__c 
             FROM Lead 
-            WHERE Parsing_Status__c = 'Valid' 
+            WHERE ClosingReasonNew__c = 'Avg Monthly Revenue' 
             AND RecordTypeId = '012Kc000000tenuIAA'
             LIMIT 1
         ];
@@ -117,17 +117,17 @@ public class LeadDeniedStatusHandlerTest {
         
         Test.stopTest();
         
-        // Проверяем, что статус не изменился (так как Parsing_Status__c = 'Valid')
+        // Проверяем, что статус не изменился (так как ClosingReasonNew__c = 'Valid')
         Lead updatedLead = [SELECT Id, Status FROM Lead WHERE Id = :testLead.Id];
     }
     
     @isTest
     static void testTriggerWithBlackList() {
-        // Получаем лид с Black list для обновления
+        // Получаем лид с Unacceptable Banks для обновления
         Lead testLead = [
-            SELECT Id, Status, Parsing_Status__c 
+            SELECT Id, Status, ClosingReasonNew__c 
             FROM Lead 
-            WHERE Parsing_Status__c = 'Black list' 
+            WHERE ClosingReasonNew__c = 'Unacceptable Banks' 
             AND RecordTypeId = '012Kc000000tenuIAA'
             LIMIT 1
         ];

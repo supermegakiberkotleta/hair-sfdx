@@ -10,64 +10,64 @@ public class LeadDeniedStatusConfigTest {
         System.assertNotEquals(null, config, 'Config should not be null');
         
         // Проверяем, что содержит нужное поле
-        System.assert(config.containsKey('Parsing_Status__c'), 'Should contain Parsing_Status__c field');
+        System.assert(config.containsKey('ClosingReasonNew__c'), 'Should contain ClosingReasonNew__c field');
         
         // Проверяем, что поле содержит нужные значения
-        List<String> values = config.get('Parsing_Status__c');
+        List<String> values = config.get('ClosingReasonNew__c');
         System.assert(values.contains('Black list'), 'Should contain Black list value');
-        System.assert(values.contains('black list'), 'Should contain black list value');
-        System.assert(values.contains('BLACK LIST'), 'Should contain BLACK LIST value');
+        System.assert(values.contains('Unacceptable Banks'), 'Should contain Unacceptable Banks value');
+        System.assert(values.contains('Must be Business/Commercial Checking Account'), 'Should contain Must be Business/Commercial Checking Account value');
     }
     
     @isTest
     static void testGetTargetStatus() {
         // Тестируем с существующим значением
-        String targetStatus = LeadDeniedStatusConfig.getTargetStatus('Parsing_Status__c', 'Black list');
+        String targetStatus = LeadDeniedStatusConfig.getTargetStatus('ClosingReasonNew__c', 'Black list');
         System.assertEquals('Final Denied', targetStatus, 'Should return Final Denied for Black list');
         
         // Тестируем с другим регистром
-        String lowerCaseStatus = LeadDeniedStatusConfig.getTargetStatus('Parsing_Status__c', 'black list');
-        System.assertEquals('Final Denied', lowerCaseStatus, 'Should return Final Denied for black list');
+        String lowerCaseStatus = LeadDeniedStatusConfig.getTargetStatus('ClosingReasonNew__c', 'Unacceptable Banks');
+        System.assertEquals('Final Denied', lowerCaseStatus, 'Should return Final Denied for Unacceptable Banks');
         
-        String upperCaseStatus = LeadDeniedStatusConfig.getTargetStatus('Parsing_Status__c', 'BLACK LIST');
-        System.assertEquals('Final Denied', upperCaseStatus, 'Should return Final Denied for BLACK LIST');
+        String upperCaseStatus = LeadDeniedStatusConfig.getTargetStatus('ClosingReasonNew__c', 'Must be Business/Commercial Checking Account');
+        System.assertEquals('Final Denied', upperCaseStatus, 'Should return Final Denied for Must be Business/Commercial Checking Account');
         
         // Тестируем с несуществующим значением
-        String emptyStatus = LeadDeniedStatusConfig.getTargetStatus('Parsing_Status__c', 'NonExistent');
+        String emptyStatus = LeadDeniedStatusConfig.getTargetStatus('ClosingReasonNew__c', 'NonExistent');
         System.assertEquals('', emptyStatus, 'Should return empty string for non-existent value');
         
         // Тестируем с несуществующим полем
-        String fieldStatus = LeadDeniedStatusConfig.getTargetStatus('NonExistentField', 'AnyValue');
+        String fieldStatus = LeadDeniedStatusConfig.getTargetStatus('NonExistentField', 'Avg Monthly Revenue');
         System.assertEquals('', fieldStatus, 'Should return empty string for non-existent field');
         
         // Тестируем с null значением
-        String nullStatus = LeadDeniedStatusConfig.getTargetStatus('Parsing_Status__c', null);
+        String nullStatus = LeadDeniedStatusConfig.getTargetStatus('ClosingReasonNew__c', '');
         System.assertEquals('', nullStatus, 'Should return empty string for null value');
     }
     
     @isTest
     static void testHasRule() {
         // Тестируем с существующим правилом
-        Boolean hasRule = LeadDeniedStatusConfig.hasRule('Parsing_Status__c', 'Black list');
+        Boolean hasRule = LeadDeniedStatusConfig.hasRule('ClosingReasonNew__c', 'Black list');
         System.assertEquals(true, hasRule, 'Should return true for existing rule');
         
         // Тестируем с другим регистром
-        Boolean hasRuleLower = LeadDeniedStatusConfig.hasRule('Parsing_Status__c', 'black list');
-        System.assertEquals(true, hasRuleLower, 'Should return true for black list');
+        Boolean hasRuleLower = LeadDeniedStatusConfig.hasRule('ClosingReasonNew__c', 'Unacceptable Banks');
+        System.assertEquals(true, hasRuleLower, 'Should return true for Unacceptable Banks');
         
-        Boolean hasRuleUpper = LeadDeniedStatusConfig.hasRule('Parsing_Status__c', 'BLACK LIST');
-        System.assertEquals(true, hasRuleUpper, 'Should return true for BLACK LIST');
+        Boolean hasRuleUpper = LeadDeniedStatusConfig.hasRule('ClosingReasonNew__c', 'Must be Business/Commercial Checking Account');
+        System.assertEquals(true, hasRuleUpper, 'Should return true for Must be Business/Commercial Checking Account');
         
         // Тестируем с несуществующим правилом
-        Boolean noRule = LeadDeniedStatusConfig.hasRule('Parsing_Status__c', 'NonExistent');
+        Boolean noRule = LeadDeniedStatusConfig.hasRule('ClosingReasonNew__c', 'NonExistent');
         System.assertEquals(false, noRule, 'Should return false for non-existent rule');
         
         // Тестируем с несуществующим полем
-        Boolean noField = LeadDeniedStatusConfig.hasRule('NonExistentField', 'AnyValue');
+        Boolean noField = LeadDeniedStatusConfig.hasRule('NonExistentField', 'Avg Monthly Revenue');
         System.assertEquals(false, noField, 'Should return false for non-existent field');
         
         // Тестируем с null значением
-        Boolean nullRule = LeadDeniedStatusConfig.hasRule('Parsing_Status__c', null);
+        Boolean nullRule = LeadDeniedStatusConfig.hasRule('ClosingReasonNew__c', '');
         System.assertEquals(false, nullRule, 'Should return false for null value');
     }
     
@@ -77,7 +77,7 @@ public class LeadDeniedStatusConfigTest {
         Set<String> fields = LeadDeniedStatusConfig.getConfiguredFields();
         
         // Проверяем, что содержит нужное поле
-        System.assert(fields.contains('Parsing_Status__c'), 'Should contain Parsing_Status__c field');
+        System.assert(fields.contains('ClosingReasonNew__c'), 'Should contain ClosingReasonNew__c field');
         
         // Проверяем, что не содержит несуществующее поле
         System.assert(!fields.contains('NonExistentField'), 'Should not contain non-existent field');
@@ -91,19 +91,19 @@ public class LeadDeniedStatusConfigTest {
         // Проверяем, что есть хотя бы одно правило
         System.assert(rulesCount > 0, 'Should have at least one rule');
         
-        // Проверяем, что количество правил соответствует ожидаемому (3 для Parsing_Status__c)
-        System.assertEquals(3, rulesCount, 'Should have exactly 3 rules for Parsing_Status__c');
+        // Проверяем, что количество правил соответствует ожидаемому (3 для ClosingReasonNew__c)
+        System.assertEquals(3, rulesCount, 'Should have exactly 3 rules for ClosingReasonNew__c');
     }
     
     @isTest
     static void testGetFieldValues() {
         // Тестируем получение значений для существующего поля
-        List<String> values = LeadDeniedStatusConfig.getFieldValues('Parsing_Status__c');
+        List<String> values = LeadDeniedStatusConfig.getFieldValues('ClosingReasonNew__c');
         
         // Проверяем, что содержит нужные значения
         System.assert(values.contains('Black list'), 'Should contain Black list value');
-        System.assert(values.contains('black list'), 'Should contain black list value');
-        System.assert(values.contains('BLACK LIST'), 'Should contain BLACK LIST value');
+        System.assert(values.contains('Unacceptable Banks'), 'Should contain Unacceptable Banks value');
+        System.assert(values.contains('Must be Business/Commercial Checking Account'), 'Should contain Must be Business/Commercial Checking Account value');
         
         // Проверяем размер списка
         System.assertEquals(3, values.size(), 'Should have exactly 3 values');
@@ -116,7 +116,7 @@ public class LeadDeniedStatusConfigTest {
     @isTest
     static void testIsFieldConfigured() {
         // Тестируем с настроенным полем
-        Boolean isConfigured = LeadDeniedStatusConfig.isFieldConfigured('Parsing_Status__c');
+        Boolean isConfigured = LeadDeniedStatusConfig.isFieldConfigured('ClosingReasonNew__c');
         System.assertEquals(true, isConfigured, 'Should return true for configured field');
         
         // Тестируем с ненастроенным полем
@@ -133,15 +133,12 @@ public class LeadDeniedStatusConfigTest {
         // Тестируем регистронезависимое сравнение
         List<String> testValues = new List<String>{
             'Black list',
-            'black list',
-            'BLACK LIST',
-            'Black List',
-            'BLACK list',
-            'black LIST'
+            'Unacceptable Banks',
+            'Must be Business/Commercial Checking Account'
         };
         
         for (String value : testValues) {
-            String targetStatus = LeadDeniedStatusConfig.getTargetStatus('Parsing_Status__c', value);
+            String targetStatus = LeadDeniedStatusConfig.getTargetStatus('ClosingReasonNew__c', value);
             System.assertEquals('Final Denied', targetStatus, 
                 'Should return Final Denied for value: ' + value);
         }
@@ -152,15 +149,15 @@ public class LeadDeniedStatusConfigTest {
         // Тестируем граничные случаи
         
         // Пустая строка
-        String emptyString = LeadDeniedStatusConfig.getTargetStatus('Parsing_Status__c', '');
+        String emptyString = LeadDeniedStatusConfig.getTargetStatus('ClosingReasonNew__c', '');
         System.assertEquals('', emptyString, 'Should return empty string for empty value');
         
         // Пробелы
-        String spaces = LeadDeniedStatusConfig.getTargetStatus('Parsing_Status__c', '   ');
+        String spaces = LeadDeniedStatusConfig.getTargetStatus('ClosingReasonNew__c', '   ');
         System.assertEquals('', spaces, 'Should return empty string for spaces only');
         
         // Специальные символы
-        String specialChars = LeadDeniedStatusConfig.getTargetStatus('Parsing_Status__c', 'Black@list');
+        String specialChars = LeadDeniedStatusConfig.getTargetStatus('ClosingReasonNew__c', 'Avg Monthly Revenue');
         System.assertEquals('', specialChars, 'Should return empty string for special characters');
     }
 }

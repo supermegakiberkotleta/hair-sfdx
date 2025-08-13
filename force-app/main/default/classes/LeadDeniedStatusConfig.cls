@@ -3,10 +3,10 @@ public class LeadDeniedStatusConfig {
     // Конфигурация полей и значений для перевода в Final Denied
     // Легко добавлять, удалять или изменять правила
     private static final Map<String, List<String>> FIELD_VALUES_CONFIG = new Map<String, List<String>>{
-        'Parsing_Status__c' => new List<String>{
+        'ClosingReasonNew__c' => new List<String>{
             'Black list',
-            'black list', 
-            'BLACK LIST'
+            'Unacceptable Banks', 
+            'Must be Business/Commercial Checking Account'
         }
         // Пример добавления других полей:
         // 'Company' => new List<String>{
@@ -49,9 +49,9 @@ public class LeadDeniedStatusConfig {
         if (config.containsKey(fieldName)) {
             List<String> values = config.get(fieldName);
             
-            // Проверяем точное совпадение (регистронезависимо)
+            // Проверяем содержание значения (регистронезависимо)
             for (String configValue : values) {
-                if (fieldValue.equalsIgnoreCase(configValue)) {
+                if (fieldValue.containsIgnoreCase(configValue)) {
                     return TARGET_STATUS;
                 }
             }

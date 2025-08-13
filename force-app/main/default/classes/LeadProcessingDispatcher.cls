@@ -27,16 +27,20 @@ public class LeadProcessingDispatcher {
     
     /**
      * Запуск обработки статуса DENIED
+     * ВРЕМЕННО ОТКЛЮЧЕНО - LeadDeniedStatusBatch
      */
     public static void processDeniedStatus(List<Lead> leads) {
-        if (!isDeniedStatusProcessing && canStartProcess('DENIED_STATUS')) {
-            isDeniedStatusProcessing = true;
-            LeadDeniedStatusBatch.startBatch(leads);
-            System.debug('LeadProcessingDispatcher: Started DENIED status processing');
-        } else {
-            pendingRequests.add(new ProcessingRequest('DENIED_STATUS', leads));
-            System.debug('LeadProcessingDispatcher: DENIED status processing queued');
-        }
+        // ВРЕМЕННО ОТКЛЮЧЕНО - LeadDeniedStatusBatch
+        System.debug('LeadProcessingDispatcher: DENIED status processing temporarily disabled');
+        
+        // if (!isDeniedStatusProcessing && canStartProcess('DENIED_STATUS')) {
+        //     isDeniedStatusProcessing = true;
+        //     LeadDeniedStatusBatch.startBatch(leads);
+        //     System.debug('LeadProcessingDispatcher: Started DENIED status processing');
+        // } else {
+        //     pendingRequests.add(new ProcessingRequest('DENIED_STATUS', leads));
+        //     System.debug('LeadProcessingDispatcher: DENIED status processing queued');
+        // }
     }
     
     /**
