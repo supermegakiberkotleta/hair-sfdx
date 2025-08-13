@@ -1,0 +1,199 @@
+/* Дополнительные стили для компонента Clear Files */
+
+/* Drag & Drop зона */
+.file-selector__dropzone_drag {
+    background-color: #f3f2f2;
+    border: 2px dashed #dddbda;
+    border-color: #0176d3;
+}
+
+/* Стили для списка файлов */
+.slds-item {
+    border-bottom: 1px solid #dddbda;
+    transition: background-color 0.2s ease;
+}
+
+.slds-item:hover {
+    background-color: #f8f9fa;
+}
+
+/* Стили для ссылок на файлы */
+.slds-text-link {
+    color: #0176d3;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.slds-text-link:hover {
+    color: #014486;
+    text-decoration: underline;
+}
+
+/* Стили для кнопок действий */
+.slds-button-group .slds-button {
+    margin-right: 0.25rem;
+}
+
+.slds-button-group .slds-button:last-child {
+    margin-right: 0;
+}
+
+/* Стили для модального окна */
+.slds-modal__container {
+    max-width: 600px;
+}
+
+/* Стили для списка выбранных файлов */
+.slds-list_dotted .slds-item {
+    border-bottom: none;
+    padding: 0.25rem 0;
+}
+
+/* Стили для иконок файлов */
+.slds-icon {
+    vertical-align: middle;
+}
+
+/* Адаптивные стили для мобильных устройств */
+@media (max-width: 768px) {
+    .slds-grid_align-spread {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .slds-col {
+        margin-bottom: 0.5rem;
+    }
+    
+    .slds-button-group {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .slds-button-group .slds-button {
+        margin-right: 0;
+        margin-bottom: 0.25rem;
+    }
+}
+
+/* Стили для состояния загрузки */
+.slds-is-relative {
+    min-height: 100px;
+}
+
+/* Стили для ошибок */
+.slds-notify_alert {
+    border-radius: 0.25rem;
+}
+
+/* Улучшенные стили для ошибок загрузки */
+.slds-notify_alert .slds-grid {
+    align-items: flex-start;
+}
+
+.slds-notify_alert .slds-text-body_small {
+    line-height: 1.4;
+    word-wrap: break-word;
+    max-width: 100%;
+}
+
+.slds-notify_alert .slds-button_icon {
+    flex-shrink: 0;
+    margin-left: 0.5rem;
+}
+
+/* Стили для многострочных ошибок */
+.slds-notify_alert .slds-text-body_small[style*="white-space: pre-line"] {
+    font-family: monospace;
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    margin-top: 0.5rem;
+}
+
+/* Анимация для ошибок */
+.slds-notify_alert {
+    animation: slideInError 0.3s ease-out;
+}
+
+@keyframes slideInError {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Стили для пустого состояния */
+.slds-text-align_center {
+    padding: 2rem 0;
+}
+
+/* Стили для заголовка карточки */
+.slds-card__header h2 {
+    display: flex;
+    align-items: center;
+}
+
+/* Стили для футера карточки */
+.slds-card__footer {
+    border-top: 1px solid #dddbda;
+    background-color: #f8f9fa;
+}
+
+/* Стили для зоны загрузки файлов */
+.slds-file-selector__dropzone {
+    border: 2px dashed #dddbda;
+    border-radius: 0.25rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.slds-file-selector__dropzone:hover {
+    border-color: #0176d3;
+    background-color: #f8f9fa;
+}
+
+/* Стили для модального окна загрузки */
+.slds-modal__content {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+/* Стили для кнопок в модальном окне */
+.slds-modal__footer .slds-button {
+    min-width: 100px;
+}
+
+/* Стили для кнопки обновления */
+.slds-button[onclick*="refreshFileList"] {
+    transition: all 0.2s ease;
+}
+
+.slds-button[onclick*="refreshFileList"]:hover:not(:disabled) {
+    background-color: #f3f2f2;
+    border-color: #dddbda;
+}
+
+.slds-button[onclick*="refreshFileList"]:active:not(:disabled) {
+    background-color: #e5e5e5;
+    transform: translateY(1px);
+}
+
+/* Анимация для кнопки обновления при нажатии */
+.slds-button[onclick*="refreshFileList"]:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Стили для заголовка с кнопкой обновления */
+.slds-card__header .slds-grid {
+    align-items: center;
+}
+
+.slds-card__header .slds-button_icon {
+    flex-shrink: 0;
+}

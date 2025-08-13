@@ -1,0 +1,56 @@
+.validation-error {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-5px); }
+    75% { transform: translateX(5px); }
+}
+
+.error-notification {
+    border-left: 4px solid #c23934;
+    background-color: #fef7f7;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+    border-radius: 0.25rem;
+}
+
+.button-disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.help-text {
+    font-style: italic;
+    color: #706e6b;
+    margin-top: 0.5rem;
+}
+
+/* Убираем отступ слева у кнопки */
+.slds-m-around_medium {
+    margin: 0.5rem 0.5rem 0.5rem 0;
+}
+
+/* Анимация мигания для подсветки поля */
+@keyframes blink {
+    0%, 50% { 
+        border-color: #c23934;
+        box-shadow: 0 0 0 1px #c23934;
+    }
+    25%, 75% { 
+        border-color: #ff6b6b;
+        box-shadow: 0 0 0 1px #ff6b6b;
+    }
+    100% { 
+        border-color: #c23934;
+        box-shadow: 0 0 0 1px #c23934;
+    }
+}
+
+/* Стили для подсвеченного поля */
+.field-highlighted {
+    border: 2px solid #c23934 !important;
+    background-color: #fef7f7 !important;
+    box-shadow: 0 0 0 1px #c23934 !important;
+}

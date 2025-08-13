@@ -1,7 +1,16 @@
 <template>
     <div class="slds-m-around_medium">
-        <button class="slds-button slds-button_brand" onclick={handleClick}>
+        <!-- Кнопка с проверкой валидации -->
+        <button 
+            class={buttonClass} 
+            onclick={handleClick}
+            disabled={hasValidationError}>
             Send to onloan second
         </button>
+        
+        <!-- Подсказка при ошибке валидации -->
+        <div if:true={hasValidationError} class="help-text slds-m-top_small">
+            Please fill in the "Reason for Send to onloan second" field before proceeding.
+        </div>
     </div>
 </template>
