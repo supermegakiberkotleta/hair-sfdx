@@ -279,4 +279,4 @@ public with sharing class CheckScanDataController {
             throw new AuraHandledException('Error deleting scan data: ' + e.getMessage());
         }
     }
-} 
+}

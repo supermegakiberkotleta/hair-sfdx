@@ -122,4 +122,4 @@ public with sharing class CheckScanController {
             throw new AuraHandledException('Unexpected error: ' + ex.getMessage());
         }
     }
-} 
+}

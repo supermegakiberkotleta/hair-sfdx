@@ -1,0 +1,35 @@
+<template>
+    <div class="sync-section">
+        <div class="sync-row">
+            <button 
+                class="slds-button slds-button_brand" 
+                onclick={handleClick}
+                disabled={isProcessing}
+            >
+                <lightning-icon 
+                    icon-name="utility:sync" 
+                    size="x-small" 
+                    class="slds-m-right_x-small"
+                    if:true={isProcessing}
+                ></lightning-icon>
+                <span if:false={isProcessing}>Backlog Scoring</span>
+                <span if:true={isProcessing}>Processing...</span>
+            </button>
+            
+            <button 
+                class="slds-button slds-button_icon slds-button_icon-border-filled"
+                onclick={openSpreadsheet}
+                title="Open Scoring Spreadsheet"
+            >
+                <lightning-icon 
+                    icon-name="utility:open" 
+                    size="x-small"
+                ></lightning-icon>
+            </button>
+            
+            <span class="sync-time" if:true={lastSyncTime}>
+                Last scoring: {lastSyncTime}
+            </span>
+        </div>
+    </div>
+</template>

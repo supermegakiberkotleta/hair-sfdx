@@ -94,4 +94,4 @@ public with sharing class LicenseScanController {
             throw new AuraHandledException('Unexpected error: ' + ex.getMessage());
         }
     }
-} 
+}

@@ -208,4 +208,4 @@ private class CheckScanDataControllerTest {
         List<Scan_Data__c> checkRecords = [SELECT Id FROM Scan_Data__c WHERE Lead__c = :testLead.Id AND Type__c = 'check'];
         System.assertEquals(1, checkRecords.size(), 'Should have exactly one check record');
     }
-} 
+}

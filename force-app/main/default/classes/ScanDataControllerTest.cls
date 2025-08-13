@@ -178,4 +178,4 @@ private class ScanDataControllerTest {
         List<Scan_Data__c> driveRecords = [SELECT Id FROM Scan_Data__c WHERE Lead__c = :testLead.Id AND Type__c = 'drive'];
         System.assertEquals(1, driveRecords.size(), 'Should have exactly one drive record');
     }
-} 
+}

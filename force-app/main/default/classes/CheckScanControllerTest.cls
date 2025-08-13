@@ -68,4 +68,4 @@ private class CheckScanControllerTest {
             // Expected
         }
     }
-} 
+}
