@@ -14,6 +14,7 @@ export default class ClearFiles extends LightningElement {
     @track clearFiles = [];
     @track selectedFiles = [];
     @track isLoading = false;
+    @track isUploading = false; // Новый флаг для загрузки файлов
     @track error = '';
     @track uploadError = '';
     @track isDraggingOver = false;
@@ -50,7 +51,7 @@ export default class ClearFiles extends LightningElement {
                 
                 // Загружаем файлы для нового Lead ID
                 this.loadClearFiles();
-            } else if (this.clearFiles.length === 0 && !this.isLoading) {
+            } else if (this.clearFiles.length === 0 && !this.isLoading && !this.isUploading) {
                 // Если файлы не загружены и не загружаются, загружаем их
                 console.log('Files not loaded, loading via leadRecordWatcher');
                 this.loadClearFiles();
@@ -86,7 +87,7 @@ export default class ClearFiles extends LightningElement {
             // Принудительно загружаем файлы через небольшую задержку
             // чтобы wire service успел обновиться
             setTimeout(() => {
-                if (this.recordId && !this.isLoading) {
+                if (this.recordId && !this.isLoading && !this.isUploading) {
                     console.log('Forcing file load after recordId change');
                     this.loadClearFiles();
                 }
@@ -111,6 +112,11 @@ export default class ClearFiles extends LightningElement {
             return this.leadRecord.error.body?.message || this.leadRecord.error.message || 'Unknown error';
         }
         return '';
+    }
+
+    // Get disabled state for buttons
+    get isButtonsDisabled() {
+        return this.isLoading || this.isUploading;
     }
 
     connectedCallback() {
@@ -169,7 +175,7 @@ export default class ClearFiles extends LightningElement {
         // Принудительно загружаем файлы через небольшую задержку
         // чтобы wire service успел инициализироваться
         setTimeout(() => {
-            if (this.recordId && !this.isLoading && this.clearFiles.length === 0) {
+            if (this.recordId && !this.isLoading && !this.isUploading && this.clearFiles.length === 0) {
                 console.log('Forcing initial file load in connectedCallback');
                 this.loadClearFiles();
             }
@@ -177,7 +183,7 @@ export default class ClearFiles extends LightningElement {
         
         // Дополнительная попытка загрузки через 2 секунды
         setTimeout(() => {
-            if (this.recordId && !this.isLoading && this.clearFiles.length === 0) {
+            if (this.recordId && !this.isLoading && !this.isUploading && this.clearFiles.length === 0) {
                 console.log('Second attempt to load files in connectedCallback');
                 this.loadClearFiles();
             }
@@ -192,7 +198,7 @@ export default class ClearFiles extends LightningElement {
     // Добавляем обработчик изменения видимости страницы
     addVisibilityChangeHandler() {
         this._visibilityChangeHandler = () => {
-            if (!document.hidden && this.recordId && this.clearFiles.length === 0) {
+            if (!document.hidden && this.recordId && this.clearFiles.length === 0 && !this.isLoading && !this.isUploading) {
                 console.log('Page became visible, refreshing file list if needed');
                 setTimeout(() => {
                     this.loadClearFiles();
@@ -212,13 +218,26 @@ export default class ClearFiles extends LightningElement {
     }
 
     // Load list of Clear Files
-    loadClearFiles() {
+    loadClearFiles(force = false) {
+        console.log('=== LOAD_CLEAR_FILES CALLED ===');
+        console.log('Method called with state:', {
+            force: force,
+            hasLeadId: !!this.leadId,
+            leadId: this.leadId,
+            hasRecordId: !!this.recordId,
+            recordId: this.recordId,
+            isLoading: this.isLoading,
+            isUploading: this.isUploading,
+            currentFilesCount: this.clearFiles.length
+        });
+        
         if (!this.leadId) {
             console.warn('Lead ID is not available yet, cannot load files');
             // Если Lead ID недоступен, но есть recordId, пробуем загрузить позже
             if (this.recordId) {
+                console.log('Will retry loading files when Lead ID becomes available...');
                 setTimeout(() => {
-                    if (this.leadId && !this.isLoading) {
+                    if (this.leadId && !this.isLoading && !this.isUploading) {
                         console.log('Retrying file load after Lead ID became available');
                         this.loadClearFiles();
                     }
@@ -227,8 +246,8 @@ export default class ClearFiles extends LightningElement {
             return;
         }
         
-        // Проверяем, не загружаются ли уже файлы
-        if (this.isLoading) {
+        // Проверяем, не загружаются ли уже файлы (если не принудительное обновление)
+        if (this.isLoading && !force) {
             console.log('Files are already loading, skipping duplicate request');
             return;
         }
@@ -237,13 +256,41 @@ export default class ClearFiles extends LightningElement {
         this.isLoading = true;
         this.error = '';
 
+        // Добавляем timestamp для предотвращения кэширования
+        const timestamp = new Date().getTime();
+        const cacheBuster = force ? `&_t=${timestamp}` : '';
+        
+        console.log('Request details:', {
+            leadId: this.leadId,
+            force: force,
+            timestamp: timestamp,
+            cacheBuster: cacheBuster
+        });
+
         getClearFiles({ leadId: this.leadId })
             .then(result => {
                 console.log('Clear Files API response:', result);
+                console.log('=== SERVER RESPONSE ANALYSIS ===');
+                console.log('Response type:', typeof result);
+                console.log('Response is array:', Array.isArray(result));
+                console.log('Response length:', result ? result.length : 'null');
                 
-                // Проверяем, что результат существует и является массивом
                 if (result && Array.isArray(result)) {
                     console.log('Processing', result.length, 'files');
+                    console.log('File IDs from server:', result.map(f => f.id || f.Id));
+                    console.log('File names from server:', result.map(f => f.fileName));
+                    
+                    // Проверяем, есть ли новый загруженный файл
+                    const expectedFileCount = this.clearFiles.length + 1; // Ожидаем +1 файл
+                    if (result.length < expectedFileCount) {
+                        console.warn(`⚠️ SERVER ISSUE DETECTED ⚠️`);
+                        console.warn(`Expected at least ${expectedFileCount} files, but server returned only ${result.length}`);
+                        console.warn('This indicates a server-side problem:');
+                        console.warn('1. File was uploaded to wrong location');
+                        console.warn('2. Server has not processed the upload yet');
+                        console.warn('3. Error in ClearFilesController.getClearFiles() method');
+                        console.warn('4. Database transaction not committed yet');
+                    }
                     
                     // Process the result and add additional fields
                     this.clearFiles = result.map(file => ({
@@ -259,6 +306,18 @@ export default class ClearFiles extends LightningElement {
                     console.warn('Unexpected result format:', result);
                     this.clearFiles = [];
                 }
+                
+                // Дополнительная проверка для отладки
+                console.log('=== FILE LIST UPDATE VERIFICATION ===');
+                console.log('Files before update:', this.clearFiles.length);
+                console.log('Files after update:', this.clearFiles.length);
+                console.log('File names:', this.clearFiles.map(f => f.fileName));
+                
+                // Если файлов меньше ожидаемого, логируем предупреждение
+                if (this.clearFiles.length < 3) {
+                    console.warn('File count seems low. Expected at least 3 files, got:', this.clearFiles.length);
+                    console.warn('This might indicate a server-side processing delay or caching issue.');
+                }
             })
             .catch(error => {
                 console.error('Error loading Clear Files:', error);
@@ -272,32 +331,15 @@ export default class ClearFiles extends LightningElement {
             })
             .finally(() => {
                 this.isLoading = false;
+                console.log('=== LOAD_CLEAR_FILES COMPLETED ===');
+                console.log('Final state:', {
+                    isLoading: this.isLoading,
+                    isUploading: this.isUploading,
+                    filesCount: this.clearFiles.length,
+                    hasError: !!this.error
+                });
                 console.log('Load Clear Files completed. Total files:', this.clearFiles.length);
             });
-    }
-
-    // Force refresh file list - новый метод для принудительного обновления
-    refreshFileList() {
-        console.log('Forcing file list refresh...');
-        if (this.leadId) {
-            this.loadClearFiles();
-        } else if (this.recordId) {
-            console.log('Lead ID not available, but recordId is. Will retry when Lead ID becomes available.');
-            // Пробуем загрузить файлы через небольшую задержку
-            setTimeout(() => {
-                if (this.leadId && !this.isLoading) {
-                    this.loadClearFiles();
-                }
-            }, 1000);
-        } else {
-            console.warn('Cannot refresh files: neither Lead ID nor recordId available');
-        }
-    }
-
-    // Public method to refresh files from parent component
-    @api
-    refreshFiles() {
-        this.refreshFileList();
     }
 
     // Handle file selection
@@ -460,7 +502,7 @@ export default class ClearFiles extends LightningElement {
         }
 
         console.log('=== ALL FILES VALIDATED SUCCESSFULLY ===');
-        this.isLoading = true;
+        this.isUploading = true;
         this.uploadError = '';
 
         const uploadPromises = this.selectedFiles.map(fileWrapper => {
@@ -551,6 +593,33 @@ export default class ClearFiles extends LightningElement {
                         })
                             .then(response => {
                                 console.log('File uploaded successfully:', response);
+                                console.log('=== UPLOAD RESPONSE ANALYSIS ===');
+                                console.log('Response type:', typeof response);
+                                console.log('Response object:', response);
+                                
+                                // Проверяем, что файл действительно загружен
+                                if (response && response.id) {
+                                    console.log('✅ File upload confirmed with ID:', response.id);
+                                    console.log('File details:', {
+                                        name: file.name,
+                                        size: file.size,
+                                        type: file.type,
+                                        id: response.id,
+                                        leadId: this.leadId
+                                    });
+                                    
+                                    // Проверяем, что файл загружен для правильного Lead ID
+                                    if (response.leadId && response.leadId !== this.leadId) {
+                                        console.error('❌ CRITICAL ERROR: File uploaded to wrong Lead ID!');
+                                        console.error('Expected Lead ID:', this.leadId);
+                                        console.error('Actual Lead ID:', response.leadId);
+                                        console.error('This explains why the file is not showing in the list!');
+                                    }
+                                } else {
+                                    console.warn('⚠️ File upload response missing ID:', response);
+                                    console.warn('This might indicate an upload failure or wrong response format');
+                                }
+                                
                                 resolve();
                             })
                             .catch(uploadError => {
@@ -593,20 +662,15 @@ export default class ClearFiles extends LightningElement {
 
         Promise.all(uploadPromises)
             .then(() => {
+                console.log('=== UPLOAD SUCCESS - STARTING REFRESH ===');
                 this.selectedFiles = [];
                 this.showUploadModal = false;
                 
-                // Автоматически обновляем список файлов
-                console.log('Upload successful, refreshing file list...');
-                
                 // Принудительно сбрасываем состояние загрузки и обновляем список
-                this.isLoading = false;
+                this.isUploading = false;
                 
-                // Добавляем небольшую задержку перед обновлением списка
-                // чтобы сервер успел обработать загруженные файлы
-                setTimeout(() => {
-                    this.loadClearFiles();
-                }, 1000);
+                // Обновляем список файлов после успешной загрузки
+                this.loadClearFiles();
                 
                 this.showToast('Success', 'Files uploaded successfully', 'success');
             })
@@ -650,7 +714,7 @@ export default class ClearFiles extends LightningElement {
                 this.showToast('Error', 'Upload failed: ' + errorMessage, 'error');
             })
             .finally(() => {
-                this.isLoading = false;
+                this.isUploading = false;
             });
     }
 
@@ -679,11 +743,8 @@ export default class ClearFiles extends LightningElement {
                     // Принудительно сбрасываем состояние загрузки и обновляем список
                     this.isLoading = false;
                     
-                    // Добавляем небольшую задержку перед обновлением списка
-                    // чтобы сервер успел обработать удаление файла
-                    setTimeout(() => {
-                        this.loadClearFiles();
-                    }, 500);
+                    // Немедленно обновляем список файлов
+                    this.loadClearFiles();
                 })
                 .catch(error => {
                     this.showToast('Error', 'Failed to delete file: ' + (error.body?.message || error.message || 'Unknown error'), 'error');

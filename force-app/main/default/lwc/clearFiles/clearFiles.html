@@ -11,19 +11,6 @@
                     </span>
                 </template>
             </h2>
-            
-            <!-- Кнопка обновления -->
-            <template if:true={isDataReady}>
-                <div class="slds-m-left_small">
-                    <button class="slds-button slds-button_icon slds-button_icon-border-filled" 
-                            title="Обновить список файлов"
-                            onclick={refreshFileList}
-                            disabled={isLoading}>
-                        <lightning-icon icon-name="utility:refresh" size="small"></lightning-icon>
-                        <span class="slds-assistive-text">Обновить</span>
-                    </button>
-                </div>
-            </template>
         </header>
 
         <!-- Основное содержимое -->
@@ -170,15 +157,6 @@
                             </label>
                         </div>
                     </div>
-                    
-                    <!-- Кнопка обновления -->
-                    <button class="slds-button slds-button_neutral" 
-                            onclick={refreshFileList}
-                            disabled={isLoading}
-                            title="Обновить список файлов">
-                        <lightning-icon icon-name="utility:refresh" size="x-small" class="slds-m-right_x-small"></lightning-icon>
-                        Обновить
-                    </button>
                 </div>
 
                 <!-- Drag & Drop зона -->
@@ -240,6 +218,16 @@
                         </div>
                     </template>
 
+                    <!-- Индикатор загрузки файлов -->
+                    <template if:true={isUploading}>
+                        <div class="slds-is-relative slds-p-around_medium">
+                            <lightning-spinner alternative-text="Загрузка файлов..." size="medium"></lightning-spinner>
+                            <p class="slds-text-align_center slds-text-body_regular slds-text-color_weak slds-m-top_small">
+                                Загрузка файлов на сервер...
+                            </p>
+                        </div>
+                    </template>
+
                     <!-- Ошибки загрузки -->
                     <template if:true={uploadError}>
                         <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error slds-m-top_small">
@@ -266,8 +254,8 @@
                     <button class="slds-button slds-button_neutral" onclick={handleCancelUpload}>Отмена</button>
                     <button class="slds-button slds-button_brand" 
                             onclick={handleUpload}
-                            disabled={isLoading}>
-                        <template if:true={isLoading}>
+                            disabled={isUploading}>
+                        <template if:true={isUploading}>
                             <lightning-spinner alternative-text="Загрузка..." size="small"></lightning-spinner>
                         </template>
                         Загрузить

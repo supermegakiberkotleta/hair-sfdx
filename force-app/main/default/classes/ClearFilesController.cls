@@ -3,7 +3,7 @@ public with sharing class ClearFilesController {
     /**
      * Получение списка файлов Clear Files для лида
      */
-    @AuraEnabled(cacheable=true)
+    @AuraEnabled(cacheable=false)
     public static List<ClearFileWrapper> getClearFiles(String leadId) {
         if (String.isBlank(leadId)) {
             throw new AuraHandledException('LeadId is required');
