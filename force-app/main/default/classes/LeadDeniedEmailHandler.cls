@@ -6,7 +6,7 @@ public class LeadDeniedEmailHandler {
      * @param brokerEmail - email брокера
      * @param closingReason - причина закрытия
      */
-    @future
+    @future(callout=true)
     public static void sendDeniedEmail(Id leadId, String brokerEmail, String closingReason, String firstMailMessageId) {
         // Добавляем логирование в начало метода
         System.debug('=== FUTURE METHOD START ===');
@@ -22,76 +22,57 @@ public class LeadDeniedEmailHandler {
         System.debug('First Mail Message ID: ' + firstMailMessageId);
         
         try {
-            // Создаем email сообщение
-            Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
-            System.debug('Email message created');
-            
-            // Устанавливаем OrgWideEmailAddress
-            Id orgWideEmailId = getOrgWideEmailId('underwriting@loan23.com');
-            if (orgWideEmailId != null) {
-                mail.setOrgWideEmailAddressId(orgWideEmailId);
-                System.debug('OrgWideEmailAddress set: ' + orgWideEmailId);
-            } else {
-                // Fallback если OrgWideEmailAddress не найден
-                mail.setSenderDisplayName('Underwriting Team');
-                mail.setReplyTo('underwriting@loan23.com');
-                System.debug('Fallback sender info set');
-            }
-            
-            // Устанавливаем получателя
-            List<String> toAddresses = new List<String>();
-            if (String.isNotBlank(brokerEmail)) {
-                toAddresses.add(brokerEmail);
-                System.debug('Added broker email to recipients: ' + brokerEmail);
-            } else {
-                System.debug('Broker email is blank or null');
-            }
-            
-            if (toAddresses.isEmpty()) {
-                System.debug('No valid broker email found for lead: ' + leadId);
+            // Получаем данные лида для API запроса
+            List<Lead> leadList = [SELECT Id, Name, Mail_Theme__c FROM Lead WHERE Id = :leadId LIMIT 1];
+            if (leadList.isEmpty()) {
+                System.debug('Lead not found: ' + leadId);
                 return;
             }
             
-            mail.setToAddresses(toAddresses);
-            System.debug('Recipients set: ' + toAddresses);
+            Lead lead = leadList[0];
+            System.debug('Lead data retrieved: ' + lead.Name);
             
-            // Получаем тему письма из лида
-            String mailTheme;
-            try {
-                List<Lead> leadList = [SELECT Mail_Theme__c FROM Lead WHERE Id = :leadId LIMIT 1];
-                if (!leadList.isEmpty()) {
-                    mailTheme = leadList[0].Mail_Theme__c;
-                }
-                System.debug('Mail theme from Lead: ' + mailTheme);
-            } catch (Exception e) {
-                System.debug('Error querying Mail_Theme__c: ' + e.getMessage());
-            }
+            // Формируем тело запроса для API
+            Map<String, Object> requestBody = new Map<String, Object>();
             
-            // Устанавливаем тему и тело письма
-            if (String.isNotBlank(mailTheme)) {
-                mail.setSubject(mailTheme);
+            // leadData
+            Map<String, String> leadData = new Map<String, String>();
+            leadData.put('Id', lead.Id);
+            leadData.put('Name', lead.Name != null ? lead.Name : '');
+            requestBody.put('leadData', leadData);
+            
+            // Остальные параметры
+            requestBody.put('isSalesforce', true);
+            requestBody.put('emailContent', 'Denied, ' + closingReason);
+            requestBody.put('senderName', 'Underwriting Team');
+            
+            System.debug('Request body prepared: ' + JSON.serialize(requestBody));
+            
+            // Создаем HTTP запрос
+            Http http = new Http();
+            HttpRequest request = new HttpRequest();
+            request.setEndpoint('https://lenderpro.ai/api/v1/email/send-reply');
+            request.setMethod('POST');
+            request.setHeader('Content-Type', 'application/json');
+            request.setBody(JSON.serialize(requestBody));
+            
+            System.debug('HTTP request prepared, sending...');
+            
+            // Отправляем запрос
+            HttpResponse response = http.send(request);
+            
+            System.debug('API response received');
+            System.debug('Response status code: ' + response.getStatusCode());
+            System.debug('Response body: ' + response.getBody());
+            
+            // Проверяем успешность запроса
+            if (response.getStatusCode() >= 200 && response.getStatusCode() < 300) {
+                System.debug('Email sent successfully via API!');
+                System.debug('Denied email sent successfully to: ' + brokerEmail + ' for lead: ' + leadId);
             } else {
-                mail.setSubject('Denied');
+                System.debug('API request failed with status: ' + response.getStatusCode());
+                System.debug('Error response: ' + response.getBody());
             }
-            mail.setPlainTextBody('Denied, ' + closingReason);
-            System.debug('Subject and body set');
-            System.debug('Email body: Denied, ' + closingReason);
-            
-            // Если есть ID первого письма, устанавливаем его как In-Reply-To и References
-            if (String.isNotBlank(firstMailMessageId)) {
-                mail.setInReplyTo(firstMailMessageId);
-                mail.setReferences(firstMailMessageId);
-                System.debug('Set as reply to message: ' + firstMailMessageId);
-            } else {
-                System.debug('No first mail message ID provided, sending as new email');
-            }
-            
-            // Отправляем email
-            System.debug('About to send email...');
-            Messaging.sendEmail(new Messaging.SingleEmailMessage[] { mail });
-            System.debug('Email sent successfully!');
-            
-            System.debug('Denied email sent successfully to: ' + brokerEmail + ' for lead: ' + leadId);
             
         } catch (Exception e) {
             System.debug('=== ERROR SENDING EMAIL ===');
@@ -142,24 +123,5 @@ public class LeadDeniedEmailHandler {
         }
         
         System.debug('=== PROCESS LEADS FOR EMAIL END ===');
-    }
-    
-    /**
-     * Получает ID OrgWideEmailAddress по email адресу
-     * @param address - email адрес для поиска
-     * @return ID OrgWideEmailAddress или null, если не найден
-     */
-    public static Id getOrgWideEmailId(String address) {
-        try {
-            for (OrgWideEmailAddress owea : [SELECT Id, Address FROM OrgWideEmailAddress WHERE Address = :address]) {
-                System.debug('Found OrgWideEmailAddress: ' + owea.Id + ' for address: ' + owea.Address);
-                return owea.Id;
-            }
-            System.debug('No OrgWideEmailAddress found for address: ' + address);
-            return null;
-        } catch (Exception e) {
-            System.debug('Error getting OrgWideEmailAddress: ' + e.getMessage());
-            return null;
-        }
     }
 }
