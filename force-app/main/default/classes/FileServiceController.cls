@@ -9,7 +9,7 @@ public with sharing class FileServiceController {
 
         Http http = new Http();
         HttpRequest request = new HttpRequest();
-        request.setEndpoint('https://lenderpro.itprofit.net/api/v1/ocrolus/get-info');
+        request.setEndpoint('https://lenderpro.ai/api/v1/ocrolus/get-info');
         request.setMethod('POST');
 
         // Создаем параметры для тела запроса
