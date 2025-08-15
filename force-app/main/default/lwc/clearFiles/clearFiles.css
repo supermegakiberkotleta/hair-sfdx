@@ -1,199 +1,336 @@
-/* Дополнительные стили для компонента Clear Files */
+/* Clear Files Component - Clean Salesforce Style */
 
-/* Drag & Drop зона */
-.file-selector__dropzone_drag {
-    background-color: #f3f2f2;
-    border: 2px dashed #dddbda;
-    border-color: #0176d3;
+/* Main Container */
+.clear-files-container {
+    border: 1px solid #dddbda;
+    border-radius: 0.25rem;
+    background: #ffffff;
 }
 
-/* Стили для списка файлов */
-.slds-item {
+/* Header Styles */
+.slds-card__header {
+    background: #f3f2f2;
     border-bottom: 1px solid #dddbda;
-    transition: background-color 0.2s ease;
+    padding: 0.75rem 1rem;
 }
 
-.slds-item:hover {
-    background-color: #f8f9fa;
+.slds-card__header h2 {
+    display: flex;
+    align-items: center;
+    color: #080707;
+    font-weight: 400;
+    margin: 0;
+    font-size: 1rem;
 }
 
-/* Стили для ссылок на файлы */
-.slds-text-link {
+.header-icon {
+    color: #706e6b;
+    margin-right: 0.5rem;
+}
+
+/* File List Styles */
+.file-list {
+    margin: 0;
+    border: none;
+}
+
+.file-item {
+    border: none;
+    border-bottom: 1px solid #dddbda;
+    padding: 0.75rem 0;
+    transition: background-color 0.15s ease;
+    margin: 0;
+}
+
+.file-item:hover {
+    background-color: #f3f2f2;
+}
+
+.file-item:last-child {
+    border-bottom: none;
+}
+
+/* File Icon Container */
+.file-icon-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    background: #f3f2f2;
+    border-radius: 0.25rem;
+    margin-right: 0.75rem;
+}
+
+.file-icon {
+    color: #706e6b;
+}
+
+/* File Info Container */
+.file-info-container {
+    flex: 1;
+    min-width: 0;
+}
+
+.file-name-container {
+    margin-bottom: 0.25rem;
+}
+
+.file-link {
     color: #0176d3;
     text-decoration: none;
-    transition: color 0.2s ease;
+    font-weight: 400;
+    transition: color 0.15s ease;
+    display: block;
+    padding: 0.125rem 0;
 }
 
-.slds-text-link:hover {
+.file-link:hover {
     color: #014486;
     text-decoration: underline;
 }
 
-/* Стили для кнопок действий */
-.slds-button-group .slds-button {
-    margin-right: 0.25rem;
-}
-
-.slds-button-group .slds-button:last-child {
-    margin-right: 0;
-}
-
-/* Стили для модального окна */
-.slds-modal__container {
-    max-width: 600px;
-}
-
-/* Стили для списка выбранных файлов */
-.slds-list_dotted .slds-item {
-    border-bottom: none;
-    padding: 0.25rem 0;
-}
-
-/* Стили для иконок файлов */
-.slds-icon {
-    vertical-align: middle;
-}
-
-/* Адаптивные стили для мобильных устройств */
-@media (max-width: 768px) {
-    .slds-grid_align-spread {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    .slds-col {
-        margin-bottom: 0.5rem;
-    }
-    
-    .slds-button-group {
-        display: flex;
-        flex-direction: column;
-    }
-    
-    .slds-button-group .slds-button {
-        margin-right: 0;
-        margin-bottom: 0.25rem;
-    }
-}
-
-/* Стили для состояния загрузки */
-.slds-is-relative {
-    min-height: 100px;
-}
-
-/* Стили для ошибок */
-.slds-notify_alert {
-    border-radius: 0.25rem;
-}
-
-/* Улучшенные стили для ошибок загрузки */
-.slds-notify_alert .slds-grid {
-    align-items: flex-start;
-}
-
-.slds-notify_alert .slds-text-body_small {
-    line-height: 1.4;
-    word-wrap: break-word;
-    max-width: 100%;
-}
-
-.slds-notify_alert .slds-button_icon {
-    flex-shrink: 0;
-    margin-left: 0.5rem;
-}
-
-/* Стили для многострочных ошибок */
-.slds-notify_alert .slds-text-body_small[style*="white-space: pre-line"] {
-    font-family: monospace;
-    background-color: rgba(255, 255, 255, 0.1);
-    padding: 0.5rem;
-    border-radius: 0.25rem;
-    margin-top: 0.5rem;
-}
-
-/* Анимация для ошибок */
-.slds-notify_alert {
-    animation: slideInError 0.3s ease-out;
-}
-
-@keyframes slideInError {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* Стили для пустого состояния */
-.slds-text-align_center {
-    padding: 2rem 0;
-}
-
-/* Стили для заголовка карточки */
-.slds-card__header h2 {
+/* File Details */
+.file-details {
     display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #706e6b;
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
+.file-size, .file-date {
+    color: #706e6b;
+    font-size: 0.75rem;
+    font-weight: 400;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 0.25rem;
     align-items: center;
 }
 
-/* Стили для футера карточки */
-.slds-card__footer {
-    border-top: 1px solid #dddbda;
-    background-color: #f8f9fa;
+.action-button {
+    border-radius: 0.25rem;
+    transition: background-color 0.15s ease;
+    border: 1px solid #dddbda;
 }
 
-/* Стили для зоны загрузки файлов */
-.slds-file-selector__dropzone {
+.action-button:hover {
+    background-color: #f3f2f2;
+}
+
+.download-btn {
+    background: #ffffff;
+    border-color: #dddbda;
+    color: #706e6b;
+}
+
+.download-btn:hover {
+    background-color: #f3f2f2;
+    border-color: #c9c7c5;
+}
+
+.delete-btn {
+    background: #ffffff;
+    border-color: #dddbda;
+    color: #706e6b;
+}
+
+.delete-btn:hover {
+    background-color: #f3f2f2;
+    border-color: #c9c7c5;
+}
+
+/* Empty State */
+.empty-state {
+    padding: 2rem 1rem;
+    text-align: center;
+    background: #f8f9fa;
+    border-radius: 0.25rem;
+    margin: 1rem 0;
+}
+
+.empty-icon {
+    color: #c9c7c5;
+    margin-bottom: 0.75rem;
+}
+
+.empty-text {
+    color: #706e6b;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* Upload Section */
+.upload-section {
+    background: #f8f9fa;
+    border-top: 1px solid #dddbda;
+    padding: 0.75rem 1rem;
+}
+
+.upload-btn {
+    background: #0176d3;
+    border: 1px solid #0176d3;
+    color: white;
+    font-weight: 400;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.15s ease;
+}
+
+.upload-btn:hover {
+    background: #014486;
+    border-color: #014486;
+}
+
+/* Drag & Drop Zone */
+.drag-drop-zone {
     border: 2px dashed #dddbda;
     border-radius: 0.25rem;
-    transition: all 0.2s ease;
+    transition: border-color 0.15s ease;
     cursor: pointer;
+    background: #ffffff;
+    padding: 1rem 1.5rem;
 }
 
-.slds-file-selector__dropzone:hover {
+.drag-drop-zone:hover {
     border-color: #0176d3;
     background-color: #f8f9fa;
 }
 
-/* Стили для модального окна загрузки */
-.slds-modal__content {
+.file-selector__dropzone_drag {
+    border-color: #0176d3;
+    background-color: #f0f8ff;
+}
+
+.drag-icon {
+    color: #706e6b;
+    margin-bottom: 0.5rem;
+}
+
+.drag-text {
+    color: #706e6b;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+/* Loading States */
+.loading-container, .loading-footer {
+    min-height: 100px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+    border-radius: 0.25rem;
+    margin: 1rem 0;
+}
+
+/* Error Alerts */
+.error-alert {
+    border-radius: 0.25rem;
+    border: 1px solid #c23934;
+    background-color: #fef7f7;
+    color: #c23934;
+}
+
+/* Upload Modal */
+.upload-modal .slds-modal__container {
+    max-width: 600px;
+}
+
+.upload-modal .slds-modal__header {
+    background: #f3f2f2;
+    border-bottom: 1px solid #dddbda;
+}
+
+.upload-modal .slds-modal__content {
     max-height: 400px;
     overflow-y: auto;
+    padding: 1rem;
 }
 
-/* Стили для кнопок в модальном окне */
-.slds-modal__footer .slds-button {
-    min-width: 100px;
+.upload-modal .slds-modal__footer {
+    background: #f8f9fa;
+    border-top: 1px solid #dddbda;
+    padding: 0.75rem 1rem;
 }
 
-/* Стили для кнопки обновления */
-.slds-button[onclick*="refreshFileList"] {
-    transition: all 0.2s ease;
+/* Selected Files List */
+.selected-files-list {
+    background: #f8f9fa;
+    border-radius: 0.25rem;
+    padding: 0.75rem;
+    margin: 0;
 }
 
-.slds-button[onclick*="refreshFileList"]:hover:not(:disabled) {
-    background-color: #f3f2f2;
-    border-color: #dddbda;
+.selected-file-item {
+    border: none;
+    padding: 0.375rem 0;
+    border-bottom: 1px solid #e5e5e5;
 }
 
-.slds-button[onclick*="refreshFileList"]:active:not(:disabled) {
-    background-color: #e5e5e5;
-    transform: translateY(1px);
+.selected-file-item:last-child {
+    border-bottom: none;
 }
 
-/* Анимация для кнопки обновления при нажатии */
-.slds-button[onclick*="refreshFileList"]:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
+/* Upload Progress */
+.upload-progress {
+    background: #f0f8f0;
+    border-radius: 0.25rem;
+    border: 1px solid #c3e6cb;
 }
 
-/* Стили для заголовка с кнопкой обновления */
-.slds-card__header .slds-grid {
-    align-items: center;
+/* Upload Error */
+.upload-error {
+    background: #fef7f7;
+    border: 1px solid #f5c6cb;
 }
 
-.slds-card__header .slds-button_icon {
-    flex-shrink: 0;
+/* Responsive Design */
+@media (max-width: 768px) {
+    .clear-files-container {
+        margin: 0.25rem;
+    }
+    
+    .slds-card__header {
+        padding: 0.5rem;
+    }
+    
+    .upload-section {
+        padding: 0.5rem;
+    }
+    
+    .drag-drop-zone {
+        padding: 0.75rem 1rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+        gap: 0.125rem;
+    }
+    
+    .file-details {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+}
+
+/* Accessibility Improvements */
+.slds-button:focus,
+.slds-button:focus-visible {
+    outline: 2px solid #0176d3;
+    outline-offset: 2px;
+}
+
+.file-link:focus,
+.file-link:focus-visible {
+    outline: 2px solid #0176d3;
+    outline-offset: 2px;
+    border-radius: 0.125rem;
 }

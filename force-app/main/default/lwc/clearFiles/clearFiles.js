@@ -14,7 +14,7 @@ export default class ClearFiles extends LightningElement {
     @track clearFiles = [];
     @track selectedFiles = [];
     @track isLoading = false;
-    @track isUploading = false; // Новый флаг для загрузки файлов
+    @track isUploading = false; // New flag for file uploads
     @track error = '';
     @track uploadError = '';
     @track isDraggingOver = false;
@@ -28,7 +28,7 @@ export default class ClearFiles extends LightningElement {
     @wire(getRecord, { recordId: '$recordId', fields: [LEAD_ID_FIELD] })
     leadRecord;
 
-    // Watcher for leadRecord changes - основной триггер загрузки файлов
+    // Watcher for leadRecord changes - main trigger for file loading
     get leadRecordWatcher() {
         console.log('leadRecordWatcher triggered:', {
             hasData: !!this.leadRecord.data,
@@ -40,19 +40,19 @@ export default class ClearFiles extends LightningElement {
         });
         
         if (this.leadRecord.data && this.leadId) {
-            // Проверяем, изменился ли leadId
+            // Check if leadId has changed
             if (this.leadId !== this._lastLeadId) {
                 console.log('Lead ID changed from', this._lastLeadId, 'to', this.leadId);
                 this._lastLeadId = this.leadId;
                 
-                // Сбрасываем файлы при изменении Lead ID
+                // Reset files when Lead ID changes
                 this.clearFiles = [];
                 this.error = '';
                 
-                // Загружаем файлы для нового Lead ID
+                // Load files for new Lead ID
                 this.loadClearFiles();
             } else if (this.clearFiles.length === 0 && !this.isLoading && !this.isUploading) {
-                // Если файлы не загружены и не загружаются, загружаем их
+                // If files are not loaded and not loading, load them
                 console.log('Files not loaded, loading via leadRecordWatcher');
                 this.loadClearFiles();
             }
@@ -61,7 +61,7 @@ export default class ClearFiles extends LightningElement {
             this.error = 'Error loading Lead data: ' + (this.leadRecord.error.body?.message || this.leadRecord.error.message || 'Unknown error');
         }
         
-        // Возвращаем значение для реактивности
+        // Return value for reactivity
         return this.leadRecord.data;
     }
 
@@ -76,16 +76,16 @@ export default class ClearFiles extends LightningElement {
             console.log('RecordId changed from', this._lastRecordId, 'to', this.recordId);
             this._lastRecordId = this.recordId;
             
-            // Сбрасываем состояние при изменении recordId
+            // Reset state when recordId changes
             this.clearFiles = [];
             this.selectedFiles = [];
             this.error = '';
             this.uploadError = '';
             this.showUploadModal = false;
-            this._lastLeadId = null; // Сбрасываем Lead ID для перезагрузки
+            this._lastLeadId = null; // Reset Lead ID for reload
             
-            // Принудительно загружаем файлы через небольшую задержку
-            // чтобы wire service успел обновиться
+            // Force load files with a small delay
+            // so wire service has time to update
             setTimeout(() => {
                 if (this.recordId && !this.isLoading && !this.isUploading) {
                     console.log('Forcing file load after recordId change');
@@ -154,13 +154,13 @@ export default class ClearFiles extends LightningElement {
         
         console.log('File API support verified successfully');
         
-        // Проверяем, есть ли уже recordId при инициализации
+        // Check if recordId is already available on init
         if (this.recordId) {
             console.log('RecordId available on init, will load files when leadRecord is ready');
             this._lastRecordId = this.recordId;
             
-            // Если recordId уже доступен, пробуем загрузить файлы немедленно
-            // (это может произойти при перезагрузке страницы)
+            // If recordId is already available, try to load files immediately
+            // (this can happen when page is reloaded)
             if (this.leadId) {
                 console.log('Lead ID also available on init, loading files immediately');
                 setTimeout(() => {
@@ -172,8 +172,8 @@ export default class ClearFiles extends LightningElement {
         // Добавляем обработчик для обновления при изменении видимости
         this.addVisibilityChangeHandler();
         
-        // Принудительно загружаем файлы через небольшую задержку
-        // чтобы wire service успел инициализироваться
+        // Force load files with a small delay
+        // so wire service has time to initialize
         setTimeout(() => {
             if (this.recordId && !this.isLoading && !this.isUploading && this.clearFiles.length === 0) {
                 console.log('Forcing initial file load in connectedCallback');
@@ -181,7 +181,7 @@ export default class ClearFiles extends LightningElement {
             }
         }, 1000);
         
-        // Дополнительная попытка загрузки через 2 секунды
+        // Additional attempt to load files after 2 seconds
         setTimeout(() => {
             if (this.recordId && !this.isLoading && !this.isUploading && this.clearFiles.length === 0) {
                 console.log('Second attempt to load files in connectedCallback');
@@ -191,11 +191,11 @@ export default class ClearFiles extends LightningElement {
     }
 
     disconnectedCallback() {
-        // Удаляем обработчик при уничтожении компонента
+        // Remove handler when component is destroyed
         this.removeVisibilityChangeHandler();
     }
 
-    // Добавляем обработчик изменения видимости страницы
+    // Add page visibility change handler
     addVisibilityChangeHandler() {
         this._visibilityChangeHandler = () => {
             if (!document.hidden && this.recordId && this.clearFiles.length === 0 && !this.isLoading && !this.isUploading) {
@@ -209,7 +209,7 @@ export default class ClearFiles extends LightningElement {
         document.addEventListener('visibilitychange', this._visibilityChangeHandler);
     }
 
-    // Удаляем обработчик изменения видимости
+    // Remove visibility change handler
     removeVisibilityChangeHandler() {
         if (this._visibilityChangeHandler) {
             document.removeEventListener('visibilitychange', this._visibilityChangeHandler);
@@ -233,7 +233,7 @@ export default class ClearFiles extends LightningElement {
         
         if (!this.leadId) {
             console.warn('Lead ID is not available yet, cannot load files');
-            // Если Lead ID недоступен, но есть recordId, пробуем загрузить позже
+            // If Lead ID is not available but recordId exists, try to load later
             if (this.recordId) {
                 console.log('Will retry loading files when Lead ID becomes available...');
                 setTimeout(() => {
@@ -246,7 +246,7 @@ export default class ClearFiles extends LightningElement {
             return;
         }
         
-        // Проверяем, не загружаются ли уже файлы (если не принудительное обновление)
+        // Check if files are already loading (if not forced refresh)
         if (this.isLoading && !force) {
             console.log('Files are already loading, skipping duplicate request');
             return;
@@ -1022,7 +1022,7 @@ export default class ClearFiles extends LightningElement {
                 return String(dateValue);
             }
             
-            return date.toLocaleDateString('ru-RU', {
+            return date.toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',
                 day: 'numeric',

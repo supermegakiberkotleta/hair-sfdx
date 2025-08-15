@@ -1,93 +1,91 @@
 <template>
-    <div class="slds-card">
-        <!-- Заголовок карточки -->
+    <div class="slds-card clear-files-container">
+        <!-- Card Header -->
         <header class="slds-card__header slds-grid slds-grid_align-spread slds-wrap">
             <h2 class="slds-text-heading_small slds-m-bottom_x-small">
-                <lightning-icon icon-name="utility:file" size="small" class="slds-m-right_x-small"></lightning-icon>
+                <lightning-icon icon-name="utility:file" size="small" class="slds-m-right_x-small header-icon"></lightning-icon>
                 Clear Files
                 <template if:true={clearFiles.length}>
                     <span class="slds-text-body_small slds-text-color_weak slds-m-left_small">
-                        ({clearFiles.length} файлов)
+                        ({clearFiles.length} files)
                     </span>
                 </template>
             </h2>
         </header>
 
-        <!-- Основное содержимое -->
+        <!-- Main Content -->
         <section class="slds-card__body slds-p-around_medium">
-            <!-- Ошибки File API -->
+            <!-- File API Errors -->
             <template if:true={error}>
-                <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error slds-m-bottom_medium">
+                <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error slds-m-bottom_medium error-alert">
                     <span class="slds-assistive-text">error</span>
                     <lightning-icon icon-name="utility:error" size="small" class="slds-m-right_x-small"></lightning-icon>
                     <h2>{error}</h2>
                 </div>
             </template>
             
-            <!-- Индикатор загрузки -->
+            <!-- Loading Indicator -->
             <template if:true={isLoading}>
-                <div class="slds-is-relative slds-p-around_medium">
-                    <lightning-spinner alternative-text="Загрузка..."></lightning-spinner>
+                <div class="slds-is-relative slds-p-around_medium loading-container">
+                    <lightning-spinner alternative-text="Loading..."></lightning-spinner>
                 </div>
             </template>
 
-            <!-- Список файлов -->
+            <!-- File List -->
             <template if:true={clearFiles.length}>
-                <div class="slds-list_divided">
+                <div class="slds-list_divided file-list">
                     <template for:each={clearFiles} for:item="file">
-                        <div class="slds-item slds-p-vertical_small" key={file.id}>
+                        <div class="slds-item slds-p-vertical_small file-item" key={file.id}>
                             <div class="slds-grid slds-grid_align-spread slds-wrap">
-                                <!-- Иконка и название файла -->
+                                <!-- File Icon and Name -->
                                 <div class="slds-col slds-size_1-of-2 slds-medium-size_3-of-6 slds-large-size_4-of-8">
                                     <div class="slds-grid slds-grid_align-center slds-wrap">
-                                        <div class="slds-m-right_small">
+                                        <div class="slds-m-right_small file-icon-container">
                                             <lightning-icon 
                                                 icon-name={file.fileIcon} 
                                                 size="medium" 
-                                                class="slds-text-color_default">
+                                                class="slds-text-color_default file-icon">
                                             </lightning-icon>
                                         </div>
-                                        <div class="slds-truncate" title={file.fileName}>
-                                            <a href="#" 
-                                               onclick={handlePreviewFile} 
-                                               data-file-id={file.id}
-                                               class="slds-text-link">
-                                                {file.fileName}
-                                            </a>
+                                        <div class="file-info-container">
+                                            <div class="slds-truncate file-name-container" title={file.fileName}>
+                                                <a href="#" 
+                                                   onclick={handlePreviewFile} 
+                                                   data-file-id={file.id}
+                                                   class="slds-text-link file-link">
+                                                    {file.fileName}
+                                                </a>
+                                            </div>
+                                            <div class="file-details">
+                                                <span class="slds-text-body_small slds-text-color_weak file-size">
+                                                    {file.fileSize}
+                                                </span>
+                                                <span class="slds-text-body_small slds-text-color_weak file-date">
+                                                    • {file.uploadDate}
+                                                </span>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Размер файла -->
-                                <div class="slds-col slds-size_1-of-4 slds-medium-size_1-of-6 slds-large-size_1-of-8">
-                                    <span class="slds-text-body_small slds-text-color_weak">
-                                        {file.fileSize}
-                                    </span>
-                                </div>
-
-                                <!-- Дата загрузки -->
-                                <div class="slds-col slds-size_1-of-4 slds-medium-size_1-of-6 slds-large-size_1-of-8">
-                                    <span class="slds-text-body_small slds-text-color_weak">
-                                        {file.uploadDate}
-                                    </span>
-                                </div>
-
-                                <!-- Действия -->
-                                <div class="slds-col slds-size_1-of-4 slds-medium-size_1-of-6 slds-large-size_1-of-8">
-                                    <div class="slds-button-group">
-                                        <button class="slds-button slds-button_icon slds-button_icon-border-filled slds-button_icon-x-small" 
-                                                title="Скачать файл"
-                                                onclick={handleDownloadFile}
-                                                data-file-id={file.id}>
-                                            <lightning-icon icon-name="utility:download" size="x-small"></lightning-icon>
-                                        </button>
-                                        <button class="slds-button slds-button_icon slds-button_icon-border-filled slds-button_icon-x-small" 
-                                                title="Удалить файл"
-                                                onclick={handleDeleteFile}
-                                                data-file-id={file.id}
-                                                data-file-name={file.fileName}>
-                                            <lightning-icon icon-name="utility:delete" size="x-small"></lightning-icon>
-                                        </button>
+                                <!-- Actions -->
+                                <div class="slds-col slds-size_1-of-2 slds-medium-size_3-of-6 slds-large-size_4-of-8">
+                                    <div class="slds-grid slds-grid_align-end">
+                                        <div class="slds-button-group action-buttons">
+                                            <button class="slds-button slds-button_icon slds-button_icon-border-filled slds-button_icon-x-small action-button download-btn" 
+                                                    title="Download file"
+                                                    onclick={handleDownloadFile}
+                                                    data-file-id={file.id}>
+                                                <lightning-icon icon-name="utility:download" size="x-small"></lightning-icon>
+                                            </button>
+                                            <button class="slds-button slds-button_icon slds-button_icon-border-filled slds-button_icon-x-small action-button delete-btn" 
+                                                    title="Delete file"
+                                                    onclick={handleDeleteFile}
+                                                    data-file-id={file.id}
+                                                    data-file-name={file.fileName}>
+                                                <lightning-icon icon-name="utility:delete" size="x-small"></lightning-icon>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -96,31 +94,31 @@
                 </div>
             </template>
 
-            <!-- Сообщение об отсутствии файлов -->
+            <!-- No Files Message -->
             <template if:false={clearFiles.length}>
                 <template if:false={isLoading}>
-                    <div class="slds-text-align_center slds-p-vertical_large">
-                        <lightning-icon icon-name="utility:file" size="large" class="slds-m-bottom_small slds-text-color_weak"></lightning-icon>
-                        <p class="slds-text-body_regular slds-text-color_weak">
+                    <div class="slds-text-align_center slds-p-vertical_large empty-state">
+                        <lightning-icon icon-name="utility:file" size="large" class="slds-m-bottom_small slds-text-color_weak empty-icon"></lightning-icon>
+                        <p class="slds-text-body_regular slds-text-color_weak empty-text">
                             <template if:true={isDataReady}>
                                 <template if:true={recordId}>
-                                    Файлы не найдены
+                                    No files found
                                 </template>
                                 <template if:false={recordId}>
-                                    Загрузка данных...
+                                    Loading data...
                                 </template>
                             </template>
                             <template if:false={isDataReady}>
-                                Загрузка данных...
+                                Loading data...
                             </template>
                         </p>
                     </div>
                 </template>
             </template>
 
-            <!-- Ошибки -->
+            <!-- Errors -->
             <template if:true={error}>
-                <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error slds-m-top_small">
+                <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error slds-m-top_small error-alert">
                     <span class="slds-assistive-text">error</span>
                     <lightning-icon icon-name="utility:error" size="small" class="slds-m-right_x-small"></lightning-icon>
                     <h2>{error}</h2>
@@ -129,7 +127,7 @@
 
             <!-- Wire Service Errors -->
             <template if:true={wireError}>
-                <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error slds-m-top_small">
+                <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error slds-m-top_small error-alert">
                     <span class="slds-assistive-text">error</span>
                     <lightning-icon icon-name="utility:error" size="small" class="slds-m-right_x-small"></lightning-icon>
                     <h2>Error loading lead data: {wireErrorMessage}</h2>
@@ -137,17 +135,17 @@
             </template>
         </section>
 
-        <!-- Футер с кнопкой загрузки -->
-        <footer class="slds-card__footer">
+        <!-- Footer with Upload Button -->
+        <footer class="slds-card__footer upload-section">
             <template if:true={isDataReady}>
                 <div class="slds-grid slds-grid_align-center slds-wrap">
-                    <!-- Кнопка загрузки файлов -->
+                    <!-- File Upload Button -->
                     <div class="slds-file-selector slds-file-selector_files slds-m-right_small">
                         <div class="slds-file-selector__body">
                             <label class="slds-file-selector__label">
-                                <span class="slds-button slds-button_neutral">
+                                <span class="slds-button slds-button_neutral upload-btn">
                                     <lightning-icon icon-name="utility:upload" size="x-small" class="slds-m-right_x-small"></lightning-icon>
-                                    Выберите файлы
+                                    Select Files
                                 </span>
                                 <input type="file" 
                                        class="slds-assistive-text" 
@@ -157,19 +155,17 @@
                             </label>
                         </div>
                     </div>
-                </div>
 
-                <!-- Drag & Drop зона -->
-                <div class="slds-m-top_small">
+                    <!-- Drag & Drop Zone -->
                     <div class="slds-file-selector slds-file-selector_files">
                         <div class="slds-file-selector__body">
-                            <div class="slds-file-selector__dropzone slds-text-align_center slds-p-vertical_medium"
+                            <div class="slds-file-selector__dropzone slds-text-align_center slds-p-vertical_medium drag-drop-zone"
                                  class:file-selector__dropzone_drag={isDraggingOver}
                                  ondragover={handleDragOver}
                                  ondragleave={handleDragLeave}
                                  ondrop={handleDrop}>
-                                <lightning-icon icon-name="utility:upload" size="medium" class="slds-m-bottom_small slds-text-color_weak"></lightning-icon>
-                                <p class="slds-text-body_regular slds-text-color_weak">Или перетащите файлы сюда</p>
+                                <lightning-icon icon-name="utility:upload" size="medium" class="slds-m-bottom_small slds-text-color_weak drag-icon"></lightning-icon>
+                                <p class="slds-text-body_regular slds-text-color_weak drag-text">Or drag files here</p>
                             </div>
                         </div>
                     </div>
@@ -177,37 +173,37 @@
             </template>
 
             <template if:false={isDataReady}>
-                <div class="slds-text-align_center slds-p-vertical_medium">
-                    <lightning-spinner alternative-text="Загрузка данных..." size="small"></lightning-spinner>
-                    <p class="slds-text-body_regular slds-text-color_weak">Загрузка данных...</p>
+                <div class="slds-text-align_center slds-p-vertical_medium loading-footer">
+                    <lightning-spinner alternative-text="Loading data..." size="small"></lightning-spinner>
+                    <p class="slds-text-body_regular slds-text-color_weak">Loading data...</p>
                 </div>
             </template>
         </footer>
     </div>
 
-    <!-- Модальное окно загрузки -->
+    <!-- Upload Modal -->
     <template if:true={showUploadModal}>
-        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open">
+        <section role="dialog" tabindex="-1" class="slds-modal slds-fade-in-open upload-modal">
             <div class="slds-modal__container">
-                <!-- Заголовок модального окна -->
+                <!-- Modal Header -->
                 <header class="slds-modal__header">
                     <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" 
-                            title="Закрыть"
+                            title="Close"
                             onclick={handleCloseUploadModal}>
                         <lightning-icon icon-name="utility:close" size="small"></lightning-icon>
-                        <span class="slds-assistive-text">Закрыть</span>
+                        <span class="slds-assistive-text">Close</span>
                     </button>
-                    <h2 class="slds-text-heading_medium slds-hyphenate">Загрузка файлов</h2>
+                    <h2 class="slds-text-heading_medium slds-hyphenate">File Upload</h2>
                 </header>
 
-                <!-- Содержимое модального окна -->
+                <!-- Modal Content -->
                 <div class="slds-modal__content slds-p-around_medium">
                     <template if:true={selectedFiles.length}>
                         <div class="slds-m-bottom_medium">
-                            <h3 class="slds-text-heading_small slds-m-bottom_small">Выбранные файлы:</h3>
-                            <ul class="slds-list_dotted">
+                            <h3 class="slds-text-heading_small slds-m-bottom_small">Selected Files:</h3>
+                            <ul class="slds-list_dotted selected-files-list">
                                 <template for:each={selectedFiles} for:item="file">
-                                    <li key={file.name} class="slds-item">
+                                    <li key={file.name} class="slds-item selected-file-item">
                                         <span class="slds-m-right_small">{file.name}</span>
                                         <span class="slds-text-body_small slds-text-color_weak">
                                             ({file.formattedSize})
@@ -218,47 +214,47 @@
                         </div>
                     </template>
 
-                    <!-- Индикатор загрузки файлов -->
+                    <!-- File Upload Progress -->
                     <template if:true={isUploading}>
-                        <div class="slds-is-relative slds-p-around_medium">
-                            <lightning-spinner alternative-text="Загрузка файлов..." size="medium"></lightning-spinner>
+                        <div class="slds-is-relative slds-p-around_medium upload-progress">
+                            <lightning-spinner alternative-text="Uploading files..." size="medium"></lightning-spinner>
                             <p class="slds-text-align_center slds-text-body_regular slds-text-color_weak slds-m-top_small">
-                                Загрузка файлов на сервер...
+                                Uploading files to server...
                             </p>
                         </div>
                     </template>
 
-                    <!-- Ошибки загрузки -->
+                    <!-- Upload Errors -->
                     <template if:true={uploadError}>
-                        <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error slds-m-top_small">
+                        <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error slds-m-top_small upload-error">
                             <span class="slds-assistive-text">error</span>
                             <div class="slds-grid slds-grid_align-spread">
                                 <div class="slds-col">
                                     <lightning-icon icon-name="utility:error" size="small" class="slds-m-right_x-small"></lightning-icon>
-                                    <h2 class="slds-text-heading_small slds-m-bottom_x-small">Ошибка загрузки</h2>
+                                    <h2 class="slds-text-heading_small slds-m-bottom_x-small">Upload Error</h2>
                                     <div class="slds-text-body_small" style="white-space: pre-line;">{uploadError}</div>
                                 </div>
                                 <button class="slds-button slds-button_icon slds-button_icon-inverse" 
-                                        title="Закрыть ошибку"
+                                        title="Close error"
                                         onclick={handleCloseUploadError}>
                                     <lightning-icon icon-name="utility:close" size="x-small"></lightning-icon>
-                                    <span class="slds-assistive-text">Закрыть ошибку</span>
+                                    <span class="slds-assistive-text">Close error</span>
                                 </button>
                             </div>
                         </div>
                     </template>
                 </div>
 
-                <!-- Футер модального окна -->
+                <!-- Modal Footer -->
                 <footer class="slds-modal__footer">
-                    <button class="slds-button slds-button_neutral" onclick={handleCancelUpload}>Отмена</button>
+                    <button class="slds-button slds-button_neutral" onclick={handleCancelUpload}>Cancel</button>
                     <button class="slds-button slds-button_brand" 
                             onclick={handleUpload}
                             disabled={isUploading}>
                         <template if:true={isUploading}>
-                            <lightning-spinner alternative-text="Загрузка..." size="small"></lightning-spinner>
+                            <lightning-spinner alternative-text="Uploading..." size="small"></lightning-spinner>
                         </template>
-                        Загрузить
+                        Upload
                     </button>
                 </footer>
             </div>
