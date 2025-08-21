@@ -17,6 +17,7 @@ public class LeadDeniedStatusConfigTest {
         System.assert(values.contains('Black list'), 'Should contain Black list value');
         System.assert(values.contains('Unacceptable Banks'), 'Should contain Unacceptable Banks value');
         System.assert(values.contains('Must be Business/Commercial Checking Account'), 'Should contain Must be Business/Commercial Checking Account value');
+        System.assert(values.contains('No statement'), 'Should contain No statement value');
     }
     
     @isTest
@@ -91,8 +92,8 @@ public class LeadDeniedStatusConfigTest {
         // Проверяем, что есть хотя бы одно правило
         System.assert(rulesCount > 0, 'Should have at least one rule');
         
-        // Проверяем, что количество правил соответствует ожидаемому (3 для ClosingReasonNew__c)
-        System.assertEquals(3, rulesCount, 'Should have exactly 3 rules for ClosingReasonNew__c');
+        // Проверяем, что количество правил соответствует ожидаемому (4 для ClosingReasonNew__c)
+        System.assertEquals(4, rulesCount, 'Should have exactly 4 rules for ClosingReasonNew__c');
     }
     
     @isTest
@@ -104,9 +105,10 @@ public class LeadDeniedStatusConfigTest {
         System.assert(values.contains('Black list'), 'Should contain Black list value');
         System.assert(values.contains('Unacceptable Banks'), 'Should contain Unacceptable Banks value');
         System.assert(values.contains('Must be Business/Commercial Checking Account'), 'Should contain Must be Business/Commercial Checking Account value');
+        System.assert(values.contains('No statement'), 'Should contain No statement value');
         
         // Проверяем размер списка
-        System.assertEquals(3, values.size(), 'Should have exactly 3 values');
+        System.assertEquals(4, values.size(), 'Should have exactly 4 values');
         
         // Тестируем получение значений для несуществующего поля
         List<String> emptyValues = LeadDeniedStatusConfig.getFieldValues('NonExistentField');
@@ -134,7 +136,8 @@ public class LeadDeniedStatusConfigTest {
         List<String> testValues = new List<String>{
             'Black list',
             'Unacceptable Banks',
-            'Must be Business/Commercial Checking Account'
+            'Must be Business/Commercial Checking Account',
+            'No statement'
         };
         
         for (String value : testValues) {

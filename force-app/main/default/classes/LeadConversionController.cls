@@ -10,7 +10,8 @@ public with sharing class LeadConversionController {
                 SELECT Id, Status, RecordTypeId, Final_Daily_payment__c, 
                        Final_purchased_Amount_of_Future_New__c, Payment_Frequency__c,
                        Loan_Start_Date__c, Final_Term__c, Client_email__c, Lender_type__c,
-                       FirstName, LastName, OwnerId
+                       FirstName, LastName, OwnerId, Broker_bonus__c, Payment_ICo_broker__c, 
+                       Payment_ICo_external__c, Other__c
                 FROM Lead 
                 WHERE Id = :leadId
             ];
@@ -32,7 +33,15 @@ public with sharing class LeadConversionController {
                 missingFields.add('Client Email');
             if (String.isBlank(lead.Lender_type__c))
                 missingFields.add('Lender Type');
-            
+            if (lead.Broker_bonus__c == null)
+                missingFields.add('Broker Bonus');
+            if (lead.Payment_ICo_broker__c == null)
+                missingFields.add('Payment for ICo within the broker');
+            if (lead.Payment_ICo_external__c == null)
+                missingFields.add('Payment for ICo external broker');   
+            if (lead.Other__c == null)
+                missingFields.add('Other');
+
             if (!missingFields.isEmpty()) {
                 result.success = false;
                 result.message = 'Please fill in all required fields: ' + String.join(missingFields, ', ');
@@ -173,7 +182,8 @@ public with sharing class LeadConversionController {
             Lead lead = [
                 SELECT Final_Daily_payment__c, Final_purchased_Amount_of_Future_New__c,
                        Payment_Frequency__c, Loan_Start_Date__c, Final_Term__c,
-                       Client_email__c, Lender_type__c, FirstName, LastName
+                       Client_email__c, Lender_type__c, FirstName, LastName, Broker_bonus__c,
+                       Payment_ICo_broker__c, Payment_ICo_external__c, Other__c
                 FROM Lead 
                 WHERE Id = :leadId
             ];
@@ -184,7 +194,11 @@ public with sharing class LeadConversionController {
                    lead.Loan_Start_Date__c != null &&
                    String.isNotBlank(lead.Final_Term__c) &&
                    String.isNotBlank(lead.Client_email__c) &&
-                   String.isNotBlank(lead.Lender_type__c);
+                   String.isNotBlank(lead.Lender_type__c) &&
+                   lead.Broker_bonus__c != null &&
+                   lead.Payment_ICo_broker__c != null &&
+                   lead.Payment_ICo_external__c != null &&
+                   lead.Other__c != null;
                    
         } catch (Exception e) {
             return false;

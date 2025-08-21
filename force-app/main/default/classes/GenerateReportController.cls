@@ -5,16 +5,62 @@ public with sharing class GenerateReportController {
             throw new AuraHandledException('Lead ID не может быть пустым');
         }
 
-        String endpointUrl = 'https://lenderpro.ai/api/v1/generate-report';
+        // Тянем File_Id__c из Clear_files__c (указывают на ContentVersion.Id)
+        List<Clear_files__c> clearFiles = [
+            SELECT File_Id__c
+            FROM Clear_files__c
+            WHERE Lead__c = :leadId
+              AND File_Id__c != null
+        ];
+        System.debug('Clear_files__c rows: ' + clearFiles.size());
+
+        // Собираем Set<Id> из File_Id__c
+        Set<Id> versionIds = new Set<Id>();
+        for (Clear_files__c cf : clearFiles) {
+            if (cf.File_Id__c != null) versionIds.add(cf.File_Id__c);
+        }
+        System.debug('ContentVersion Ids: ' + versionIds);
+
+        // Тянем сами версии файлов по этим Id
+        List<ContentVersion> versions = new List<ContentVersion>();
+        if (!versionIds.isEmpty()) {
+            versions = [
+                SELECT Id, Title, FileExtension, VersionData
+                FROM ContentVersion
+                WHERE Id IN :versionIds
+                // Если нужны только PDF, можно раскомментировать:
+                // AND FileExtension = 'pdf'
+            ];
+        }
+        System.debug('ContentVersion found: ' + versions.size());
+
+        // Формируем массив файлов (base64)
+        List<Map<String, Object>> fileList = new List<Map<String, Object>>();
+        for (ContentVersion v : versions) {
+            String base64Data = EncodingUtil.base64Encode(v.VersionData);
+            fileList.add(new Map<String, Object>{
+                'fileName' => v.Title + (String.isBlank(v.FileExtension) ? '' : '.' + v.FileExtension),
+                'base64'   => base64Data
+            });
+        }
+
+        // Готовим тело POST-запроса
+        Map<String, Object> bodyMap = new Map<String, Object>{
+            'leadId' => leadId,
+            'files'  => fileList
+        };
+
+        System.debug('Prepared files: ' + fileList.size());
+        System.debug('JSON length: ' + JSON.serialize(bodyMap).length());
+
+        String endpointUrl = 'https://lenderpro.itprofit.net/api/v1/generate-report';
 
         Http http = new Http();
         HttpRequest request = new HttpRequest();
         request.setEndpoint(endpointUrl);
         request.setMethod('POST');
         request.setHeader('Content-Type', 'application/json');
-        request.setTimeout(60000); // ⏱ Установлен таймаут в 60 секунд
-
-        Map<String, String> bodyMap = new Map<String, String>{ 'leadId' => leadId };
+        request.setTimeout(120000); // ⏱ Установлен таймаут в 120 секунд
         request.setBody(JSON.serialize(bodyMap));
 
         HttpResponse response;

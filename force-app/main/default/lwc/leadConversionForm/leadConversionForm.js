@@ -45,7 +45,11 @@ export default class LeadConversionForm extends NavigationMixin(LightningElement
             'Lead.Status',
             'Lead.RecordTypeId',
             'Lead.FirstName',
-            'Lead.LastName'
+            'Lead.LastName',
+            'Lead.Broker_bonus__c',
+            'Lead.Payment_ICo_broker__c',
+            'Lead.Payment_ICo_external__c',
+            'Lead.Other__c'
         ] 
     })
     wiredLead(result) {
@@ -70,7 +74,11 @@ export default class LeadConversionForm extends NavigationMixin(LightningElement
             'Loan_Start_Date__c',
             'Final_Term__c',
             'Client_email__c',
-            'Lender_type__c'
+            'Lender_type__c',
+            'Broker_bonus__c',
+            'Payment_ICo_broker__c',
+            'Payment_ICo_external__c',
+            'Other__c'
         ];
 
         const missingFields = [];

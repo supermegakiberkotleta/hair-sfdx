@@ -6,7 +6,8 @@ public class LeadDeniedStatusConfig {
         'ClosingReasonNew__c' => new List<String>{
             'Black list',
             'Unacceptable Banks', 
-            'Must be Business/Commercial Checking Account'
+            'Must be Business/Commercial Checking Account',
+            'No statement'
         }
         // Пример добавления других полей:
         // 'Company' => new List<String>{

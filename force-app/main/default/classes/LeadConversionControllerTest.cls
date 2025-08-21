@@ -3,7 +3,7 @@ public class LeadConversionControllerTest {
     
     @TestSetup
     static void setupTestData() {
-        // Создаем тестовый лид
+        // Создаем тестовый лид 
         Lead testLead = new Lead(
             FirstName = 'Test',
             LastName = 'Lead',
@@ -15,7 +15,11 @@ public class LeadConversionControllerTest {
             Loan_Start_Date__c = Date.today(),
             Final_Term__c = '100',
             Client_email__c = 'test@example.com',
-            Lender_type__c = 'Boostra'
+            Lender_type__c = 'Boostra',
+            Broker_bonus__c = 250,
+            Payment_ICo_broker__c = 150,
+            Payment_ICo_external__c = 75,
+            Other__c = 50
         );
         
         // Устанавливаем RecordType если он существует
@@ -49,7 +53,7 @@ public class LeadConversionControllerTest {
     static void testValidateLeadFieldsMissing() {
         Lead testLead = [SELECT Id FROM Lead WHERE LastName = 'Lead' LIMIT 1];
         
-        // Удаляем обязательное поле
+        // Удаляем одно из обязательных полей
         testLead.Final_Daily_payment__c = null;
         update testLead;
         
@@ -58,6 +62,21 @@ public class LeadConversionControllerTest {
         Test.stopTest();
         
         System.assert(!isValid, 'Lead should be invalid with missing required field');
+    }
+
+    @isTest
+    static void testValidateLeadFieldsMissing_NewField() {
+        Lead testLead = [SELECT Id FROM Lead WHERE LastName = 'Lead' LIMIT 1];
+
+        // Удаляем одно из обязательных полей
+        testLead.Broker_bonus__c = null;
+        update testLead;
+
+        Test.startTest();
+        Boolean isValid = LeadConversionController.validateLeadFields(testLead.Id);
+        Test.stopTest();
+
+        System.assert(!isValid, 'Lead should be invalid when a new required field is missing.');
     }
     
     @isTest
@@ -154,7 +173,7 @@ public class LeadConversionControllerTest {
     static void testStartLeadConversionMissingFields() {
         Lead testLead = [SELECT Id FROM Lead WHERE LastName = 'Lead' LIMIT 1];
         
-        // Удаляем обязательное поле
+        // Удаляем одно из обязательных полей
         testLead.Final_Daily_payment__c = null;
         update testLead;
         
@@ -164,5 +183,21 @@ public class LeadConversionControllerTest {
         
         System.assert(!result.success, 'Conversion should fail with missing fields');
         System.assert(result.message.contains('Final Daily Payment'), 'Should mention missing field');
+    }
+
+    @isTest
+    static void testStartLeadConversionMissingNewField() {
+        Lead testLead = [SELECT Id FROM Lead WHERE LastName = 'Lead' LIMIT 1];
+
+        // Удаляем одно из обязательных полей
+        testLead.Payment_ICo_external__c = null;
+        update testLead;
+
+        Test.startTest();
+        LeadConversionController.ConversionResult result = LeadConversionController.startLeadConversion(testLead.Id);
+        Test.stopTest();
+
+        System.assert(!result.success, 'Conversion should fail when a new required field is missing');
+        System.assert(result.message.contains('Payment for ICo external broker'), 'Should mention missing field');
     }
 }

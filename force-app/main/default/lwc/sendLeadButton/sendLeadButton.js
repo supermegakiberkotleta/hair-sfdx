@@ -11,10 +11,12 @@ export default class SendLeadButton extends LightningElement {
             return;
         }
 
+        this.showToast('Уведомление', 'Отчёт отправлен на формирование', 'info');
+
         sendLeadId({ leadId: this.recordId })
             .then(result => {
                 console.log('Ответ:', result);
-                this.showToast('Успех', result, 'success');
+                this.showToast('Успех', result || 'Отчёт сформирован', 'success');
             })
             .catch(error => {
                 console.error('Ошибка:', error);
