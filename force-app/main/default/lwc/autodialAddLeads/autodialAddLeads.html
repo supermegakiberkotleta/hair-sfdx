@@ -1,0 +1,33 @@
+<template>
+    <lightning-card>
+        <div class="content-container">
+            <lightning-input type="search"
+                             label="Search Leads"
+                             value={searchText}
+                             onchange={handleSearchChange}
+                             placeholder="Search by Name, Company, Email, Phone">
+            </lightning-input>
+
+            <div class="table-container">
+                <lightning-datatable key-field="id"
+                                     data={rows}
+                                     columns={columns}
+                                     onrowselection={handleRowSelection}
+                                     selected-rows={selectedRowIds}
+                                     is-loading={loading}
+                                     show-row-number-column>
+                </lightning-datatable>
+            </div>
+
+            <template if:true={message}>
+                <div class="slds-m-top_small slds-text-color_success">{message}</div>
+            </template>
+
+            <div class="button-container slds-m-top_medium slds-grid slds-grid_align-end slds-gutters_small">
+                <lightning-button variant="brand" label="Add Selected" onclick={handleAdd} disabled={disableAdd}></lightning-button>
+            </div>
+        </div>
+    </lightning-card>
+</template>
+
+
