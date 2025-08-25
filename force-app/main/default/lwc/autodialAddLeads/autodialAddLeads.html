@@ -2,13 +2,15 @@
     <lightning-card>
         <div class="content-container">
             <div class="card-header">
-                <h2 class="card-title">Add Leads to Campaign</h2>
+                <h2 class="card-title">{titleText}</h2>
             </div>
+            <lightning-combobox name="entityType" label="Entity Type" value={entityType} placeholder="Select entity" options={entityOptions} onchange={handleEntityTypeChange}>
+            </lightning-combobox>
             <lightning-input type="search"
-                             label="Search Leads"
+                             label={searchLabel}
                              value={searchText}
                              onchange={handleSearchChange}
-                             placeholder="Search by Name, Company, Email, Phone">
+                             placeholder={searchPlaceholder}>
             </lightning-input>
 
             <div class="table-container">
