@@ -1,0 +1,124 @@
+<template>
+    <lightning-card title="Upcoming & Overdue" class="slds-card_custom">
+        <div class="slds-m-around_medium">
+
+            <!-- Spinner при загрузке -->
+            <template if:true={isLoading}>
+                <div class="slds-align_absolute-center slds-p-vertical_large">
+                    <lightning-spinner alternative-text="Loading"></lightning-spinner>
+                </div>
+            </template>
+
+            <!-- Контент после загрузки -->
+            <template if:false={isLoading}>
+                <template if:true={hasData}>
+                    <lightning-accordion allow-multiple-sections-open active-section-name={activeSections}>
+                        <template for:each={groupedTasks} for:item="group">
+                            <lightning-accordion-section key={group.key} name={group.key} label={group.label}>
+                                <template for:each={group.tasks} for:item="task">
+                                    <div key={task.Id} class="task-item slds-p-vertical_small slds-m-bottom_small slds-box slds-box_x-small slds-theme_default">
+
+                                        <!-- Верхняя панель задачи -->
+                                        <div class="slds-grid slds-wrap slds-grid_align-spread">
+                                            <div class="slds-col slds-size_8-of-12">
+                                                <div class="slds-text-heading_small slds-truncate" title={task.Subject}>{task.Subject}</div>
+                                                <div class="slds-text-body_small slds-m-top_xx-small">
+                                                    <div>{task.WhoName} has {task.statusLabel} task</div>
+                                                    <div class="slds-text-color_weak slds-m-top_xx-small">Assigned to: {task.OwnerName}</div>
+                                                </div>
+                                            </div>
+                                            <div class="slds-col slds-size_4-of-12 slds-text-align_right">
+                                                <template if:true={task.missedPaymentCount}>
+                                                    <div class="slds-m-bottom_x-small slds-text-title_bold">
+                                                        Missed Payments: {task.missedPaymentCount}
+                                                    </div>
+                                                </template>
+                                                <lightning-input 
+                                                    type="checkbox" 
+                                                    data-task-id={task.Id} 
+                                                    onchange={handleTaskComplete}
+                                                    checked={task.IsCompleted}
+                                                    label="Completed">
+                                                </lightning-input>
+                                            </div>
+                                        </div>
+
+                                        <!-- Секция вкладок -->
+                                        <div class="slds-m-top_small">
+                                            <lightning-button 
+                                                label="View Details" 
+                                                onclick={handleToggleDetails} 
+                                                data-task-id={task.Id}
+                                                variant="brand"
+                                                class="slds-m-bottom_small">
+                                            </lightning-button>
+
+                                            <template if:true={task.showDetails}>
+                                                <lightning-tabset class="tabset-custom">
+                                                    <!-- Emails -->
+                                                    <lightning-tab label="Emails">
+                                                        <template if:true={task.hasEmails}>
+                                                            <template for:each={task.emails} for:item="email">
+                                                                <div key={email.Id} class="slds-box slds-theme_alt-inverse slds-p-around_x-small slds-border_bottom">
+                                                                    <div class="slds-text-heading_small">{email.Subject}</div>
+                                                                    <div class="slds-text-body_small"><strong>To:</strong> {email.ToAddress}</div>
+                                                                    <div class="slds-text-body_small"><strong>Date:</strong> {email.CreatedDate}</div>
+                                                                    <div class="slds-text-body_small slds-m-top_xx-small">{email.TextBody}</div>
+                                                                </div>
+                                                            </template>
+                                                        </template>
+                                                        <template if:true={task.noEmails}>
+                                                            <p class="slds-text-body_small slds-text-color_weak slds-p-vertical_x-small">No emails found.</p>
+                                                        </template>
+                                                    </lightning-tab>
+
+                                                    <!-- Calls -->
+                                                    <lightning-tab label="Calls">
+                                                        <template if:true={task.hasCalls}>
+                                                            <template for:each={task.calls} for:item="call">
+                                                                <div key={call.Id} class="slds-box slds-theme_alt-inverse slds-p-around_x-small slds-border_bottom">
+                                                                    <div class="slds-text-heading_small">{call.Subject}</div>
+                                                                    <div class="slds-text-body_small"><strong>Date:</strong> {call.ActivityDate}</div>
+                                                                    <div class="slds-text-body_small slds-m-top_xx-small">{call.Description}</div>
+                                                                </div>
+                                                            </template>
+                                                        </template>
+                                                        <template if:true={task.noCalls}>
+                                                            <p class="slds-text-body_small slds-text-color_weak slds-p-vertical_x-small">No calls found.</p>
+                                                        </template>
+                                                    </lightning-tab>
+
+                                                    <!-- SMS -->
+                                                    <lightning-tab label="SMS">
+                                                        <template if:true={task.hasSMS}>
+                                                            <template for:each={task.sms} for:item="sms">
+                                                                <div key={sms.Id} class="slds-box slds-theme_alt-inverse slds-p-around_x-small slds-border_bottom">
+                                                                    <div class="slds-text-heading_small">{sms.Subject}</div>
+                                                                    <div class="slds-text-body_small"><strong>Date:</strong> {sms.ActivityDate}</div>
+                                                                    <div class="slds-text-body_small slds-m-top_xx-small">{sms.Description}</div>
+                                                                </div>
+                                                            </template>
+                                                        </template>
+                                                        <template if:true={task.noSMS}>
+                                                            <p class="slds-text-body_small slds-text-color_weak slds-p-vertical_x-small">No SMS found.</p>
+                                                        </template>
+                                                    </lightning-tab>
+                                                </lightning-tabset>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </template>
+                            </lightning-accordion-section>
+                        </template>
+                    </lightning-accordion>
+                </template>
+
+                <template if:false={hasData}>
+                    <div class="slds-align_absolute-center slds-p-vertical_medium slds-text-color_weak slds-text-heading_small">
+                        No tasks found
+                    </div>
+                </template>
+            </template>
+        </div>
+    </lightning-card>
+</template>

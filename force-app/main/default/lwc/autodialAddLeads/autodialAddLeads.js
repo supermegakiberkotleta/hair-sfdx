@@ -2,6 +2,7 @@ import { LightningElement, api, track } from 'lwc';
 import searchLeads from '@salesforce/apex/AutodialCampaignMemberController.searchLeads';
 import addMembers from '@salesforce/apex/AutodialCampaignMemberController.addMembers';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
+import { CloseActionScreenEvent } from 'lightning/actions';
 
 export default class AutodialAddLeads extends LightningElement {
 	@api recordId; // Autodial_Campaign__c Id
@@ -15,10 +16,9 @@ export default class AutodialAddLeads extends LightningElement {
 
 	columns = [
 		{ label: 'Name', fieldName: 'name', type: 'text' },
-		{ label: 'Company', fieldName: 'company', type: 'text' },
 		{ label: 'Phone', fieldName: 'phone', type: 'phone' },
-		{ label: 'Email', fieldName: 'email', type: 'email' },
 		{ label: 'Status', fieldName: 'status', type: 'text' },
+		{ label: 'RecordType', fieldName: 'recordTypeId', type: 'text' },
 		{ label: 'Owner', fieldName: 'ownerName', type: 'text' }
 	];
 
@@ -37,13 +37,13 @@ export default class AutodialAddLeads extends LightningElement {
 		window.clearTimeout(this._debounceTimer);
 		this._debounceTimer = window.setTimeout(() => {
 			this.performSearch();
-		}, 350);
+		}, 320);
 	}
 
 	async performSearch() {
 		this.loading = true;
 		try {
-			this.rows = await searchLeads({ searchText: this.searchText, limitSize: 50 });
+			this.rows = await searchLeads({ searchText: this.searchText, limitSize: 20 });
 			this.message = '';
 		} catch (e) {
 			this.showToast('Error', e.body && e.body.message ? e.body.message : 'Search failed', 'error');
@@ -64,6 +64,11 @@ export default class AutodialAddLeads extends LightningElement {
 				// Очищаем выбор после успешного добавления
 				this.selectedRowIds = [];
 				this.performSearch(); // Обновляем список
+				
+				// Отправляем событие об успешном добавлении
+				this.dispatchEvent(new CustomEvent('success', {
+					detail: { message: res.message }
+				}));
 			} else {
 				this.showToast('Error', (res && res.message) ? res.message : 'Add failed', 'error');
 			}
@@ -75,7 +80,9 @@ export default class AutodialAddLeads extends LightningElement {
 	showToast(title, message, variant) {
 		this.dispatchEvent(new ShowToastEvent({ title, message, variant }));
 	}
+
+	handleClose() {
+		// Закрываем модальное окно
+		this.dispatchEvent(new CloseActionScreenEvent());
+	}
 }
-
-
-
