@@ -7,7 +7,7 @@ private class LicenseScanControllerTest {
           
             HttpResponse res = new HttpResponse();
             res.setStatusCode(200);
-            res.setBody('{"Name":"John Doe"}');
+            res.setBody('{"Name":"John Doe","Age":30,"is_valid":true}');
             return res;
         }
     }
@@ -27,6 +27,7 @@ private class LicenseScanControllerTest {
         Test.startTest();
         String nameValue = LicenseScanController.scanLicence('dGVzdA==', 'test.pdf', 'https://api.example.com/scan');
         Test.stopTest();
+        System.assertEquals('John Doe', nameValue);
     }
 
     @IsTest
@@ -56,6 +57,28 @@ private class LicenseScanControllerTest {
         try {
             LicenseScanController.scanLicence('dGVzdA==', '', 'https://api.example.com/scan');
         } catch (AuraHandledException ex) {
+        }
+    }
+
+    private class InvalidDocMock implements HttpCalloutMock {
+        public HTTPResponse respond(HTTPRequest req) {
+            HttpResponse res = new HttpResponse();
+            res.setStatusCode(200);
+            res.setBody('{"Name":"John Doe","Age":35,"is_valid":false}');
+            return res;
+        }
+    }
+
+    @IsTest
+    static void testInvalidDocumentFlag() {
+        Test.setMock(HttpCalloutMock.class, new InvalidDocMock());
+        try {
+            Test.startTest();
+            LicenseScanController.scanLicence('dGVzdA==', 'test.pdf', 'https://api.example.com/scan');
+            System.assert(false, 'Expected AuraHandledException for invalid document');
+        } catch (AuraHandledException ex) {
+        } finally {
+            Test.stopTest();
         }
     }
 }

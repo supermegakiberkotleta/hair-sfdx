@@ -76,7 +76,48 @@ public with sharing class LicenseScanController {
             if (String.isBlank(nameValue)) {
                 throw new AuraHandledException('Scan completed, but Name was not present in the response.');
             }
-            
+            // Accept either Age or age; parse robustly to Integer
+            Object ageObj = mapResponse.containsKey('Age') ? mapResponse.get('Age') : mapResponse.get('age');
+            Integer age = null;
+            if (ageObj != null) {
+                if (ageObj instanceof Integer) {
+                    age = (Integer)ageObj;
+                } else if (ageObj instanceof Long) {
+                    age = Integer.valueOf((Long)ageObj);
+                } else if (ageObj instanceof Decimal) {
+                    age = ((Decimal)ageObj).intValue();
+                } else if (ageObj instanceof Double) {
+                    age = ((Double)ageObj).intValue();
+                } else if (ageObj instanceof String) {
+                    String ageStr = (String)ageObj;
+                    if (!String.isBlank(ageStr)) {
+                        try { age = Integer.valueOf(ageStr); } catch (Exception ignore) {}
+                    }
+                }
+            }
+            if (age == null || age < 20 || age > 70) {
+                throw new AuraHandledException('Age does not match the selected range 20-70 years.');
+            }
+
+            // Validate document validity flag: is_valid must be true
+            Object validObj = mapResponse.get('is_valid');
+            Boolean isValid = null;
+            if (validObj != null) {
+                if (validObj instanceof Boolean) {
+                    isValid = (Boolean)validObj;
+                } else if (validObj instanceof String) {
+                    String s = ((String)validObj).trim().toLowerCase();
+                    if (s == 'true' || s == '1' || s == 'yes') isValid = true;
+                    else if (s == 'false' || s == '0' || s == 'no') isValid = false;
+                } else if (validObj instanceof Integer) {
+                    isValid = (((Integer)validObj) != 0);
+                } else if (validObj instanceof Long) {
+                    isValid = (((Long)validObj) != 0);
+                }
+            }
+            if (isValid == null || isValid == false) {
+                throw new AuraHandledException('The document is invalid');
+            }
             System.debug('Extracted name: ' + nameValue);
             return nameValue;
             

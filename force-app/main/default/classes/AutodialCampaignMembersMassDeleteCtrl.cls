@@ -22,6 +22,7 @@ public with sharing class AutodialCampaignMembersMassDeleteCtrl {
             return null;
         }
 
+        Integer deletedCount = 0;
         try {
             // Лучше перечитать записи SOQL'ом: так исключим случайные read-only экземпляры
             List<Autodial_CampaignMembers__c> toDelete =
@@ -29,10 +30,11 @@ public with sharing class AutodialCampaignMembersMassDeleteCtrl {
 
             // DML (за один вызов можно до 10k; пользователи обычно отмечают не больше пары тысяч)
             delete toDelete;
+            deletedCount = toDelete.size();
 
             ApexPages.addMessage(new ApexPages.Message(
                 ApexPages.Severity.CONFIRM,
-                toDelete.size() + ' entry(s) removed.'
+                deletedCount + ' entry(s) removed.'
             ));
         } catch (DmlException e){
             ApexPages.addMessages(e);
@@ -41,7 +43,14 @@ public with sharing class AutodialCampaignMembersMassDeleteCtrl {
 
         // Аккуратный возврат туда, откуда запустили (list view / related list)
         PageReference back = ssc.cancel();
-        if(back != null) back.setRedirect(true);
+        if(back != null){
+            // Передадим параметры для показа toast на целевой странице (если там есть обработчик)
+            String toastMsg = 'Successfully deleted ' + String.valueOf(deletedCount) + ' record(s).';
+            back.getParameters().put('deleteSuccess', 'true');
+            back.getParameters().put('deletedCount', String.valueOf(deletedCount));
+            back.getParameters().put('toastMessage', toastMsg);
+            back.setRedirect(true);
+        }
         return back;
     }
 }
