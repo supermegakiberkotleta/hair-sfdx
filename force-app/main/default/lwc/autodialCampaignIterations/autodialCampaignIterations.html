@@ -1,0 +1,83 @@
+<template>
+    <template if:true={hasData}>
+        <lightning-accordion allow-multiple-sections-open active-section-name={activeSectionNames}>
+            <template for:each={iterations} for:item="it">
+                <lightning-accordion-section key={it.id} name={it.id} label={it.name}>
+                    <div class="slds-p-vertical_small slds-p-horizontal_small">
+                        <lightning-layout multiple-rows>
+                            <lightning-layout-item size="12" medium-device-size="6" class="slds-p-bottom_small">
+                                <lightning-output-field field-name="Order__c" value={it.orderNumber} label="Order"></lightning-output-field>
+                            </lightning-layout-item>
+                            <lightning-layout-item size="12" medium-device-size="6" class="slds-p-bottom_small">
+                                <div class="slds-form-element slds-form-element_readonly">
+                                    <span class="slds-form-element__label">Number</span>
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-form-element__static">{it.phoneNumber}</div>
+                                    </div>
+                                </div>
+                            </lightning-layout-item>
+
+                            <lightning-layout-item size="12" medium-device-size="6" class="slds-p-bottom_small">
+                                <div class="slds-form-element slds-form-element_readonly">
+                                    <span class="slds-form-element__label">Start Date</span>
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-form-element__static">{it.startDate}</div>
+                                    </div>
+                                </div>
+                            </lightning-layout-item>
+                            <lightning-layout-item size="12" medium-device-size="6" class="slds-p-bottom_small">
+                                <div class="slds-form-element slds-form-element_readonly">
+                                    <span class="slds-form-element__label">End Date</span>
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-form-element__static">{it.endDate}</div>
+                                    </div>
+                                </div>
+                            </lightning-layout-item>
+
+                            <lightning-layout-item size="12" medium-device-size="6" class="slds-p-bottom_small">
+                                <div class="slds-form-element slds-form-element_readonly">
+                                    <span class="slds-form-element__label">Total Calls</span>
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-form-element__static">{it.totalCalls}</div>
+                                    </div>
+                                </div>
+                            </lightning-layout-item>
+                            <lightning-layout-item size="12" medium-device-size="6" class="slds-p-bottom_small">
+                                <div class="slds-form-element slds-form-element_readonly">
+                                    <span class="slds-form-element__label">Successful</span>
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-form-element__static">{it.totalSuccessfulCalls}</div>
+                                    </div>
+                                </div>
+                            </lightning-layout-item>
+                            <lightning-layout-item size="12" medium-device-size="6" class="slds-p-bottom_small">
+                                <div class="slds-form-element slds-form-element_readonly">
+                                    <span class="slds-form-element__label">No Answer</span>
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-form-element__static">{it.totalNoAnswerCalls}</div>
+                                    </div>
+                                </div>
+                            </lightning-layout-item>
+                            <lightning-layout-item size="12" medium-device-size="6" class="slds-p-bottom_small">
+                                <div class="slds-form-element slds-form-element_readonly">
+                                    <span class="slds-form-element__label">Failed</span>
+                                    <div class="slds-form-element__control">
+                                        <div class="slds-form-element__static">{it.totalFailedCalls}</div>
+                                    </div>
+                                </div>
+                            </lightning-layout-item>
+                        </lightning-layout>
+                    </div>
+                </lightning-accordion-section>
+            </template>
+        </lightning-accordion>
+    </template>
+    <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Loading iterations"></lightning-spinner>
+    </template>
+    <template if:true={hasNoData}>
+        <div class="slds-text-color_weak slds-p-around_small">No iterations found.</div>
+    </template>
+</template>
+
+
