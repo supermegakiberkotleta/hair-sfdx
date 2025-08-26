@@ -1,72 +1,34 @@
 <template>
     <template if:true={hasData}>
-        <lightning-accordion allow-multiple-sections-open active-section-name={activeSectionNames}>
+        <lightning-accordion allow-multiple-sections-open active-section-name={activeSectionNames} class="iterations-accordion">
             <template for:each={iterations} for:item="it">
                 <lightning-accordion-section key={it.id} name={it.id} label={it.name}>
-                    <div class="slds-p-vertical_small slds-p-horizontal_small">
-                        <lightning-layout multiple-rows>
-                            <lightning-layout-item size="12" medium-device-size="6" class="slds-p-bottom_small">
-                                <lightning-output-field field-name="Order__c" value={it.orderNumber} label="Order"></lightning-output-field>
-                            </lightning-layout-item>
-                            <lightning-layout-item size="12" medium-device-size="6" class="slds-p-bottom_small">
-                                <div class="slds-form-element slds-form-element_readonly">
-                                    <span class="slds-form-element__label">Number</span>
-                                    <div class="slds-form-element__control">
-                                        <div class="slds-form-element__static">{it.phoneNumber}</div>
-                                    </div>
-                                </div>
-                            </lightning-layout-item>
+                    <div class="slds-p-around_small">
+                        <dl class="slds-list_horizontal slds-wrap slds-border_top slds-border_bottom slds-p-vertical_small iteration-dl">
+                            <dt class="slds-item_label slds-text-color_weak" title="Order">Order</dt>
+                            <dd class="slds-item_detail">{it.orderNumber}</dd>
 
-                            <lightning-layout-item size="12" medium-device-size="6" class="slds-p-bottom_small">
-                                <div class="slds-form-element slds-form-element_readonly">
-                                    <span class="slds-form-element__label">Start Date</span>
-                                    <div class="slds-form-element__control">
-                                        <div class="slds-form-element__static">{it.startDate}</div>
-                                    </div>
-                                </div>
-                            </lightning-layout-item>
-                            <lightning-layout-item size="12" medium-device-size="6" class="slds-p-bottom_small">
-                                <div class="slds-form-element slds-form-element_readonly">
-                                    <span class="slds-form-element__label">End Date</span>
-                                    <div class="slds-form-element__control">
-                                        <div class="slds-form-element__static">{it.endDate}</div>
-                                    </div>
-                                </div>
-                            </lightning-layout-item>
+                            <dt class="slds-item_label slds-text-color_weak" title="Number">Number</dt>
+                            <dd class="slds-item_detail">{it.phoneNumber}</dd>
 
-                            <lightning-layout-item size="12" medium-device-size="6" class="slds-p-bottom_small">
-                                <div class="slds-form-element slds-form-element_readonly">
-                                    <span class="slds-form-element__label">Total Calls</span>
-                                    <div class="slds-form-element__control">
-                                        <div class="slds-form-element__static">{it.totalCalls}</div>
-                                    </div>
-                                </div>
-                            </lightning-layout-item>
-                            <lightning-layout-item size="12" medium-device-size="6" class="slds-p-bottom_small">
-                                <div class="slds-form-element slds-form-element_readonly">
-                                    <span class="slds-form-element__label">Successful</span>
-                                    <div class="slds-form-element__control">
-                                        <div class="slds-form-element__static">{it.totalSuccessfulCalls}</div>
-                                    </div>
-                                </div>
-                            </lightning-layout-item>
-                            <lightning-layout-item size="12" medium-device-size="6" class="slds-p-bottom_small">
-                                <div class="slds-form-element slds-form-element_readonly">
-                                    <span class="slds-form-element__label">No Answer</span>
-                                    <div class="slds-form-element__control">
-                                        <div class="slds-form-element__static">{it.totalNoAnswerCalls}</div>
-                                    </div>
-                                </div>
-                            </lightning-layout-item>
-                            <lightning-layout-item size="12" medium-device-size="6" class="slds-p-bottom_small">
-                                <div class="slds-form-element slds-form-element_readonly">
-                                    <span class="slds-form-element__label">Failed</span>
-                                    <div class="slds-form-element__control">
-                                        <div class="slds-form-element__static">{it.totalFailedCalls}</div>
-                                    </div>
-                                </div>
-                            </lightning-layout-item>
-                        </lightning-layout>
+                            <dt class="slds-item_label slds-text-color_weak" title="Start Date">Start Date</dt>
+                            <dd class="slds-item_detail">{it.startDate}</dd>
+
+                            <dt class="slds-item_label slds-text-color_weak" title="End Date">End Date</dt>
+                            <dd class="slds-item_detail">{it.endDate}</dd>
+
+                            <dt class="slds-item_label slds-text-color_weak" title="Total Calls">Total Calls</dt>
+                            <dd class="slds-item_detail">{it.totalCalls}</dd>
+
+                            <dt class="slds-item_label slds-text-color_weak" title="Successful">Successful</dt>
+                            <dd class="slds-item_detail">{it.totalSuccessfulCalls}</dd>
+
+                            <dt class="slds-item_label slds-text-color_weak" title="No Answer">No Answer</dt>
+                            <dd class="slds-item_detail">{it.totalNoAnswerCalls}</dd>
+
+                            <dt class="slds-item_label slds-text-color_weak" title="Failed">Failed</dt>
+                            <dd class="slds-item_detail">{it.totalFailedCalls}</dd>
+                        </dl>
                     </div>
                 </lightning-accordion-section>
             </template>

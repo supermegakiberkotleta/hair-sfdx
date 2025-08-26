@@ -10,12 +10,21 @@ export default class AutodialCampaignIterations extends LightningElement {
     @wire(getIterations, { campaignId: '$recordId' })
     wiredIterations({ error, data }) {
         if (data) {
-            this.iterations = data.map((it) => ({
+            // sort by orderNumber then name for stable display
+            const sorted = [...data].sort((a, b) => {
+                const ao = a.orderNumber ?? Number.MAX_SAFE_INTEGER;
+                const bo = b.orderNumber ?? Number.MAX_SAFE_INTEGER;
+                if (ao !== bo) return ao - bo;
+                return (a.name || '').localeCompare(b.name || '');
+            });
+
+            this.iterations = sorted.map((it) => ({
                 ...it,
                 startDate: it.startDate ? new Date(it.startDate).toLocaleString() : '',
                 endDate: it.endDate ? new Date(it.endDate).toLocaleString() : ''
             }));
-            this.activeSectionNames = this.iterations.map(i => i.id);
+            // Keep sections collapsed by default for a cleaner initial view
+            this.activeSectionNames = [];
             this.isLoading = false;
         } else if (error) {
             // eslint-disable-next-line no-console
