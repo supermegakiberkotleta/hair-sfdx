@@ -42,5 +42,3 @@ export default class AutodialCampaignIterations extends LightningElement {
         return !this.isLoading && (!this.iterations || this.iterations.length === 0);
     }
 }
-
-

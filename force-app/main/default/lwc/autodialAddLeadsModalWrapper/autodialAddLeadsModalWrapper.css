@@ -1,0 +1,35 @@
+.modal-content-wrapper {
+    height: 100%;
+    min-height: 400px;
+    display: flex;
+    flex-direction: column;
+    padding: 1rem;
+}
+
+/* Убираем лишние отступы у основного компонента */
+.modal-content-wrapper c-autodial-add-leads {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Убираем лишние отступы у lightning-card */
+.modal-content-wrapper c-autodial-add-leads lightning-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    box-shadow: none;
+    border: none;
+}
+
+.modal-content-wrapper c-autodial-add-leads lightning-card .slds-card__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+
+/* Убираем заголовок карточки, так как он уже есть в модальном окне */
+.modal-content-wrapper c-autodial-add-leads lightning-card .slds-card__header {
+    display: none;
+}

@@ -1,0 +1,18 @@
+<template>
+    <template if:true={showModal}>
+        <div class="custom-modal-overlay" onclick={handleBackdropClick}>
+            <div class="custom-modal" onclick={handleModalClick}>
+                <header class="custom-modal-header">
+                    <h2>Add Leads to Campaign</h2>
+                </header>
+                <div class="custom-modal-content">
+                    <c-autodial-add-leads-modal-wrapper 
+                        record-id={recordId} 
+                        onclose={handleClose}
+                        onsuccess={handleSuccess}>
+                    </c-autodial-add-leads-modal-wrapper>
+                </div>
+            </div>
+        </div>
+    </template>
+</template>

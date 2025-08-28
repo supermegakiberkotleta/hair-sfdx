@@ -260,5 +260,3 @@ public with sharing class AutodialCampaignMemberController {
 		return res;
 	}
 }
-
-

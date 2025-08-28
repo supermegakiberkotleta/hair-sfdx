@@ -47,5 +47,3 @@ private class AutodialCampaignIterationControllerTest {
         System.assertEquals(Decimal.valueOf(2), dtos[0].totalFailedCalls);
     }
 }
-
-

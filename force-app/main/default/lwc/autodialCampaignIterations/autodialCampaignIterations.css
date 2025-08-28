@@ -1,0 +1,18 @@
+.iterations-accordion .slds-accordion__summary-action {
+    font-weight: 600;
+}
+
+/* Make description list display nicely in two columns on medium+ screens */
+.iteration-dl .slds-item_label,
+.iteration-dl .slds-item_detail {
+    width: 50%;
+}
+
+@media (min-width: 48rem) {
+    .iteration-dl .slds-item_label,
+    .iteration-dl .slds-item_detail {
+        width: 25%;
+    }
+}
+
+.iteration-dl { grid-gap: 0.25rem 1rem; }

@@ -1,0 +1,48 @@
+.modalv2-container {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    max-width: 90vw;
+    max-height: 90vh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.modalv2-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid #dddbda;
+    background: #f3f2f2;
+}
+
+.modalv2-header h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #080707;
+}
+
+.modalv2-content {
+    flex: 1;
+    overflow: auto;
+    padding: 1.5rem;
+}
+
+/* Адаптивность для мобильных устройств */
+@media (max-width: 768px) {
+    .modalv2-container {
+        max-width: 95vw;
+        max-height: 95vh;
+    }
+    
+    .modalv2-header {
+        padding: 0.75rem 1rem;
+    }
+    
+    .modalv2-content {
+        padding: 1rem;
+    }
+}

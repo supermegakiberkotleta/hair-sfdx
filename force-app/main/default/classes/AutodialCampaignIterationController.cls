@@ -57,5 +57,3 @@ public with sharing class AutodialCampaignIterationController {
         return result;
     }
 }
-
-

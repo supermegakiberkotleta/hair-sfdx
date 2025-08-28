@@ -1,0 +1,20 @@
+<template>
+    <div class="modalv2-container">
+        <div class="modalv2-header">
+            <h2>Add Leads to Campaign</h2>
+            <lightning-button-icon 
+                icon-name="utility:close" 
+                variant="bare" 
+                onclick={handleClose}
+                alternative-text="Close">
+            </lightning-button-icon>
+        </div>
+        
+        <div class="modalv2-content">
+            <c:autodialAddLeads 
+                record-id={recordId}
+                onsuccess={handleSuccess}>
+            </c:autodialAddLeads>
+        </div>
+    </div>
+</template>

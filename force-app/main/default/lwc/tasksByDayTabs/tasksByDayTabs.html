@@ -52,7 +52,11 @@
                                                 variant="brand"
                                                 class="slds-m-bottom_small">
                                             </lightning-button>
-
+                                            <template if:false={task.showDetails}>
+                                                <p class="slds-text-body_small slds-text-color_weak slds-p-vertical_x-small">
+                                                    Click "View Details" to load activity
+                                                </p>
+                                            </template>
                                             <template if:true={task.showDetails}>
                                                 <lightning-tabset class="tabset-custom">
                                                     <!-- Emails -->

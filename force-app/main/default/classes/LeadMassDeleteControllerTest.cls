@@ -181,5 +181,3 @@ private class LeadMassDeleteControllerTest {
         System.assert(successMessageFound, 'Success message should be displayed');
     }
 }
-
-

@@ -95,8 +95,8 @@ public with sharing class LicenseScanController {
                     }
                 }
             }
-            if (age == null || age < 20 || age > 70) {
-                throw new AuraHandledException('Age does not match the selected range 20-70 years.');
+            if (age == null || age < 20 || age > 75) {
+                throw new AuraHandledException('Age does not match the selected range 20-75 years.');
             }
 
             // Validate document validity flag: is_valid must be true

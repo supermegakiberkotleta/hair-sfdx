@@ -61,10 +61,12 @@ export default class OpportunityTaskGrouping extends LightningElement {
                 emails: [],
                 calls: [],
                 sms: [],
-                // булевы свойства для LWC
                 hasEmails: false,
                 hasCalls: false,
-                hasSMS: false
+                hasSMS: false,
+                noEmails: false,
+                noCalls: false,
+                noSMS: false
             }));
             this.setActiveSection();
         } else if (error) {
@@ -80,35 +82,58 @@ export default class OpportunityTaskGrouping extends LightningElement {
     }
 
     async handleToggleDetails(event) {
+        event.preventDefault();
+    
         const taskId = event.currentTarget.dataset.taskId;
         const taskIndex = this.tasks.findIndex(task => task.Id === taskId);
         if (taskIndex === -1) return;
-
+    
         const task = this.tasks[taskIndex];
+    
+        // 1. Добавляем активную секцию (дату задачи) в список, если ещё не добавлена
+        const dateKey = task.ActivityDate;
+        if (!this.activeSections.includes(dateKey)) {
+            this.activeSections = [...this.activeSections, dateKey];
+        }
+    
+        // 2. Раскрытие вкладки внутри задачи
         task.showDetails = !task.showDetails;
-
-        if (task.showDetails && !task.hasEmails && !task.hasCalls && !task.hasSMS) {
-            this.isLoading = true;
-            try {
-                const result = await getActivityDetailsForTask({ taskId });
-                task.emails = result.emails || [];
-                task.calls = result.calls || [];
-                task.sms = result.sms || [];
-                task.hasEmails = task.emails.length > 0;
-                task.hasCalls = task.calls.length > 0;
-                task.hasSMS = task.sms.length > 0;
-                this.tasks = [...this.tasks];
-            } catch (error) {
-                console.error(error);
-                this.showToast('Error', 'Failed to load emails/calls/SMS', 'error');
-            } finally {
-                this.isLoading = false;
-            }
-        } else {
+    
+        // 3. Проверка: если уже загружены — не запрашивать снова
+        if (!task.showDetails ||
+            task.hasEmails || task.hasCalls || task.hasSMS ||
+            task.noEmails || task.noCalls || task.noSMS
+        ) {
             this.tasks = [...this.tasks];
+            return;
+        }
+    
+        this.isLoading = true;
+        try {
+            const result = await getActivityDetailsForTask({ taskId });
+            task.emails = result.emails || [];
+            task.calls = result.calls || [];
+            task.sms = result.sms || [];
+    
+            task.hasEmails = task.emails.length > 0;
+            task.hasCalls = task.calls.length > 0;
+            task.hasSMS = task.sms.length > 0;
+    
+            task.noEmails = task.emails.length === 0;
+            task.noCalls = task.calls.length === 0;
+            task.noSMS = task.sms.length === 0;
+    
+        } catch (error) {
+            console.error(error);
+            this.showToast('Error', 'Failed to load activity', 'error');
+        } finally {
+            this.isLoading = false;
+            this.tasks = [...this.tasks]; // чтобы отрендерить детали
         }
     }
-
+    
+    
+    
     async handleTaskComplete(event) {
         const taskId = event.target.dataset.taskId;
         const isCompleted = event.target.checked;
