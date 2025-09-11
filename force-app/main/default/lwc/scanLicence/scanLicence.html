@@ -4,34 +4,31 @@
             <div class="card-header">
                 <h2 class="card-title">Scan Drive License</h2>
             </div>
-            
+
             <div class="card-content">
                 <div class="uploader">
                     <div class="flex">
-                        <lightning-input 
-                        type="file" 
-                        label="Upload license file" 
-                        accept=".jpg,.jpeg,.png,.gif,.bmp,.pdf,.doc,.docx" 
-                        onchange={handleFileChange}
-                        variant="label-hidden">
-                    </lightning-input>
-                    <div class="actions">
-                        <lightning-button 
-                            variant="brand" 
-                            label="Scan document" 
-                            onclick={handleScan} 
-                            disabled={isScanDisabled}>
-                        </lightning-button>
+                        <lightning-input type="file" label="Upload license file"
+                            accept=".jpg,.jpeg,.png,.gif,.bmp,.pdf,.doc,.docx" onchange={handleFileChange}
+                            variant="label-hidden">
+                        </lightning-input>
+                        <div class="actions">
+                            <lightning-button variant="brand" label="Scan document" onclick={handleScan}
+                                disabled={isScanDisabled}>
+                            </lightning-button>
+                        </div>
                     </div>
-                    </div>
-                    
+
                     <!-- Универсальный блок для отображения файла -->
                     <template if:true={hasFileToDisplay}>
                         <div class="file-info">
                             <div class="file-icon">
-                                <lightning-icon icon-name="doctype:image" size="small" if:true={isImageFile}></lightning-icon>
-                                <lightning-icon icon-name="doctype:pdf" size="small" if:true={isPdfFile}></lightning-icon>
-                                <lightning-icon icon-name="doctype:word" size="small" if:true={isOtherFile}></lightning-icon>
+                                <lightning-icon icon-name="doctype:image" size="small"
+                                    if:true={isImageFile}></lightning-icon>
+                                <lightning-icon icon-name="doctype:pdf" size="small"
+                                    if:true={isPdfFile}></lightning-icon>
+                                <lightning-icon icon-name="doctype:word" size="small"
+                                    if:true={isOtherFile}></lightning-icon>
                             </div>
                             <div class="file-details">
                                 <div class="file-name">{displayFileName}</div>
@@ -43,16 +40,30 @@
                         </div>
                     </template>
                 </div>
-                
+
                 <template if:true={hasValidScannedName}>
                     <div class="result">
                         <span class="result-label">Company owner name:</span>
                         <span class="result-value">{scannedName}</span>
                     </div>
                 </template>
+
+                <template if:true={hasValidScannedName}>
+                    <div class="result">
+                        <span class="result-label">Birth date:</span>
+                        <span class="result-value">{birthDate}</span>
+                    </div>
+                </template>
+
+                <template if:true={hasValidScannedName}>
+                    <div class="result">
+                        <span class="result-label">Expires at:</span>
+                        <span class="result-value">{expiresAt}</span>
+                    </div>
+                </template>
             </div>
         </div>
-        
+
         <!-- Модальное окно для спиннера -->
         <template if:true={isLoading}>
             <div class="modal-overlay">

@@ -81,9 +81,10 @@
                                                         <template if:true={task.hasCalls}>
                                                             <template for:each={task.calls} for:item="call">
                                                                 <div key={call.Id} class="slds-box slds-theme_alt-inverse slds-p-around_x-small slds-border_bottom">
-                                                                    <div class="slds-text-heading_small">{call.Subject}</div>
-                                                                    <div class="slds-text-body_small"><strong>Date:</strong> {call.ActivityDate}</div>
-                                                                    <div class="slds-text-body_small slds-m-top_xx-small">{call.Description}</div>
+                                                                    <div class="slds-text-heading_small">{call.Name}</div>
+                                                                    <div class="slds-text-body_small"><strong>Date:</strong> {call.start_time__c}</div>
+                                                                    <div class="slds-text-body_small slds-m-top_xx-small">Duration: {call.duration__c}</div>
+                                                                    <div class="slds-text-body_small slds-m-top_xx-small">URL: {call.Record__c}</div>
                                                                 </div>
                                                             </template>
                                                         </template>
@@ -97,9 +98,9 @@
                                                         <template if:true={task.hasSMS}>
                                                             <template for:each={task.sms} for:item="sms">
                                                                 <div key={sms.Id} class="slds-box slds-theme_alt-inverse slds-p-around_x-small slds-border_bottom">
-                                                                    <div class="slds-text-heading_small">{sms.Subject}</div>
-                                                                    <div class="slds-text-body_small"><strong>Date:</strong> {sms.ActivityDate}</div>
-                                                                    <div class="slds-text-body_small slds-m-top_xx-small">{sms.Description}</div>
+                                                                    <div class="slds-text-heading_small">{sms.Name}</div>
+                                                                    <div class="slds-text-body_small"><strong>Date:</strong> {sms.TwilioSF__Date_Created__c}</div>
+                                                                    <div class="slds-text-body_small slds-m-top_xx-small">{sms.TwilioSF__Body__c}</div>
                                                                 </div>
                                                             </template>
                                                         </template>

@@ -1,5 +1,5 @@
 @IsTest
-private class AutodialCampaignCalloutTest {
+private class TwilioCallNumberListCalloutTest {
 
     private class StubMock implements HttpCalloutMock {
         Integer calls = 0;
@@ -7,7 +7,7 @@ private class AutodialCampaignCalloutTest {
             calls++;
             System.assertEquals('POST', req.getMethod());
             System.assert(req.getEndpoint().startsWith('callout:Telephony_Credential/'), 'Endpoint should use Named Credential');
-            System.assert(req.getEndpoint().contains('/api/v1/autodial-campaign/'), 'Endpoint path should contain API prefix');
+            System.assert(req.getEndpoint().contains('/api/v1/twilio-call-number/'), 'Endpoint path should contain API prefix');
             System.assertEquals('application/json', req.getHeader('Content-Type'));
             HttpResponse res = new HttpResponse();
             res.setStatusCode(200);
@@ -22,7 +22,7 @@ private class AutodialCampaignCalloutTest {
         Test.setMock(HttpCalloutMock.class, mock);
 
         Test.startTest();
-        Autodial_Campaign__c rec = new Autodial_Campaign__c(Name='Test Campaign');
+        Twilio_CallNumberList__c rec = new Twilio_CallNumberList__c(Name='Test Number');
         insert rec;
         Test.stopTest();
 
@@ -34,7 +34,7 @@ private class AutodialCampaignCalloutTest {
         StubMock mock = new StubMock();
         Test.setMock(HttpCalloutMock.class, mock);
 
-        Autodial_Campaign__c rec = new Autodial_Campaign__c(Name='Before');
+        Twilio_CallNumberList__c rec = new Twilio_CallNumberList__c(Name='Before');
         insert rec;
 
         Test.startTest();

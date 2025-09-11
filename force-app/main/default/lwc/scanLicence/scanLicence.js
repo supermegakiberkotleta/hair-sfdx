@@ -19,6 +19,8 @@ export default class ScanLicence extends LightningElement {
     @track fileType;
     @track isLoading = false;
     @track scannedName;
+    @track birthDate;
+    @track expiresAt;
     @track scanDataId;
     @track hasExistingData = false;
     @track fileId;
@@ -96,9 +98,12 @@ export default class ScanLicence extends LightningElement {
 
     async loadExistingData(scanData) {
         if (scanData) {
+            console.log(scanData);
             this.scanDataId = scanData.Id;
             this.fileId = scanData.File_Id__c;
             this.scannedName = (scanData.Name__c && scanData.Name__c !== 'null' && scanData.Name__c.trim() !== '') ? scanData.Name__c : '';
+            this.birthDate = scanData.Date_Of_Birth__c;
+            this.expiresAt = scanData.Expires_At__c;
             this.hasExistingData = true;
             
             console.log('Loading existing data:', {
@@ -294,18 +299,26 @@ export default class ScanLicence extends LightningElement {
             
             // Отправляем запрос на сканирование
             console.log('Sending scan request...');
-            const nameValue = await scanLicence({ 
+            const result = await scanLicence({ 
                 base64Data: base64Data,
                 fileName: fileInfo.fileName,
                 endpointUrl: this.endpointUrl 
             });
-            console.log('Scanned name:', nameValue);
+
+            console.log('Scanned licence:', result);
+
+            const nameValue = result.nameValue;
+            const birthDate = result.dateOfBirth;
+            const expiresAt = result.expiresAt;
+
             // Проверяем, что nameValue не null, undefined, пустая строка или строка "null"
             this.scannedName = (nameValue && nameValue !== 'null' && nameValue.trim() !== '') ? nameValue : '';
+            this.birthDate = (birthDate && birthDate !== 'null' && birthDate.trim() !== '') ? birthDate : '';
+            this.expiresAt = (expiresAt && expiresAt !== 'null' && expiresAt.trim() !== '') ? expiresAt : '';
             
             // Обновляем запись в Scan_Data__c с результатом сканирования
             console.log('Updating scan data with result...');
-            await this.updateScanDataWithResult(this.scannedName, scanData.Id);
+            await this.updateScanDataWithResult(this.scannedName, this.birthDate, this.expiresAt, scanData.Id);
             
             await this.updateLeadName(this.scannedName);
             
@@ -347,13 +360,17 @@ export default class ScanLicence extends LightningElement {
         }
     }
 
-    async updateScanDataWithResult(scannedName, scanDataId) {
+    async updateScanDataWithResult(scannedName, birthDate, expiresAt, scanDataId) {
         try {
             const fields = {};
             fields[ID_FIELD.fieldApiName] = scanDataId;
             fields['Name__c'] = (scannedName && scannedName !== 'null' && scannedName.trim() !== '') ? scannedName : '';
+            fields['Date_Of_Birth__c'] = birthDate;
+            fields['Expires_At__c'] = expiresAt;
             await updateRecord({ fields });
             console.log('Updated scan data with name:', scannedName);
+            console.log('Updated scan data with DOB:', birthDate);
+            console.log('Updated scan data with EXP:', expiresAt);
         } catch (error) {
             console.error('Error updating scan data:', error);
             throw new Error('Error updating scan data: ' + error.message);
@@ -380,12 +397,12 @@ export default class ScanLicence extends LightningElement {
                 console.error('FileReader error:', reader.error);
                 reject(new Error('Error reading file: ' + reader.error.message));
             };
-            
+
             reader.onabort = () => {
                 console.error('FileReader aborted');
                 reject(new Error('File reading was aborted'));
             };
-            
+
             reader.readAsDataURL(file);
         });
     }

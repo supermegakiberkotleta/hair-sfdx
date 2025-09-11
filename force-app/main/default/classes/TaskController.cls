@@ -4,7 +4,6 @@ public with sharing class TaskController {
         @AuraEnabled public Decimal missedPaymentCount { get; set; }
     }
 
-    // Получение задач по Opportunity
     @AuraEnabled(cacheable=true)
     public static TaskWrapper getTasksByOpportunity(Id opportunityId) {
         TaskWrapper wrapper = new TaskWrapper();
@@ -29,7 +28,6 @@ public with sharing class TaskController {
         return wrapper;
     }
 
-    // Обновление задачи
     @AuraEnabled
     public static void updateTask(Id taskId, String status, Date activityDate) {
         Task taskToUpdate = new Task(
@@ -40,38 +38,63 @@ public with sharing class TaskController {
         update taskToUpdate;
     }
 
-    // Получение Email/SMS/Calls по задаче
     @AuraEnabled
-    public static Map<String, List<sObject>> getActivityDetailsForTask(Id taskId) {
+    public static Map<String, List<sObject>> getActivityDetailsForTask(Id opportunityId, Date activityDate) {
+        List<OpportunityContactRole> opportunityContactRoles = [
+            SELECT ContactId, Contact.Email, Contact.Phone
+            FROM OpportunityContactRole
+            WHERE OpportunityId = :opportunityId
+        ];
+
+        List<Id> contactIds = new List<Id>();
+
+        List<String> contactEmails = new List<String>();
+
+        List<String> contactPhones = new List<String>();
+
+        for (OpportunityContactRole opportunityContactRole : opportunityContactRoles) {
+            if (opportunityContactRole.ContactId != null) {
+                contactIds.add(opportunityContactRole.ContactId);
+            }
+
+            if (opportunityContactRole.Contact.Email != null) {
+                contactEmails.add(opportunityContactRole.Contact.Email);
+            }
+
+            if (opportunityContactRole.Contact.Phone != null) {
+                contactPhones.add(opportunityContactRole.Contact.Phone);
+            }
+        }
+
         Map<String, List<sObject>> result = new Map<String, List<sObject>>();
 
-        // EmailMessage связан с задачей через ParentId
         List<EmailMessage> emails = [
-            SELECT Id, Subject, FromAddress, ToAddress, CreatedDate, TextBody
+            SELECT Id, Subject, ToAddress, CreatedDate, TextBody
             FROM EmailMessage
-            WHERE ParentId = :taskId
+            WHERE DAY_ONLY(CreatedDate) = :activityDate
+            AND ToAddress IN :contactEmails 
             ORDER BY CreatedDate DESC
         ];
 
-        // Calls — те задачи, которые указывают в WhatId эту задачу
-        List<Task> calls = [
-            SELECT Id, Subject, ActivityDate, Status, Description
-            FROM Task
-            WHERE WhatId = :taskId AND Type = 'Call'
-            ORDER BY ActivityDate DESC
+        List<Call_record__c> calls = [
+            SELECT Id, Name, duration__c, Record__c
+            FROM Call_record__c
+            WHERE DAY_ONLY(start_time__c) = :activityDate
+            AND Contact__c IN :contactIds
+            ORDER BY start_time__c DESC
         ];
 
-        // SMS — задачи с Subject LIKE '%SMS%', у которых WhatId = taskId
-        List<Task> smsList = [
-            SELECT Id, Subject, ActivityDate, Status, Description
-            FROM Task
-            WHERE WhatId = :taskId AND Subject LIKE '%SMS%'
-            ORDER BY ActivityDate DESC
+        List<TwilioSF__Message__c> sms = [
+            SELECT Id, Name, TwilioSF__Body__c, TwilioSF__Date_Created__c
+            FROM TwilioSF__Message__c
+            WHERE DAY_ONLY(TwilioSF__Date_Created__c) = :activityDate
+            AND (TwilioSF__From_Number__c IN :contactPhones OR TwilioSF__To_Number__c IN :contactPhones)
+            ORDER BY TwilioSF__Date_Created__c DESC
         ];
 
         result.put('emails', emails);
         result.put('calls', calls);
-        result.put('sms', smsList);
+        result.put('sms', sms);
 
         return result;
     }

@@ -11,5 +11,3 @@ trigger AutodialCampaignTrigger on Autodial_Campaign__c (after insert, after upd
         }
     }
 }
-
-

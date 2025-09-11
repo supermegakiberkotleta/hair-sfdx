@@ -9,7 +9,7 @@ public class LeadConvertHandler {
 
             if (lead.IsConverted && oldLead != null && !oldLead.IsConverted) {
                 // ✅ Только если нужный RecordType
-                if (lead.RecordTypeId == '012Kc000000tenuIAA') {
+                if (lead.RecordTypeId == '012Kc000000tenzIAA') {
                     List<String> missingFields = new List<String>();
 
                     if (lead.Final_Daily_payment__c == null)

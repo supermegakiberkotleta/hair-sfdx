@@ -4,7 +4,7 @@ public with sharing class ScanDataController {
     public static Scan_Data__c getScanDataByLeadId(String leadId) {
         try {
             return [
-                SELECT Id, Lead__c, File_Id__c, Name__c, Scan_Date__c, Type__c
+                SELECT Id, Lead__c, File_Id__c, Name__c, Scan_Date__c, Type__c, Date_Of_Birth__c, Expires_At__c
                 FROM Scan_Data__c 
                 WHERE Lead__c = :leadId 
                 AND Type__c = 'drive'

@@ -1,6 +1,6 @@
 public with sharing class LicenseScanController {
     @AuraEnabled(cacheable=false)
-    public static String scanLicence(String base64Data, String fileName, String endpointUrl) {
+    public static Map<String, String> scanLicence(String base64Data, String fileName, String endpointUrl) {
         try {
             System.debug('LicenseScanController.scanLicence called with:');
             System.debug('fileName: ' + fileName);
@@ -102,6 +102,10 @@ public with sharing class LicenseScanController {
             // Validate document validity flag: is_valid must be true
             Object validObj = mapResponse.get('is_valid');
             Boolean isValid = null;
+
+            String dateOfBirth = (String) mapResponse.get('date_of_birth');
+            String expiresAt = (String) mapResponse.get('expires_at');
+            
             if (validObj != null) {
                 if (validObj instanceof Boolean) {
                     isValid = (Boolean)validObj;
@@ -119,8 +123,14 @@ public with sharing class LicenseScanController {
                 throw new AuraHandledException('The document is invalid');
             }
             System.debug('Extracted name: ' + nameValue);
-            return nameValue;
-            
+
+            Map<String, String> result = new Map<String, String>();
+
+            result.put('nameValue', nameValue);
+            result.put('dateOfBirth', dateOfBirth);
+            result.put('expiresAt', expiresAt);
+
+            return result;
         } catch (System.CalloutException ex) {
             System.debug('CalloutException: ' + ex.getMessage());
             System.debug('CalloutException stack trace: ' + ex.getStackTraceString());

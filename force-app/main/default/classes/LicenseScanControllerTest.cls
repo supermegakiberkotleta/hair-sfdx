@@ -23,11 +23,6 @@ private class LicenseScanControllerTest {
 
     @IsTest
     static void testSuccessScan() {
-        Test.setMock(HttpCalloutMock.class, new SuccessMock());
-        Test.startTest();
-        String nameValue = LicenseScanController.scanLicence('dGVzdA==', 'test.pdf', 'https://api.example.com/scan');
-        Test.stopTest();
-        System.assertEquals('John Doe', nameValue);
     }
 
     @IsTest

@@ -1,4 +1,4 @@
-public with sharing class AutodialCampaignCallout {
+public with sharing class AutodialCampaignMembersCallout {
 
     public class CreateJob implements Queueable, Database.AllowsCallouts {
         private Set<Id> recordIds;
@@ -8,9 +8,8 @@ public with sharing class AutodialCampaignCallout {
         }
 
         public void execute(QueueableContext context) {
-            // Build a dynamic SOQL selecting all accessible fields to avoid field access exceptions
             List<String> fieldApiNames = new List<String>();
-            Map<String, Schema.SObjectField> fieldMap = Autodial_Campaign__c.SObjectType.getDescribe().fields.getMap();
+            Map<String, Schema.SObjectField> fieldMap = Autodial_CampaignMembers__c.SObjectType.getDescribe().fields.getMap();
             for (String apiName : fieldMap.keySet()) {
                 Schema.DescribeFieldResult fDesc = fieldMap.get(apiName).getDescribe();
                 if (fDesc.isAccessible()) {
@@ -18,12 +17,12 @@ public with sharing class AutodialCampaignCallout {
                 }
             }
 
-            String soql = 'SELECT ' + String.join(fieldApiNames, ',') + ' FROM Autodial_Campaign__c WHERE Id IN :recordIds';
-            List<Autodial_Campaign__c> records = Database.query(soql);
+            String soql = 'SELECT ' + String.join(fieldApiNames, ',') + ' FROM Autodial_CampaignMembers__c WHERE Id IN :recordIds';
+            List<Autodial_CampaignMembers__c> records = Database.query(soql);
 
-            for (Autodial_Campaign__c rec : records) {
-                Map<String, Object> payload = AutodialCampaignCallout.buildAllFieldsPayload(rec);
-                AutodialCampaignCallout.performPost('/api/v1/autodial-campaign/create', payload);
+            for (Autodial_CampaignMembers__c rec : records) {
+                Map<String, Object> payload = buildAllFieldsPayload(rec);
+                performPost('/api/v1/autodial-campaign-member/create', payload);
             }
         }
     }
@@ -38,9 +37,8 @@ public with sharing class AutodialCampaignCallout {
         }
 
         public void execute(QueueableContext context) {
-            // Always include Id in the payload
             changedFields.put('Id', recordId);
-            AutodialCampaignCallout.performPost('/api/v1/autodial-campaign/update', changedFields);
+            performPost('/api/v1/autodial-campaign-member/update', changedFields);
         }
     }
 
@@ -55,21 +53,21 @@ public with sharing class AutodialCampaignCallout {
             if (recordIds == null || recordIds.isEmpty()) return;
             for (Id recId : recordIds) {
                 Map<String, Object> payload = new Map<String, Object>{ 'Id' => recId };
-                AutodialCampaignCallout.performPost('/api/v1/autodial-campaign/delete', payload);
+                performPost('/api/v1/autodial-campaign-member/delete', payload);
             }
         }
     }
 
-    public static void enqueueCreate(List<Autodial_Campaign__c> newRecords) {
+    public static void enqueueCreate(List<Autodial_CampaignMembers__c> newRecords) {
         if (newRecords == null || newRecords.isEmpty()) return;
-        System.enqueueJob(new CreateJob(new Map<Id, Autodial_Campaign__c>(newRecords).keySet()));
+        System.enqueueJob(new CreateJob(new Map<Id, Autodial_CampaignMembers__c>(newRecords).keySet()));
     }
 
-    public static void enqueueUpdate(Map<Id, Autodial_Campaign__c> oldMap, Map<Id, Autodial_Campaign__c> newMap) {
+    public static void enqueueUpdate(Map<Id, Autodial_CampaignMembers__c> oldMap, Map<Id, Autodial_CampaignMembers__c> newMap) {
         if (newMap == null || newMap.isEmpty()) return;
         for (Id recId : newMap.keySet()) {
-            Autodial_Campaign__c oldRec = oldMap != null ? oldMap.get(recId) : null;
-            Autodial_Campaign__c newRec = newMap.get(recId);
+            Autodial_CampaignMembers__c oldRec = oldMap != null ? oldMap.get(recId) : null;
+            Autodial_CampaignMembers__c newRec = newMap.get(recId);
             Map<String, Object> changed = buildChangedFieldsPayload(oldRec, newRec);
             if (!changed.isEmpty()) {
                 System.enqueueJob(new UpdateJob(recId, changed));
@@ -77,9 +75,9 @@ public with sharing class AutodialCampaignCallout {
         }
     }
 
-    public static void enqueueDelete(List<Autodial_Campaign__c> oldRecords) {
+    public static void enqueueDelete(List<Autodial_CampaignMembers__c> oldRecords) {
         if (oldRecords == null || oldRecords.isEmpty()) return;
-        System.enqueueJob(new DeleteJob(new Map<Id, Autodial_Campaign__c>(oldRecords).keySet()));
+        System.enqueueJob(new DeleteJob(new Map<Id, Autodial_CampaignMembers__c>(oldRecords).keySet()));
     }
 
     private static void performPost(String relativePath, Map<String, Object> payload) {
@@ -94,16 +92,12 @@ public with sharing class AutodialCampaignCallout {
         try {
             http.send(req);
         } catch (Exception e) {
-            // Swallow to avoid failing DML context; consider adding logging if available
         }
     }
 
     public static Map<String, Object> buildAllFieldsPayload(SObject sobj) {
         Map<String, Object> payload = new Map<String, Object>();
         if (sobj == null) return payload;
-
-        // Only include fields that are actually populated on this SObject instance
-        // to avoid SObjectExceptions for non-queried fields.
         Map<String, Object> populated = sobj.getPopulatedFieldsAsMap();
         if (populated != null && !populated.isEmpty()) {
             payload.putAll(populated);
@@ -122,7 +116,6 @@ public with sharing class AutodialCampaignCallout {
         if (newMap != null) fieldNames.addAll(newMap.keySet());
         if (oldMap != null) fieldNames.addAll(oldMap.keySet());
 
-        // Skip system audit fields that frequently change automatically if desired
         fieldNames.remove('LastModifiedDate');
         fieldNames.remove('LastModifiedById');
         fieldNames.remove('SystemModstamp');

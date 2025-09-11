@@ -6,9 +6,10 @@ trigger CreateLeadTrigger on Lead (after insert,after update) {
 
         for(Lead lead: Trigger.new) {
             Map<String, Object> leadData = new Map<String, Object>{
-                'Id' => lead.Id,
+           'Id' => lead.Id,
                 'LastName' => lead.LastName,
                 'Broker_email__c' => lead.Broker_email__c,
+                'Broker_name__c' => lead.Broker_name__c,
                 'RecordTypeId' => lead.RecordTypeId,
                 'Lead_type_a__c' => lead.Lead_type_a__c,
                 'Company' => lead.Company,
@@ -76,7 +77,12 @@ trigger CreateLeadTrigger on Lead (after insert,after update) {
                 'Mail_Theme__c'=>lead.Mail_Theme__c,
                 'Datamerch__c'=>lead.Datamerch__c,
                 'Client_email__c'=>lead.Client_email__c,
-                'Phone_number_a__c'=>lead.Phone_number_a__c
+                'Phone_number_a__c'=>lead.Phone_number_a__c,
+                'SMS_Sent__c'=>lead.SMS_Sent__c,
+                'Decision_Logic_Link__c'=>lead.Decision_Logic_Link__c,
+                'Company_owner_name__c'=>lead.Company_owner_name__c,
+                'Statments_Handler__c'=>lead.Statments_Handler__c,
+                'ProcessedBankAccount__c'=>lead.ProcessedBankAccount__c
             };
 
             leadsToSend.add(leadData);

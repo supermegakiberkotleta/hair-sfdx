@@ -24,7 +24,7 @@ public class TaskControllerTest {
         TaskController.updateTask(t.Id, 'Completed', Date.today());
 
         // Вызов getActivityDetailsForTask
-        Map<String, List<sObject>> activities = TaskController.getActivityDetailsForTask(t.Id);
+        Map<String, List<sObject>> activities = TaskController.getActivityDetailsForTask(t.Id, t.ActivityDate);
         System.assert(activities != null);
     }
 }

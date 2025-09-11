@@ -39,7 +39,7 @@ export default class OpportunityTaskGrouping extends LightningElement {
             groups[dateKey].tasks.push(task);
         });
 
-        return Object.values(groups).sort((a, b) => new Date(a.key) - new Date(b.key));
+        return Object.values(groups).sort((a, b) => new Date(b.key) - new Date(a.key));
     }
 
     get hasData() {
@@ -68,7 +68,14 @@ export default class OpportunityTaskGrouping extends LightningElement {
                 noCalls: false,
                 noSMS: false
             }));
-            this.setActiveSection();
+
+            let section;
+
+            if (data.tasks.length) {
+                section = data.tasks[data.tasks.length - 1].ActivityDate;
+            }
+
+            this.setActiveSection(section);
         } else if (error) {
             console.error(error);
             this.tasks = [];
@@ -77,28 +84,29 @@ export default class OpportunityTaskGrouping extends LightningElement {
         this.isLoading = false;
     }
 
-    setActiveSection() {
-        this.activeSections = [this.todayKey];
+    setActiveSection(section) {
+        this.activeSections = [section];
     }
 
     async handleToggleDetails(event) {
         event.preventDefault();
-    
+
+        const opportunityId = this.recordId;
         const taskId = event.currentTarget.dataset.taskId;
         const taskIndex = this.tasks.findIndex(task => task.Id === taskId);
         if (taskIndex === -1) return;
-    
+
         const task = this.tasks[taskIndex];
-    
+
         // 1. Добавляем активную секцию (дату задачи) в список, если ещё не добавлена
         const dateKey = task.ActivityDate;
         if (!this.activeSections.includes(dateKey)) {
             this.activeSections = [...this.activeSections, dateKey];
         }
-    
+
         // 2. Раскрытие вкладки внутри задачи
         task.showDetails = !task.showDetails;
-    
+
         // 3. Проверка: если уже загружены — не запрашивать снова
         if (!task.showDetails ||
             task.hasEmails || task.hasCalls || task.hasSMS ||
@@ -107,22 +115,23 @@ export default class OpportunityTaskGrouping extends LightningElement {
             this.tasks = [...this.tasks];
             return;
         }
-    
+
         this.isLoading = true;
         try {
-            const result = await getActivityDetailsForTask({ taskId });
+            const result = await getActivityDetailsForTask({ opportunityId, activityDate: dateKey });
+
             task.emails = result.emails || [];
             task.calls = result.calls || [];
             task.sms = result.sms || [];
-    
+
             task.hasEmails = task.emails.length > 0;
             task.hasCalls = task.calls.length > 0;
             task.hasSMS = task.sms.length > 0;
-    
+
             task.noEmails = task.emails.length === 0;
             task.noCalls = task.calls.length === 0;
             task.noSMS = task.sms.length === 0;
-    
+
         } catch (error) {
             console.error(error);
             this.showToast('Error', 'Failed to load activity', 'error');
@@ -131,9 +140,9 @@ export default class OpportunityTaskGrouping extends LightningElement {
             this.tasks = [...this.tasks]; // чтобы отрендерить детали
         }
     }
-    
-    
-    
+
+
+
     async handleTaskComplete(event) {
         const taskId = event.target.dataset.taskId;
         const isCompleted = event.target.checked;
