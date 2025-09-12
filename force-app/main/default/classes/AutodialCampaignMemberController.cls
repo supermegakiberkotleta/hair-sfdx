@@ -121,6 +121,32 @@ public with sharing class AutodialCampaignMemberController {
 		return rows;
 	}
 
+	@AuraEnabled(cacheable=false)
+	public static List<CampaignRow> getCampaigns() {
+		List<Autodial_Campaign__c> campaigns = [
+			SELECT Id, Name
+			FROM Autodial_Campaign__c
+			ORDER BY Name ASC
+			LIMIT 100
+		];
+
+		List<CampaignRow> rows = new List<CampaignRow>();
+		for (Autodial_Campaign__c c : campaigns) {
+			rows.add(new CampaignRow(c));
+		}
+		return rows;
+	}
+
+	public class CampaignRow {
+		@AuraEnabled public Id id;
+		@AuraEnabled public String name;
+
+		public CampaignRow(Autodial_Campaign__c c) {
+			this.id = c.Id;
+			this.name = c.Name;
+		}
+	}
+
 	public class AddMembersResult {
 		@AuraEnabled public Boolean success;
 		@AuraEnabled public Integer createdCount;
@@ -258,5 +284,86 @@ public with sharing class AutodialCampaignMemberController {
 		res.success = true;
 		res.message = 'Added ' + res.createdCount + ' member(s); skipped ' + res.skippedCount + '.';
 		return res;
+	}
+
+	public class RecordData {
+		@AuraEnabled public Id id;
+		@AuraEnabled public String name;
+		@AuraEnabled public String type;
+		@AuraEnabled public String additionalInfo;
+	}
+
+	@AuraEnabled
+	public static List<RecordData> getRecordsData(List<Id> recordIds, String recordType) {
+		List<RecordData> records = new List<RecordData>();
+		
+		if (recordIds == null || recordIds.isEmpty()) {
+			return records;
+		}
+
+		try {
+			if (recordType == 'Lead') {
+				List<Lead> leads = [
+					SELECT Id, Name, Company, Phone, Email
+					FROM Lead
+					WHERE Id IN :recordIds
+				];
+				for (Lead l : leads) {
+					RecordData rd = new RecordData();
+					rd.id = l.Id;
+					rd.name = l.Name;
+					rd.type = 'Lead';
+					rd.additionalInfo = l.Company + (String.isNotBlank(l.Phone) ? ' | ' + l.Phone : '');
+					records.add(rd);
+				}
+			} else if (recordType == 'Contact') {
+				List<Contact> contacts = [
+					SELECT Id, Name, Account.Name, Phone, Email
+					FROM Contact
+					WHERE Id IN :recordIds
+				];
+				for (Contact c : contacts) {
+					RecordData rd = new RecordData();
+					rd.id = c.Id;
+					rd.name = c.Name;
+					rd.type = 'Contact';
+					rd.additionalInfo = (c.Account != null ? c.Account.Name : 'No Account') + (String.isNotBlank(c.Phone) ? ' | ' + c.Phone : '');
+					records.add(rd);
+				}
+			} else if (recordType == 'Account') {
+				List<Account> accounts = [
+					SELECT Id, Name, Phone, Industry
+					FROM Account
+					WHERE Id IN :recordIds
+				];
+				for (Account a : accounts) {
+					RecordData rd = new RecordData();
+					rd.id = a.Id;
+					rd.name = a.Name;
+					rd.type = 'Account';
+					rd.additionalInfo = (String.isNotBlank(a.Industry) ? a.Industry : 'No Industry') + (String.isNotBlank(a.Phone) ? ' | ' + a.Phone : '');
+					records.add(rd);
+				}
+			} else if (recordType == 'Opportunity') {
+				List<Opportunity> opportunities = [
+					SELECT Id, Name, Account.Name, StageName, Amount
+					FROM Opportunity
+					WHERE Id IN :recordIds
+				];
+				for (Opportunity o : opportunities) {
+					RecordData rd = new RecordData();
+					rd.id = o.Id;
+					rd.name = o.Name;
+					rd.type = 'Opportunity';
+					rd.additionalInfo = (o.Account != null ? o.Account.Name : 'No Account') + ' | ' + o.StageName + (o.Amount != null ? ' | $' + o.Amount : '');
+					records.add(rd);
+				}
+			}
+		} catch (Exception e) {
+			System.debug('Error getting records data: ' + e.getMessage());
+			throw new AuraHandledException('Failed to load records data: ' + e.getMessage());
+		}
+
+		return records;
 	}
 }

@@ -153,4 +153,111 @@ private class AutodialCampaignMemberControllerTest {
 		System.assertEquals(2, mems.size());
 	}
 
+	@IsTest
+	static void testGetCampaigns() {
+		// Create test campaigns
+		Autodial_Campaign__c camp1 = new Autodial_Campaign__c(Name = 'Campaign 1');
+		Autodial_Campaign__c camp2 = new Autodial_Campaign__c(Name = 'Campaign 2');
+		insert new List<Autodial_Campaign__c>{ camp1, camp2 };
+
+		Test.startTest();
+		List<AutodialCampaignMemberController.CampaignRow> campaigns = AutodialCampaignMemberController.getCampaigns();
+		Test.stopTest();
+
+		System.assertEquals(2, campaigns.size());
+		System.assertEquals('Campaign 1', campaigns[0].name);
+		System.assertEquals('Campaign 2', campaigns[1].name);
+	}
+
+	@IsTest
+	static void testGetRecordsDataLead() {
+		Lead l1 = new Lead(LastName = 'Test Lead 1', Company = 'Test Company 1', Phone = '123-456-7890');
+		Lead l2 = new Lead(LastName = 'Test Lead 2', Company = 'Test Company 2', Phone = '098-765-4321');
+		insert new List<Lead>{ l1, l2 };
+
+		Test.startTest();
+		List<AutodialCampaignMemberController.RecordData> records = AutodialCampaignMemberController.getRecordsData(new List<Id>{ l1.Id, l2.Id }, 'Lead');
+		Test.stopTest();
+
+		System.assertEquals(2, records.size());
+		System.assertEquals('Lead', records[0].type);
+		System.assertEquals('Lead', records[1].type);
+		System.assert(records[0].name.contains('Test Lead'));
+		System.assert(records[0].additionalInfo.contains('Test Company'));
+	}
+
+	@IsTest
+	static void testGetRecordsDataContact() {
+		Account acc = new Account(Name = 'Test Account');
+		insert acc;
+		Contact c1 = new Contact(LastName = 'Test Contact 1', AccountId = acc.Id, Phone = '123-456-7890');
+		Contact c2 = new Contact(LastName = 'Test Contact 2', AccountId = acc.Id, Phone = '098-765-4321');
+		insert new List<Contact>{ c1, c2 };
+
+		Test.startTest();
+		List<AutodialCampaignMemberController.RecordData> records = AutodialCampaignMemberController.getRecordsData(new List<Id>{ c1.Id, c2.Id }, 'Contact');
+		Test.stopTest();
+
+		System.assertEquals(2, records.size());
+		System.assertEquals('Contact', records[0].type);
+		System.assertEquals('Contact', records[1].type);
+		System.assert(records[0].name.contains('Test Contact'));
+		System.assert(records[0].additionalInfo.contains('Test Account'));
+	}
+
+	@IsTest
+	static void testGetRecordsDataAccount() {
+		Account a1 = new Account(Name = 'Test Account 1', Industry = 'Technology', Phone = '123-456-7890');
+		Account a2 = new Account(Name = 'Test Account 2', Industry = 'Healthcare', Phone = '098-765-4321');
+		insert new List<Account>{ a1, a2 };
+
+		Test.startTest();
+		List<AutodialCampaignMemberController.RecordData> records = AutodialCampaignMemberController.getRecordsData(new List<Id>{ a1.Id, a2.Id }, 'Account');
+		Test.stopTest();
+
+		System.assertEquals(2, records.size());
+		System.assertEquals('Account', records[0].type);
+		System.assertEquals('Account', records[1].type);
+		System.assert(records[0].name.contains('Test Account'));
+		System.assert(records[0].additionalInfo.contains('Technology'));
+	}
+
+	@IsTest
+	static void testGetRecordsDataOpportunity() {
+		Account acc = new Account(Name = 'Test Account');
+		insert acc;
+		Opportunity o1 = new Opportunity(Name = 'Test Opportunity 1', AccountId = acc.Id, StageName = 'Prospecting', Amount = 10000, CloseDate = Date.today().addDays(30));
+		Opportunity o2 = new Opportunity(Name = 'Test Opportunity 2', AccountId = acc.Id, StageName = 'Qualification', Amount = 20000, CloseDate = Date.today().addDays(60));
+		insert new List<Opportunity>{ o1, o2 };
+
+		Test.startTest();
+		List<AutodialCampaignMemberController.RecordData> records = AutodialCampaignMemberController.getRecordsData(new List<Id>{ o1.Id, o2.Id }, 'Opportunity');
+		Test.stopTest();
+
+		System.assertEquals(2, records.size());
+		System.assertEquals('Opportunity', records[0].type);
+		System.assertEquals('Opportunity', records[1].type);
+		System.assert(records[0].name.contains('Test Opportunity'));
+		System.assert(records[0].additionalInfo.contains('Test Account'));
+		System.assert(records[0].additionalInfo.contains('Prospecting'));
+	}
+
+	@IsTest
+	static void testGetRecordsDataEmpty() {
+		Test.startTest();
+		List<AutodialCampaignMemberController.RecordData> records = AutodialCampaignMemberController.getRecordsData(new List<Id>(), 'Lead');
+		Test.stopTest();
+
+		System.assertEquals(0, records.size());
+	}
+
+	@IsTest
+	static void testGetRecordsDataNull() {
+		Test.startTest();
+		List<AutodialCampaignMemberController.RecordData> records = AutodialCampaignMemberController.getRecordsData(null, 'Lead');
+		Test.stopTest();
+
+		System.assertEquals(0, records.size());
+	}
+
 }

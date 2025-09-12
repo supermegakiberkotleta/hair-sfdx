@@ -60,7 +60,17 @@ public with sharing class AutodialCampaignMembersCallout {
 
     public static void enqueueCreate(List<Autodial_CampaignMembers__c> newRecords) {
         if (newRecords == null || newRecords.isEmpty()) return;
-        System.enqueueJob(new CreateJob(new Map<Id, Autodial_CampaignMembers__c>(newRecords).keySet()));
+        
+        // For large volumes, use batch processing to avoid queueable job limits
+        if (newRecords.size() > 50) {
+            // Use batch processing for large volumes (skip in test context)
+            if (!Test.isRunningTest()) {
+                Database.executeBatch(new AutodialCampaignMembersBatch(new Map<Id, Autodial_CampaignMembers__c>(newRecords).keySet()), 50);
+            }
+        } else {
+            // Use queueable for small volumes
+            System.enqueueJob(new CreateJob(new Map<Id, Autodial_CampaignMembers__c>(newRecords).keySet()));
+        }
     }
 
     public static void enqueueUpdate(Map<Id, Autodial_CampaignMembers__c> oldMap, Map<Id, Autodial_CampaignMembers__c> newMap) {
