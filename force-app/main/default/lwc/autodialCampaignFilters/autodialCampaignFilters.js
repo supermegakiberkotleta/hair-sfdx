@@ -391,25 +391,91 @@ export default class AutodialCampaignFilters extends LightningElement {
         this.showToast('Success', 'Filter added successfully', 'success');
     }
     
-    deleteFilter(event) {
+    async deleteFilter(event) {
         const index = parseInt(event.target.dataset.index);
-        this.filters.splice(index, 1);
-        this.filters = [...this.filters]; // Trigger reactivity
+        const filterToDelete = this.filters[index];
         
-        this.showToast('Success', 'Filter removed successfully', 'success');
+        if (!filterToDelete) {
+            this.showToast('Error', 'Filter not found', 'error');
+            return;
+        }
+        
+        // If it's a temporary filter (not saved yet), just remove from local array
+        if (filterToDelete.Id && filterToDelete.Id.toString().startsWith('temp_')) {
+            this.filters.splice(index, 1);
+            this.filters = [...this.filters]; // Trigger reactivity
+            this.showToast('Success', 'Filter removed successfully', 'success');
+            return;
+        }
+        
+        // If it's a saved filter, delete from database
+        if (filterToDelete.Id) {
+            try {
+                this.isLoading = true;
+                await deleteFilter({ filterId: filterToDelete.Id });
+                
+                // Remove from local array after successful deletion
+                this.filters.splice(index, 1);
+                this.filters = [...this.filters]; // Trigger reactivity
+                
+                this.showToast('Success', 'Filter removed successfully', 'success');
+            } catch (error) {
+                console.error('Error deleting filter:', error);
+                let errorMessage = 'Failed to delete filter';
+                
+                if (error.body && error.body.message) {
+                    errorMessage += ': ' + error.body.message;
+                } else if (error.message) {
+                    errorMessage += ': ' + error.message;
+                }
+                
+                this.showToast('Error', errorMessage, 'error');
+            } finally {
+                this.isLoading = false;
+            }
+        } else {
+            // Fallback: just remove from local array
+            this.filters.splice(index, 1);
+            this.filters = [...this.filters]; // Trigger reactivity
+            this.showToast('Success', 'Filter removed successfully', 'success');
+        }
     }
     
-    clearAllFilters() {
-        this.filters = [];
-        // Reset form to initial state
-        this.newFilter = {
-            objectType: '',
-            field: '',
-            operator: 'equals', // Set default operator to 'equals'
-            value: ''
-        };
-        this.fieldOptions = [];
-        this.showToast('Success', 'All filters cleared', 'success');
+    async clearAllFilters() {
+        if (this.filters.length === 0) {
+            this.showToast('Warning', 'No filters to clear', 'warning');
+            return;
+        }
+        
+        try {
+            this.isLoading = true;
+            await deleteAllFilters({ campaignId: this.recordId });
+            
+            // Clear local array after successful deletion
+            this.filters = [];
+            // Reset form to initial state
+            this.newFilter = {
+                objectType: '',
+                field: '',
+                operator: 'equals', // Set default operator to 'equals'
+                value: ''
+            };
+            this.fieldOptions = [];
+            this.showToast('Success', 'All filters cleared', 'success');
+        } catch (error) {
+            console.error('Error clearing all filters:', error);
+            let errorMessage = 'Failed to clear all filters';
+            
+            if (error.body && error.body.message) {
+                errorMessage += ': ' + error.body.message;
+            } else if (error.message) {
+                errorMessage += ': ' + error.message;
+            }
+            
+            this.showToast('Error', errorMessage, 'error');
+        } finally {
+            this.isLoading = false;
+        }
     }
     
     async saveFilters() {

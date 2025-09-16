@@ -210,21 +210,45 @@ public with sharing class AutodialCampaignFiltersController {
      */
     @AuraEnabled
     public static String deleteFilter(String filterId) {
+        System.debug('=== deleteFilter called ===');
+        System.debug('filterId: ' + filterId);
+        
         if (String.isBlank(filterId)) {
+            System.debug('Filter ID is blank, throwing exception');
             throw new AuraHandledException('Filter ID is required');
         }
         
         try {
-            Autodial_Campaign_Members_Filtres__c filterToDelete = [
-                SELECT Id FROM Autodial_Campaign_Members_Filtres__c 
+            // First check if the filter exists
+            List<Autodial_Campaign_Members_Filtres__c> filtersToDelete = [
+                SELECT Id, object_type__c, field__c, operator__c, value__c, autodial_campaign__c
+                FROM Autodial_Campaign_Members_Filtres__c 
                 WHERE Id = :filterId 
                 LIMIT 1
             ];
             
+            System.debug('Found ' + filtersToDelete.size() + ' filters to delete');
+            
+            if (filtersToDelete.isEmpty()) {
+                System.debug('No filter found with ID: ' + filterId);
+                throw new AuraHandledException('Filter not found with ID: ' + filterId);
+            }
+            
+            Autodial_Campaign_Members_Filtres__c filterToDelete = filtersToDelete[0];
+            System.debug('Deleting filter: ' + filterToDelete);
+            
             delete filterToDelete;
+            System.debug('Filter deleted successfully');
+            
             return 'Filter deleted successfully';
             
+        } catch (DmlException dmlEx) {
+            System.debug('DML Exception in deleteFilter: ' + dmlEx.getMessage());
+            System.debug('DML Exception details: ' + dmlEx.getDmlMessage(0));
+            throw new AuraHandledException('Database error deleting filter: ' + dmlEx.getDmlMessage(0));
         } catch (Exception e) {
+            System.debug('Exception in deleteFilter: ' + e.getMessage());
+            System.debug('Stack trace: ' + e.getStackTraceString());
             throw new AuraHandledException('Error deleting filter: ' + e.getMessage());
         }
     }
@@ -234,23 +258,40 @@ public with sharing class AutodialCampaignFiltersController {
      */
     @AuraEnabled
     public static String deleteAllFilters(String campaignId) {
+        System.debug('=== deleteAllFilters called ===');
+        System.debug('campaignId: ' + campaignId);
+        
         if (String.isBlank(campaignId)) {
+            System.debug('Campaign ID is blank, throwing exception');
             throw new AuraHandledException('Campaign ID is required');
         }
         
         try {
             List<Autodial_Campaign_Members_Filtres__c> filtersToDelete = [
-                SELECT Id FROM Autodial_Campaign_Members_Filtres__c 
+                SELECT Id, object_type__c, field__c, operator__c, value__c, autodial_campaign__c
+                FROM Autodial_Campaign_Members_Filtres__c 
                 WHERE autodial_campaign__c = :campaignId
             ];
             
+            System.debug('Found ' + filtersToDelete.size() + ' filters to delete for campaign: ' + campaignId);
+            
             if (!filtersToDelete.isEmpty()) {
+                System.debug('Deleting ' + filtersToDelete.size() + ' filters');
                 delete filtersToDelete;
+                System.debug('All filters deleted successfully');
+            } else {
+                System.debug('No filters found to delete');
             }
             
             return 'All filters deleted successfully';
             
+        } catch (DmlException dmlEx) {
+            System.debug('DML Exception in deleteAllFilters: ' + dmlEx.getMessage());
+            System.debug('DML Exception details: ' + dmlEx.getDmlMessage(0));
+            throw new AuraHandledException('Database error deleting filters: ' + dmlEx.getDmlMessage(0));
         } catch (Exception e) {
+            System.debug('Exception in deleteAllFilters: ' + e.getMessage());
+            System.debug('Stack trace: ' + e.getStackTraceString());
             throw new AuraHandledException('Error deleting filters: ' + e.getMessage());
         }
     }
