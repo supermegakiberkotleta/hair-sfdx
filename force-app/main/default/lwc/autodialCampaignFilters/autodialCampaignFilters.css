@@ -45,3 +45,43 @@
 .slds-button + .slds-button {
     margin-left: 0.5rem;
 }
+
+/* Field search dropdown styles */
+.field-search-container {
+    position: relative;
+}
+
+.field-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #dddbda;
+    border-radius: 0.25rem;
+    background: white;
+    box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.16);
+}
+
+.field-dropdown .slds-dropdown__item {
+    padding: 0;
+}
+
+.field-dropdown .slds-dropdown__item-link {
+    display: block;
+    padding: 0.5rem 0.75rem;
+    color: #181818;
+    text-decoration: none;
+    border-bottom: 1px solid #f3f3f3;
+}
+
+.field-dropdown .slds-dropdown__item-link:hover {
+    background-color: #f3f3f3;
+    color: #0176d3;
+}
+
+.field-dropdown .slds-dropdown__item:last-child .slds-dropdown__item-link {
+    border-bottom: none;
+}

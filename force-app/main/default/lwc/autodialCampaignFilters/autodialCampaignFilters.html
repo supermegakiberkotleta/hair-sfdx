@@ -1,6 +1,6 @@
 <template>
     <lightning-card title="Campaign Filters" icon-name="standard:filter">
-        <div class="slds-p-around_medium">
+        <div class="slds-p-around_medium" onclick={handleContainerClick}>
             
             <!-- Filters Display -->
             <template if:true={filters.length}>
@@ -55,15 +55,34 @@
 
                     <!-- Field -->
                     <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
-                        <lightning-combobox
-                            name="field"
-                            label="Field"
-                            value={newFilter.field}
-                            placeholder="Select field"
-                            options={fieldOptions}
-                            onchange={handleFieldChange}
-                            required>
-                        </lightning-combobox>
+                        <div class="field-search-container">
+                            <lightning-input
+                                name="fieldSearch"
+                                label="Field"
+                                value={fieldSearchValue}
+                                placeholder="Search field..."
+                                onchange={handleFieldSearchChange}
+                                onclick={handleFieldInputClick}
+                                onfocus={handleFieldInputFocus}
+                                class="field-search-input">
+                            </lightning-input>
+                            <template if:true={showFieldDropdown}>
+                                <div class="field-dropdown slds-dropdown slds-dropdown_left">
+                                    <ul class="slds-dropdown__list" role="menu">
+                                        <template for:each={filteredFieldOptions} for:item="field">
+                                            <li key={field.value} class="slds-dropdown__item" role="menuitem">
+                                                <a href="javascript:void(0);" 
+                                                   class="slds-dropdown__item-link" 
+                                                   onclick={selectField}
+                                                   data-value={field.value}>
+                                                    {field.label}
+                                                </a>
+                                            </li>
+                                        </template>
+                                    </ul>
+                                </div>
+                            </template>
+                        </div>
                     </div>
 
                     <!-- Operator -->

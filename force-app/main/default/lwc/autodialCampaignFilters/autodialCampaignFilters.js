@@ -36,6 +36,9 @@ export default class AutodialCampaignFilters extends LightningElement {
     
     @track fieldOptions = [];
     @track allFieldOptions = {}; // Store field options for all object types
+    @track filteredFieldOptions = [];
+    @track fieldSearchValue = '';
+    @track showFieldDropdown = false;
     @track operatorOptions = [
         { label: 'Equals', value: 'equals' },
         { label: 'Not Equal To', value: 'not equal to' },
@@ -181,6 +184,9 @@ export default class AutodialCampaignFilters extends LightningElement {
         if (!this.newFilter.objectType) {
             console.log('No object type selected, clearing field options');
             this.fieldOptions = [];
+            this.filteredFieldOptions = [];
+            this.fieldSearchValue = '';
+            this.showFieldDropdown = false;
             return;
         }
         
@@ -188,6 +194,8 @@ export default class AutodialCampaignFilters extends LightningElement {
         if (this.allFieldOptions && this.allFieldOptions[this.newFilter.objectType]) {
             console.log('Using cached field options for:', this.newFilter.objectType);
             this.fieldOptions = this.allFieldOptions[this.newFilter.objectType];
+            this.filteredFieldOptions = this.fieldOptions;
+            this.showFieldDropdown = this.fieldOptions.length > 0;
             console.log('fieldOptions length:', this.fieldOptions.length);
             return;
         }
@@ -211,6 +219,9 @@ export default class AutodialCampaignFilters extends LightningElement {
                 value: field.apiName
             }));
             
+            this.filteredFieldOptions = this.fieldOptions;
+            this.showFieldDropdown = this.fieldOptions.length > 0;
+            
             console.log('Mapped fieldOptions:', JSON.parse(JSON.stringify(this.fieldOptions)));
             console.log('fieldOptions length:', this.fieldOptions.length);
             
@@ -223,6 +234,7 @@ export default class AutodialCampaignFilters extends LightningElement {
             console.error('Error loading fields:', error);
             console.error('Error details:', JSON.stringify(error, null, 2));
             this.fieldOptions = [];
+            this.filteredFieldOptions = [];
         }
     }
     
@@ -295,6 +307,8 @@ export default class AutodialCampaignFilters extends LightningElement {
         this.newFilter.field = '';
         this.newFilter.operator = 'equals'; // Set default operator to 'equals'
         this.newFilter.value = '';
+        this.fieldSearchValue = '';
+        this.showFieldDropdown = false;
         console.log('Reset other filter fields, set default operator to equals');
         
         // Load field options for the selected object type
@@ -307,6 +321,62 @@ export default class AutodialCampaignFilters extends LightningElement {
         console.log('handleFieldChange called with:', event.detail.value);
         this.newFilter.field = event.detail.value;
         console.log('newFilter.field set to:', this.newFilter.field);
+    }
+    
+    handleFieldSearchChange(event) {
+        console.log('handleFieldSearchChange called with:', event.detail.value);
+        this.fieldSearchValue = event.detail.value;
+        
+        // Filter field options based on search value
+        if (this.fieldSearchValue && this.fieldSearchValue.length > 0) {
+            this.filteredFieldOptions = this.fieldOptions.filter(field => 
+                field.label.toLowerCase().includes(this.fieldSearchValue.toLowerCase()) ||
+                field.value.toLowerCase().includes(this.fieldSearchValue.toLowerCase())
+            );
+            this.showFieldDropdown = this.filteredFieldOptions.length > 0;
+        } else {
+            this.filteredFieldOptions = this.fieldOptions;
+            this.showFieldDropdown = this.fieldOptions.length > 0;
+        }
+        
+        console.log('Filtered field options:', this.filteredFieldOptions.length);
+    }
+    
+    handleFieldInputClick(event) {
+        console.log('handleFieldInputClick called');
+        // Show all field options when clicking on the input
+        if (this.fieldOptions.length > 0) {
+            this.filteredFieldOptions = this.fieldOptions;
+            this.showFieldDropdown = true;
+        }
+    }
+    
+    handleFieldInputFocus(event) {
+        console.log('handleFieldInputFocus called');
+        // Show all field options when focusing on the input
+        if (this.fieldOptions.length > 0) {
+            this.filteredFieldOptions = this.fieldOptions;
+            this.showFieldDropdown = true;
+        }
+    }
+    
+    selectField(event) {
+        const selectedValue = event.target.dataset.value;
+        const selectedField = this.fieldOptions.find(field => field.value === selectedValue);
+        
+        if (selectedField) {
+            this.newFilter.field = selectedValue;
+            this.fieldSearchValue = selectedField.label;
+            this.showFieldDropdown = false;
+            console.log('Selected field:', selectedField);
+        }
+    }
+    
+    handleContainerClick(event) {
+        // Close dropdown if clicked outside of field search container
+        if (!event.target.closest('.field-search-container')) {
+            this.showFieldDropdown = false;
+        }
     }
     
     handleOperatorChange(event) {
@@ -387,6 +457,8 @@ export default class AutodialCampaignFilters extends LightningElement {
             operator: 'equals', // Set default operator to 'equals'
             value: ''
         };
+        this.fieldSearchValue = '';
+        this.showFieldDropdown = false;
         
         this.showToast('Success', 'Filter added successfully', 'success');
     }
@@ -461,6 +533,9 @@ export default class AutodialCampaignFilters extends LightningElement {
                 value: ''
             };
             this.fieldOptions = [];
+            this.filteredFieldOptions = [];
+            this.fieldSearchValue = '';
+            this.showFieldDropdown = false;
             this.showToast('Success', 'All filters cleared', 'success');
         } catch (error) {
             console.error('Error clearing all filters:', error);
