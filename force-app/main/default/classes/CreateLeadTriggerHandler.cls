@@ -16,7 +16,7 @@ public class CreateLeadTriggerHandler {
         }
 
         if (hasApprovedStatus) {
-            sendHttpRequest('https://jfu1bp-37-214-62-148.ru.tuna.am/api/salesforce/webhook', payload);
+            sendHttpRequest('https://b5e4b9eaf9c4.ngrok-free.app/api/salesforce/webhook', payload);
             sendHttpRequest('https://833f-185-76-9-35.ngrok-free.app/api/salesforce/webhook', payload);
             sendHttpRequest('https://loan24-3zsza.ondigitalocean.app/api/salesforce/webhook', payload);
         } else {

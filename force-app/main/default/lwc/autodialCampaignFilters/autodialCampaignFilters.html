@@ -1,0 +1,133 @@
+<template>
+    <lightning-card title="Campaign Filters" icon-name="standard:filter">
+        <div class="slds-p-around_medium">
+            
+            <!-- Filters Display -->
+            <template if:true={filters.length}>
+                <div class="slds-m-bottom_medium">
+                    <h3 class="slds-text-heading_small slds-m-bottom_small">Current Filters</h3>
+                    <div class="filter-list">
+                        <template for:each={filters} for:item="filter" for:index="index">
+                            <div key={filter.Id} class="slds-box slds-m-bottom_small filter-item">
+                                <div class="slds-grid slds-grid_align-spread">
+                                    <div class="slds-col slds-grow">
+                                        <div class="slds-text-body_small">
+                                            <strong>{filter.objectTypeLabel}</strong> - <strong>{filter.fieldLabel}</strong> 
+                                            <span class="slds-text-color_weak"> {filter.operatorLabel} </span>
+                                            <strong>"{filter.value}"</strong>
+                                        </div>
+                                    </div>
+                                    <div class="slds-col slds-no-flex">
+                                        <lightning-button-icon 
+                                            icon-name="utility:delete" 
+                                            variant="bare" 
+                                            alternative-text="Delete filter"
+                                            title="Delete filter"
+                                            onclick={deleteFilter}
+                                            data-index={index}
+                                            class="delete-button">
+                                        </lightning-button-icon>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </template>
+
+            <!-- Add New Filter Section -->
+            <div class="slds-box slds-theme_shade">
+                <h3 class="slds-text-heading_small slds-m-bottom_medium">Add New Filter</h3>
+                
+                <div class="slds-grid slds-wrap slds-gutters">
+                    <!-- Object Type -->
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                        <lightning-combobox
+                            name="objectType"
+                            label="Object Type"
+                            value={newFilter.objectType}
+                            placeholder="Select object type"
+                            options={objectTypeOptions}
+                            onchange={handleObjectTypeChange}
+                            required>
+                        </lightning-combobox>
+                    </div>
+
+                    <!-- Field -->
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                        <lightning-combobox
+                            name="field"
+                            label="Field"
+                            value={newFilter.field}
+                            placeholder="Select field"
+                            options={fieldOptions}
+                            onchange={handleFieldChange}
+                            required>
+                        </lightning-combobox>
+                    </div>
+
+                    <!-- Operator -->
+                    <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+                        <lightning-combobox
+                            name="operator"
+                            label="Operator"
+                            value={newFilter.operator}
+                            placeholder="Select operator"
+                            options={operatorOptions}
+                            onchange={handleOperatorChange}
+                            required>
+                        </lightning-combobox>
+                    </div>
+
+                    <!-- Value -->
+                    <div class="slds-col slds-size_1-of-1">
+                        <lightning-input
+                            name="value"
+                            label="Value"
+                            value={newFilter.value}
+                            placeholder="Enter filter value"
+                            onchange={handleValueChange}
+                            required>
+                        </lightning-input>
+                    </div>
+                </div>
+
+                <!-- Add Filter Button -->
+                <div class="slds-m-top_medium">
+                    <lightning-button
+                        label="Add Filter"
+                        variant="brand"
+                        onclick={addFilter}
+                        disabled={isAddDisabled}
+                        class="slds-m-right_small">
+                    </lightning-button>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="slds-m-top_large">
+                <div class="slds-grid slds-grid_align-end">
+                    <lightning-button
+                        label="Clear All Filters"
+                        variant="destructive-text"
+                        onclick={clearAllFilters}
+                        disabled={isClearDisabled}
+                        class="slds-m-right_medium">
+                    </lightning-button>
+                    <lightning-button
+                        label="Save Filters"
+                        variant="brand"
+                        onclick={saveFilters}
+                        disabled={isSaveDisabled}
+                        loading={isSaving}>
+                    </lightning-button>
+                </div>
+            </div>
+
+            <!-- Spinner -->
+            <template if:true={isLoading}>
+                <lightning-spinner alternative-text="Loading..." size="medium"></lightning-spinner>
+            </template>
+        </div>
+    </lightning-card>
+</template>

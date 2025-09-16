@@ -1,0 +1,47 @@
+.filter-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.filter-item {
+    border-left: 3px solid #0176d3;
+    background-color: #f8f9fa;
+}
+
+.filter-item:hover {
+    background-color: #f3f3f3;
+}
+
+.delete-button {
+    color: #c23934;
+}
+
+.delete-button:hover {
+    background-color: #c23934;
+    color: white;
+}
+
+.slds-box.slds-theme_shade {
+    background-color: #f8f9fa;
+    border: 1px solid #dddbda;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .slds-grid.slds-gutters > .slds-col {
+        padding-left: 0;
+        padding-right: 0;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* Loading spinner positioning */
+.slds-spinner_container {
+    position: relative;
+    height: 100px;
+}
+
+/* Button spacing */
+.slds-button + .slds-button {
+    margin-left: 0.5rem;
+}
