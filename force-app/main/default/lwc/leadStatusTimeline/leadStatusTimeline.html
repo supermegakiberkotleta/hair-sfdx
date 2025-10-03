@@ -1,0 +1,33 @@
+<template>
+    <lightning-card title="Lead Status Timeline" icon-name="standard:lead">
+        <template if:true={statusData}>
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                <thead>
+                    <tr>
+                        <th scope="col">Status</th>
+                        <th scope="col">Entry date</th>
+                        <!-- <th scope="col">Release date</th>
+                        <th scope="col">Duration (days)</th> -->
+                        <th scope="col">Duration (h:min)</th> <!-- ← НОВАЯ КОЛОНКА -->
+                    </tr>
+                </thead>
+                <tbody>
+                    <template for:each={statusData} for:item="status">
+                        <tr key={status.key}>
+                            <td>{status.Status}</td>
+                            <td>{status.EnteredDate}</td>
+                            <!-- <td>{status.ExitedDate}</td>
+                            <td>{status.DurationDays}</td> -->
+                            <td>{status.FormattedDuration}</td> <!-- ← ОТОБРАЖАЕМ ЧАСЫ И МИНУТЫ -->
+                        </tr>
+                    </template>
+                </tbody>
+            </table>
+        </template>
+        <template if:true={error}>
+           <div class="slds-text-color_error">
+                Ошибка загрузки данных: {error.body.message}
+            </div>
+        </template>
+    </lightning-card>
+</template>

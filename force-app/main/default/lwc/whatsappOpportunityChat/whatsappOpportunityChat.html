@@ -1,0 +1,36 @@
+<template>
+    <div class="chat-wrapper">
+        <div class="chat-header">
+            <h2>WhatsApp Chat (Opportunity)</h2>
+        </div>
+
+        <div class="chat-container">
+            <template if:true={messages}>
+                <template for:each={messages} for:item="msg">
+                    <div key={msg.Id} class={msg.cssClass}>
+                        <span class="message-text">{msg.message}</span>
+                        <span class="message-time">{msg.createdAt}</span>
+                    </div>
+                </template>
+            </template>
+        </div>
+
+        <div class="chat-input">
+            <lightning-input
+                class="phone-input"
+                label="Phone"
+                value={phoneNumber}
+                onchange={handlePhoneChange}
+            ></lightning-input>
+
+            <textarea
+                class="message-input"
+                placeholder="Type a message"
+                value={newMessage}
+                onchange={handleMessageChange}
+            ></textarea>
+
+            <button class="send-btn" onclick={handleSend}>Send</button>
+        </div>
+    </div>
+</template>

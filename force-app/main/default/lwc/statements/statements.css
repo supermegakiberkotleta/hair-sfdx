@@ -1,0 +1,11 @@
+.statement-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.statement-row {
+  border-bottom: 1px solid #f3f3f3;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}

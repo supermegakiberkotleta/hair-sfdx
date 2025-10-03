@@ -16,11 +16,9 @@ public class CreateLeadTriggerHandler {
         }
 
         if (hasApprovedStatus) {
-            sendHttpRequest('https://b5e4b9eaf9c4.ngrok-free.app/api/salesforce/webhook', payload);
+            sendHttpRequest('https://c799efd007e9.ngrok-free.app/api/salesforce/webhook', payload);
             sendHttpRequest('https://833f-185-76-9-35.ngrok-free.app/api/salesforce/webhook', payload);
             sendHttpRequest('https://loan24-3zsza.ondigitalocean.app/api/salesforce/webhook', payload);
-        } else {
-            sendHttpRequest('https://lenderpro.itprofit.net/api/v1/salesforce/webhook/updated', payload);
         }
 
         sendHttpRequest('https://lenderpro.ai/api/v1/salesforce/webhook/updated', payload);

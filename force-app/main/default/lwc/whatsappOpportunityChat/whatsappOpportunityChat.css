@@ -1,0 +1,100 @@
+.chat-wrapper {
+    width: 400px;
+    height: 600px; /* фиксированная высота окна */
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    font-family: 'Helvetica', Arial, sans-serif;
+    background-color: #ece5dd;
+}
+
+.chat-header {
+    background-color: #075e54;
+    color: white;
+    padding: 10px;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.chat-container {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    scroll-behavior: smooth; /* плавный скролл */
+}
+
+.incoming {
+    background-color: #ffffff;
+    color: #000;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    max-width: 70%;
+    align-self: flex-start; /* выравнивание слева */
+}
+
+.outgoing {
+    background-color: #dcf8c6;
+    color: #000;
+    padding: 8px 12px;
+    border-radius: 8px;
+    margin-bottom: 6px;
+    max-width: 70%;
+    align-self: flex-end; /* выравнивание справа */
+}
+
+.message-text {
+    display: block;
+    word-wrap: break-word;
+}
+
+.message-time {
+    font-size: 10px;
+    color: #999;
+    margin-top: 2px;
+    text-align: right;
+}
+
+.chat-input {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    background-color: #f0f0f0;
+    flex-shrink: 0;
+}
+
+.phone-input {
+    margin-bottom: 5px;
+}
+
+.message-input {
+    resize: none;
+    min-height: 50px;
+    line-height: 1.4;
+    margin-bottom: 5px;
+    padding: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-family: inherit;
+}
+
+.send-btn {
+    background-color: #25d366;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    align-self: flex-end;
+    transition: background-color 0.3s ease;
+}
+
+.send-btn:hover {
+    background-color: #128c7e;
+}

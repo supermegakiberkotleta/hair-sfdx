@@ -1,0 +1,64 @@
+<template>
+    <div class="modal-content">
+        <!-- Selected Records Section -->
+        <div class="section">
+            <h3 class="section-title">Selected {recordTypeLabel}</h3>
+            <div class="records-info">
+                <p class="records-count">{selectedRecordsCount} {recordTypeLabel} selected</p>
+                <div class="records-list" if:true={hasSelectedRecords}>
+                    <template for:each={selectedRecords} for:item="record">
+                        <div key={record.id} class="record-item">
+                            <div class="record-main">
+                                <span class="record-name">{record.name}</span>
+                                <span class="record-id">({record.id})</span>
+                            </div>
+                            <div class="record-additional" if:true={record.additionalInfo}>
+                                <span class="record-info">{record.additionalInfo}</span>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </div>
+
+        <!-- Campaign Selection Section -->
+        <div class="section">
+            <h3 class="section-title">Select Campaign</h3>
+            <div class="campaign-selection">
+                <lightning-combobox
+                    name="campaign"
+                    label="Campaign"
+                    value={selectedCampaignId}
+                    placeholder="Choose a campaign..."
+                    options={campaignOptions}
+                    onchange={handleCampaignChange}
+                    required>
+                </lightning-combobox>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-section">
+            <lightning-button
+                variant="neutral"
+                label="Cancel"
+                onclick={handleClose}
+                disabled={isProcessing}>
+            </lightning-button>
+            <lightning-button
+                variant="brand"
+                label="Add to Campaign"
+                onclick={handleAddToCampaign}
+                disabled={isAddButtonDisabled}
+                class="add-button">
+            </lightning-button>
+        </div>
+
+        <!-- Loading Spinner -->
+        <template if:true={isProcessing}>
+            <div class="loading-overlay">
+                <lightning-spinner alternative-text="Processing..." size="medium"></lightning-spinner>
+            </div>
+        </template>
+    </div>
+</template>

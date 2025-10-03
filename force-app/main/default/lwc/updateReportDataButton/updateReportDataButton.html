@@ -1,0 +1,30 @@
+<template>
+    <lightning-card title="Update API Data">
+        <div class="slds-p-around_medium">
+            <lightning-input type="date" label="Start Date" value={dateStart} onchange={handleDateStartChange}></lightning-input>
+            <lightning-input type="date" label="Finish Date" value={dateFinish} onchange={handleDateFinishChange}></lightning-input>
+
+            <lightning-combobox
+                name="lender"
+                label="Select Lender"
+                value={lender}
+                placeholder="Select Lender"
+                options={lenderOptions}
+                onchange={handleLenderChange}>
+            </lightning-combobox>
+
+            <lightning-combobox
+                name="report"
+                label="Select Report"
+                value={report}
+                placeholder="Select Report"
+                options={reportOptions}
+                onchange={handleReportChange}>
+            </lightning-combobox>
+
+            <div class="slds-m-top_medium">
+                <lightning-button label="Update Report" variant="brand" onclick={handleUpdate}></lightning-button>
+            </div>
+        </div>
+    </lightning-card>
+</template>

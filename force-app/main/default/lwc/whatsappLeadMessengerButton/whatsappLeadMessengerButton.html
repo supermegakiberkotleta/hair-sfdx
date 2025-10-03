@@ -1,0 +1,24 @@
+<template>
+    <div class="button-wrapper">
+        <div class="custom-fb-button" onclick={openChat}>
+            <img src={whatsappIconUrl} alt="WhatsApp" class="icon" />
+            <span>WhatsApp</span>
+        </div>
+        <a href={whatsappLink} target="_blank" rel="noopener" class="custom-fb-button secondary">
+            <span>Open in WhatsApp</span>
+        </a>
+    </div>
+
+    <template if:true={isModalOpen}>
+        <div class="custom-modal">
+            <div class="modal-header">
+                <div class="modal-title">Chat with {leadName}</div>
+                <button class="close-button" onclick={closeChat}>×</button>
+            </div>
+
+            <div class="modal-content">
+                <c-whatsapp-chat record-id={recordId} object-api-name={objectApiName}></c-whatsapp-chat>
+            </div>
+        </div>
+    </template>
+</template>

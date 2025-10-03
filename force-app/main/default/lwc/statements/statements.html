@@ -1,0 +1,36 @@
+<template>
+    <lightning-card title="Statements">
+        <template if:true={statements}>
+            <ul class="statement-list">
+                <template for:each={statements} for:item="statement">
+                    <li key={statement.id} class="statement-row slds-p-vertical_x-small">
+                        <div class="slds-grid slds-wrap slds-grid_align-spread slds-p-horizontal_x-small">
+                            <div class="slds-size_1-of-2 slds-truncate" title={statement.name}>
+                                {statement.name}
+                            </div>
+                            <div class="slds-size_1-of-4 slds-truncate" title={statement.account_type}>
+                                {statement.account_type}
+                            </div>
+                            <div class="slds-size_1-of-4 slds-text-align_right">
+                                <button class="slds-button slds-button_icon slds-button_icon-border-filled"
+                                    title="Скачать" onclick={handleDownload} data-mail-id={statement.mail_id}
+                                    data-id={statement.id}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                        stroke-linejoin="round">
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                        <polyline points="7 10 12 15 17 10" />
+                                        <line x1="12" y1="15" x2="12" y2="3" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </li>
+                </template>
+            </ul>
+        </template>
+        <template if:false={statements}>
+            <div class="slds-p-around_medium slds-text-body_regular">No statements</div>
+        </template>
+    </lightning-card>
+</template>

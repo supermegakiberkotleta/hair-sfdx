@@ -27,19 +27,19 @@ export default class SendContractButtons extends LightningElement {
     }
 
     handleSendBoostra() {
-        this.sendRequest('https://lenderpro.itprofit.net/api/v1/docusign/sendmail-docusign-bootstra');
+        this.sendRequest('https://lenderpro.ai/api/v1/docusign/sendmail-docusign-bootstra');
     }
 
     handleSendLiberty() {
-        this.sendRequest('https://lenderpro.itprofit.net/api/v1/docusign/sendmail-docusign-liberty');
+        this.sendRequest('https://lenderpro.ai/api/v1/docusign/sendmail-docusign-liberty');
     }
 
     handleSendBiz() {
-        this.sendRequest('https://lenderpro.itprofit.net/api/v1/docusign/sendmail-docusign-biz');
+        this.sendRequest('https://lenderpro.ai/api/v1/docusign/sendmail-docusign-biz');
     }
 
       handleSendEdu() {
-        this.sendRequest('https://lenderpro.itprofit.net/api/v1/docusign/sendmail-docusign-edulevator');
+        this.sendRequest('https://lenderpro.ai/api/v1/docusign/sendmail-docusign-edulevator');
     }
 
     showToast(title, message, variant) {

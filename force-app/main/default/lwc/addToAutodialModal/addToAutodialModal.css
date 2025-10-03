@@ -1,0 +1,108 @@
+.modal-content {
+    padding: 0;
+}
+
+.section {
+    margin-bottom: 24px;
+}
+
+.section:last-of-type {
+    margin-bottom: 0;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12px;
+    border-bottom: 2px solid #0070d2;
+    padding-bottom: 8px;
+}
+
+.records-info {
+    background-color: #f8f9fa;
+    border: 1px solid #e5e5e5;
+    border-radius: 4px;
+    padding: 16px;
+}
+
+.records-count {
+    font-weight: 600;
+    color: #0070d2;
+    margin-bottom: 12px;
+}
+
+.records-list {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.record-item {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.record-item:last-child {
+    border-bottom: none;
+}
+
+.record-main {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+}
+
+.record-name {
+    font-weight: 500;
+    color: #333;
+}
+
+.record-id {
+    font-size: 0.875rem;
+    color: #666;
+    font-family: monospace;
+}
+
+.record-additional {
+    margin-left: 0;
+}
+
+.record-info {
+    font-size: 0.875rem;
+    color: #666;
+    font-style: italic;
+}
+
+.campaign-selection {
+    margin-top: 12px;
+}
+
+.button-section {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 1px solid #e5e5e5;
+}
+
+.add-button {
+    min-width: 140px;
+}
+
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}

@@ -1,0 +1,19 @@
+<template>
+    <template if:true={showModal}>
+        <div class="custom-modal-overlay" onclick={handleBackdropClick}>
+            <div class="custom-modal" onclick={handleModalClick}>
+                <header class="custom-modal-header">
+                    <h2>Add to Autodial Campaign</h2>
+                </header>
+                <div class="custom-modal-content">
+                    <c-add-to-autodial-modal 
+                        selected-records={selectedRecords}
+                        record-type={recordType}
+                        onclose={handleClose}
+                        onsuccess={handleSuccess}>
+                    </c-add-to-autodial-modal>
+                </div>
+            </div>
+        </div>
+    </template>
+</template>

@@ -629,4 +629,3 @@ export default class AutodialCampaignFilters extends LightningElement {
         this.dispatchEvent(event);
     }
 }
-

@@ -1,65 +1,77 @@
 public class SendMissedPaymentJob implements Queueable, Database.AllowsCallouts {
-    private String oppId;
+    private String opportunityId;
 
-    public SendMissedPaymentJob(String oppId) {
-        this.oppId = oppId;
+    public SendMissedPaymentJob(String opportunityId) {
+        this.opportunityId = opportunityId;
     }
 
     public void execute(QueueableContext context) {
-        // подтягиваем нужные поля
-        Opportunity opp = [
+        Opportunity opportunityRecord = [
             SELECT Id, MCA__c, Merchant__c,
-                   To_Name__c, To_Company__c, To_Email__c, To_Phone__c,
+                   Lender_type__c, Company_name__c, Company_owner_name__c,
+                   Client_email__c, State__c, EIN__c, SSN__c,
+                   Remaining_amount__c, Loan_Start_Date__c,
+                   To_Company__c, To_Email__c, To_Phone__c,
                    To_Address_Line_1__c, To_Address_Line_2__c, To_Address_City__c,
-                   To_Address_State__c, To_Address_Zip__c, To_Address_Country__c
+                   To_Address_State__c, To_Address_Zip__c, To_Address_Country__c,
+                   To_Name_Client__c, To_Email_Client__c, To_Phone_Client__c,
+                   To_Address_Line_1_Client__c, To_Address_Line_2_Client__c, To_City_Client__c,
+                   To_State_Client__c, To_Zip_Client__c, To_Country_Client__c
             FROM Opportunity
-            WHERE Id = :oppId
+            WHERE Id = :opportunityId
             LIMIT 1
         ];
 
-        // собираем recipients как массив
-        List<Map<String, Object>> recipients = new List<Map<String, Object>>();
-        Map<String, Object> recipient = new Map<String, Object>{
-            'To_Name__c' => opp.To_Name__c,
-            'To_Company__c' => opp.To_Company__c,
-            'To_Email__c' => opp.To_Email__c,
-            'To_Phone__c' => opp.To_Phone__c,
-            'To_Address_Line_1__c' => opp.To_Address_Line_1__c,
-            'To_Address_Line_2__c' => opp.To_Address_Line_2__c,
-            'To_Address_City__c' => opp.To_Address_City__c,
-            'To_Address_State__c' => opp.To_Address_State__c,
-            'To_Address_Zip__c' => opp.To_Address_Zip__c,
-            'To_Address_Country__c' => opp.To_Address_Country__c
-        };
-        
-        // добавляем только если есть хотя бы какое-то значение
-        if (String.isNotBlank(opp.To_Name__c) || String.isNotBlank(opp.To_Email__c)) {
-            recipients.add(recipient);
-        } else {
-            recipients.add(recipient);
-        }
-
-        Map<String, Object> payload = new Map<String, Object>{
-            'opportunityId' => opp.Id,
-            'MCA' => opp.get('MCA__c'),
-            'Merchant' => opp.get('Merchant__c'),
-            'recipients' => recipients
+        Map<String,Object> payload = new Map<String,Object>{
+            'opportunityId' => opportunityRecord.Id,
+            'MCA' => opportunityRecord.MCA__c,
+            'Merchant' => opportunityRecord.Merchant__c,
+            'lenderType' => opportunityRecord.Lender_type__c,
+            'company' => new Map<String,Object>{
+                'name' => opportunityRecord.Company_name__c,
+                'ownerName' => opportunityRecord.Company_owner_name__c,
+                'ein' => opportunityRecord.EIN__c,
+                'ssn' => opportunityRecord.SSN__c,
+                'To_Company__c' => opportunityRecord.To_Company__c,
+                'To_Email__c' => opportunityRecord.To_Email__c,
+                'To_Phone__c' => opportunityRecord.To_Phone__c,
+                'To_Address_Line_1__c' => opportunityRecord.To_Address_Line_1__c,
+                'To_Address_Line_2__c' => opportunityRecord.To_Address_Line_2__c,
+                'To_Address_City__c' => opportunityRecord.To_Address_City__c,
+                'To_Address_State__c' => opportunityRecord.To_Address_State__c,
+                'To_Address_Zip__c' => opportunityRecord.To_Address_Zip__c,
+                'To_Address_Country__c' => opportunityRecord.To_Address_Country__c
+            },
+            'client' => new Map<String,Object>{
+                'To_Name_Client__c' => opportunityRecord.To_Name_Client__c,
+                'To_Email_Client__c' => opportunityRecord.To_Email_Client__c,
+                'To_Phone_Client__c' => opportunityRecord.To_Phone_Client__c,
+                'To_Address_Line_1_Client__c' => opportunityRecord.To_Address_Line_1_Client__c,
+                'To_Address_Line_2_Client__c' => opportunityRecord.To_Address_Line_2_Client__c,
+                'To_City_Client__c' => opportunityRecord.To_City_Client__c,
+                'To_State_Client__c' => opportunityRecord.To_State_Client__c,
+                'To_Zip_Client__c' => opportunityRecord.To_Zip_Client__c,
+                'To_Country_Client__c' => opportunityRecord.To_Country_Client__c
+            },
+            'clientEmail' => opportunityRecord.Client_email__c,
+            'state' => opportunityRecord.State__c,
+            'remainingAmount' => opportunityRecord.Remaining_amount__c,
+            'loanStartDate' => opportunityRecord.Loan_Start_Date__c
         };
 
         try {
-            Http http = new Http();
-            HttpRequest req = new HttpRequest();
+            Http httpClient = new Http();
+            HttpRequest httpRequest = new HttpRequest();
+            httpRequest.setEndpoint('https://lenderpro.itprofit.net/api/v1/send-letter');
+            httpRequest.setMethod('POST');
+            httpRequest.setHeader('Content-Type', 'application/json');
+            httpRequest.setTimeout(60000);
+            httpRequest.setBody(JSON.serialize(payload, true));
 
-            req.setEndpoint('https://lenderpro.itprofit.net/api/v1/send-letter');
-            req.setMethod('POST');
-            req.setHeader('Content-Type', 'application/json');
-            req.setTimeout(60000);
-            req.setBody(JSON.serialize(payload, true));
-
-            HttpResponse res = http.send(req);
-            System.debug('MissedPayment POST ' + res.getStatusCode() + ' | ' + res.getBody());
-        } catch (Exception e) {
-            System.debug('MissedPayment POST failed: ' + e.getMessage());
+            HttpResponse httpResponse = httpClient.send(httpRequest);
+            System.debug('MissedPayment POST ' + httpResponse.getStatusCode() + ' | ' + httpResponse.getBody());
+        } catch (Exception error) {
+            System.debug('MissedPayment POST failed: ' + error.getMessage());
         }
     }
 }

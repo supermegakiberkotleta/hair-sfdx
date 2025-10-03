@@ -6,7 +6,7 @@ trigger CreateLeadTrigger on Lead (after insert,after update) {
 
         for(Lead lead: Trigger.new) {
             Map<String, Object> leadData = new Map<String, Object>{
-           'Id' => lead.Id,
+                'Id' => lead.Id,
                 'LastName' => lead.LastName,
                 'Broker_email__c' => lead.Broker_email__c,
                 'Broker_name__c' => lead.Broker_name__c,
@@ -82,7 +82,19 @@ trigger CreateLeadTrigger on Lead (after insert,after update) {
                 'Decision_Logic_Link__c'=>lead.Decision_Logic_Link__c,
                 'Company_owner_name__c'=>lead.Company_owner_name__c,
                 'Statments_Handler__c'=>lead.Statments_Handler__c,
-                'ProcessedBankAccount__c'=>lead.ProcessedBankAccount__c
+                'ProcessedBankAccount__c'=>lead.ProcessedBankAccount__c,
+                'Parsed_From__c' => lead.Parsed_From__c,
+                'First_Mail_Message_Id__c' => lead.First_Mail_Message_Id__c,
+                'Broker_bonus__c' => lead.Broker_bonus__c,
+                'Payment_ICo_broker__c' => lead.Payment_ICo_broker__c,
+                'Payment_ICo_external__c' => lead.Payment_ICo_external__c,
+                'Other__c' => lead.Other__c,
+                'Paid_broker_bonus__c' => lead.Paid_broker_bonus__c,
+                'Paid_payment_ICo_broker__c' => lead.Paid_payment_ICo_broker__c,
+                'Paid_payment_ICo_external__c' => lead.Paid_payment_ICo_external__c,
+                'Paid_other__c' => lead.Paid_other__c,
+                'Check_Scoring_Transactions__c' => lead.Check_Scoring_Transactions__c,
+                'Reason_for_Manual_Parsing__c' => lead.Reason_for_Manual_Parsing__c
             };
 
             leadsToSend.add(leadData);

@@ -1,0 +1,27 @@
+<template>
+    <lightning-card title="Messages">
+        <template if:true={isLoading}>
+            <lightning-spinner size="small"></lightning-spinner>
+        </template>
+        <template if:true={messages.length}>
+            <template for:each={messages} for:item="message" for:index="i">
+                <div key={message.id} class="message-block">
+                    <div class="message-header slds-p-vertical_x-small slds-p-left_small slds-border_bottom">
+                        <span class="message-date">{message.formattedDate}</span>
+                        <span class="message-from"> | From: {message.from}</span>
+                        <!-- <lightning-button class="slds-m-left_small" variant="base" label={message.expandedLabel}
+                            data-index={i} onclick={toggleMessage} icon-position="right">
+                        </lightning-button> -->
+                    </div>
+                    <div class="message-body slds-p-vertical_small slds-p-horizontal_small" lwc:dom="manual"></div>
+                </div>
+            </template>
+        </template>
+        <template if:true={error}>
+            <div class="slds-text-color_error">Error: {error}</div>
+        </template>
+        <template if:true={noMessages}>
+            <div class="slds-text-body_regular slds-p-around_medium">No messages</div>
+        </template>
+    </lightning-card>
+</template>

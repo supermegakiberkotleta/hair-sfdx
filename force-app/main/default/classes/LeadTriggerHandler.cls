@@ -6,6 +6,12 @@ public class LeadTriggerHandler {
                 if (String.isBlank(l.Reason_for_closure__c)) {
                         l.Reason_for_closure__c.addError('Please provide a reason for closure.');
                 }
+
+                //на случай, если нужно отключить обязательное поле
+                //if (String.isBlank(l.Reason_for_closure__c)) {
+                //    l.Reason_for_closure__c = 'Undefined reason';
+                //}
+
                 // if (String.isBlank(l.Reason_for_closure__c)) {
                 //     l.Active_status__c = true;
                     

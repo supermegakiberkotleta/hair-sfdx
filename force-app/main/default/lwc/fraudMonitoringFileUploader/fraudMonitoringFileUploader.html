@@ -1,0 +1,35 @@
+<template>
+    <lightning-card title="Fraud Monitoring File Uploader">
+        <div class="slds-grid slds-grid_vertical-align-center slds-p-horizontal_small slds-m-top_small">
+            <div class="slds-grow">
+                <lightning-input type="file" onchange={handleFileUpload} accept=".pdf,.png,.jpg" multiple>
+                </lightning-input>
+            </div>
+            <template if:true={uploadedFiles}>
+                <div>
+                    <lightning-button variant="brand" label="Start checking" onclick={handleStartChecking}>
+                    </lightning-button>
+                </div>
+            </template>
+        </div>
+
+        <template if:true={uploadedFiles}>
+            <div class="slds-m-top_medium">
+                <template for:each={uploadedFiles} for:item="file">
+                    <div key={file.Id}
+                        class="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-border_bottom slds-p-vertical_x-small slds-p-horizontal_small">
+                        <div class="slds-truncate slds-text-body_regular" title={file.Title}>
+                            {file.Title}
+                        </div>
+                        <div>
+                            <lightning-button-icon icon-name="utility:delete" variant="border-filled"
+                                alternative-text="Delete" class="slds-m-left_xx-small" onclick={handleDelete}
+                                data-id={file.Id} data-name={file.Title} title="Delete">
+                            </lightning-button-icon>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </template>
+    </lightning-card>
+</template>
