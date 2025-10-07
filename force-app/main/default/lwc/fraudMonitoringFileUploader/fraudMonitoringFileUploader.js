@@ -5,16 +5,19 @@ import deleteFile from '@salesforce/apex/FraudMonitoringFileUploader.deleteFile'
 import getFraudMonitoringFiles from '@salesforce/apex/FraudMonitoringFileUploader.getFraudMonitoringFiles';
 import getFileBase64Data from '@salesforce/apex/FraudMonitoringFileUploader.getFileBase64Data';
 import getBookUuid from '@salesforce/apex/FraudMonitoringFileUploader.getBookUuid';
+import getScoringLink from '@salesforce/apex/FraudMonitoringFileUploader.getScoringLink';
 
 export default class FraudMonitoringFilesUploader extends LightningElement {
   @api recordId;
   @track uploadedFiles = [];
   @track bookUuid;
+  @track scoringLink;
   endpointUrl = 'https://lenderpro.itprofit.net/api/v1/fraud/statement/upload';
 
   connectedCallback() {
     this.loadFiles();
     this.loadBookUuid();
+    this.loadScoringLink();
   }
 
   async loadFiles() {
@@ -38,6 +41,15 @@ export default class FraudMonitoringFilesUploader extends LightningElement {
       console.log('Lead UUID:', this.bookUuid);
     } catch (error) {
       console.error('Error fetching Lead uuid__c:', JSON.stringify(error, null, 2));
+    }
+  }
+
+  async loadScoringLink() {
+    try {
+      this.scoringLink = await getScoringLink({ leadId: this.recordId });
+      console.log('scoringLink:', this.scoringLink);
+    } catch (error) {
+      console.error('Error fetching Lead FILE__c:', JSON.stringify(error, null, 2));
     }
   }
 
@@ -120,6 +132,7 @@ export default class FraudMonitoringFilesUploader extends LightningElement {
       const payload = {
         leadId: this.recordId,
         uuid: this.bookUuid,
+        scoring_link: this.scoringLink,
         files: filesData
       };
 

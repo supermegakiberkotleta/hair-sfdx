@@ -94,8 +94,14 @@ trigger CreateLeadTrigger on Lead (after insert,after update) {
                 'Paid_payment_ICo_external__c' => lead.Paid_payment_ICo_external__c,
                 'Paid_other__c' => lead.Paid_other__c,
                 'Check_Scoring_Transactions__c' => lead.Check_Scoring_Transactions__c,
-                'Reason_for_Manual_Parsing__c' => lead.Reason_for_Manual_Parsing__c
+                'Reason_for_Manual_Parsing__c' => lead.Reason_for_Manual_Parsing__c,
+                'Deal_approved_sent__c' => lead.Deal_approved_sent__c
             };
+
+            if (Trigger.isUpdate && !Trigger.isInsert && !Test.isRunningTest()) {
+                Lead oldLead = Trigger.oldMap.get(lead.Id);
+                leadData.put('Previous_status', oldLead.Status);
+            }
 
             leadsToSend.add(leadData);
         }

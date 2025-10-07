@@ -121,7 +121,7 @@ public with sharing class FraudMonitoringFileUploader {
         }
     }
 
-        @AuraEnabled
+    @AuraEnabled
     public static String getBookUuid(Id leadId) {
         try {
             if (String.isBlank(leadId)) {
@@ -138,6 +138,26 @@ public with sharing class FraudMonitoringFileUploader {
             System.debug('Error getting Lead uuid__c: ' + e.getMessage());
             System.debug('Stack trace: ' + e.getStackTraceString());
             throw new AuraHandledException('Error getting Lead uuid__c: ' + e.getMessage());
+        }
+    }
+
+    @AuraEnabled
+    public static String getScoringLink(Id leadId) {
+        try {
+            if (String.isBlank(leadId)) {
+                throw new AuraHandledException('Lead ID is required');
+            }
+            
+            Lead lead = [SELECT FILE__c FROM Lead WHERE Id = :leadId LIMIT 1];
+            if (lead.FILE__c == null) {
+                throw new AuraHandledException('FILE__c is not set for this Lead');
+            }
+            
+            return lead.FILE__c;
+        } catch (Exception e) {
+            System.debug('Error getting Lead FILE__c: ' + e.getMessage());
+            System.debug('Stack trace: ' + e.getStackTraceString());
+            throw new AuraHandledException('Error getting Lead FILE__c: ' + e.getMessage());
         }
     }
 }
