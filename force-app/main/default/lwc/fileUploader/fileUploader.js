@@ -51,10 +51,11 @@ export default class FileUploader extends LightningElement {
         const MAX_NAME_LENGTH = 35;
         return this.rawFiles.map(file => {
             let displayName = file.name;
+            console.log(JSON.stringify(file, null, 2));
             if (displayName.length > MAX_NAME_LENGTH) {
                 displayName = displayName.substring(0, MAX_NAME_LENGTH - 3) + '...';
             }
-            const prefix = this.manualFileNames.has(file.name) ? 'M' : 'A';
+            const prefix = file.type === 'M' ? 'M' : 'A';
             displayName = `[${prefix}] ${displayName}`;
             return { ...file, displayName };
         });

@@ -80,5 +80,6 @@ public with sharing class FileServiceController {
     public class FileWrapper {
         @AuraEnabled public String name;
         @AuraEnabled public String status;
+         @AuraEnabled public String type;
     }
 }

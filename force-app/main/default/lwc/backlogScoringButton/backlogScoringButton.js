@@ -1,6 +1,7 @@
 import { LightningElement, api, track } from 'lwc';
 import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import sendNotification from '@salesforce/apex/NotificationController.sendNotification';
+import runBacklogScoring from '@salesforce/apex/ScoringController.runBacklogScoring';
 import USER_ID from '@salesforce/user/Id';
 
 export default class BacklogScoringButton extends LightningElement {
@@ -43,28 +44,11 @@ export default class BacklogScoringButton extends LightningElement {
         this.isProcessing = true;
 
         try {
-            const response = await fetch('https://lenderpro.itprofit.net/api/v1/scoring-parser', {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            });
 
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
+            const result = await runBacklogScoring();
 
-            // Проверяем, есть ли содержимое в ответе
-            const responseText = await response.text();
-            
-            let result = {};
-            if (responseText && responseText.trim()) {
-                try {
-                    result = JSON.parse(responseText);
-                } catch (parseError) {
-                    console.warn('Failed to parse JSON response:', parseError);
-                    // Если JSON невалидный, используем пустой объект
-                }
+            if (!result || result.statusCode < 200 || result.statusCode >= 300) {
+                throw new Error(`HTTP error! status: ${result ? result.statusCode : 'unknown'}`);
             }
             
             // Сохраняем время синхронизации
