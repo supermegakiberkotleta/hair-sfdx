@@ -36,6 +36,10 @@ public with sharing class ObjectUpdateService {
         public String errorDetails;
     }
     
+    // Constants for batch processing threshold
+    private static final Integer BATCH_THRESHOLD = 50;
+    private static final Integer MAX_SYNC_RECORDS = 200;
+    
     /**
      * @description Method for calling from Flow
      * @param requests List of update requests
@@ -69,8 +73,12 @@ public with sharing class ObjectUpdateService {
                     continue;
                 }
                 
-                // Records update
-                result = updateRecords(request.recordIds, request.objectType, fieldsMap);
+                // Choose processing method based on record count
+                if (request.recordIds.size() > BATCH_THRESHOLD) {
+                    result = processWithBatch(request.recordIds, request.objectType, fieldsMap);
+                } else {
+                    result = updateRecords(request.recordIds, request.objectType, fieldsMap);
+                }
                 
             } catch (Exception e) {
                 result.message = 'An error occurred: ' + e.getMessage();
@@ -158,6 +166,42 @@ public with sharing class ObjectUpdateService {
             result.errorDetails = 'DML Error: ' + e.getDmlMessage(0);
         } catch (Exception e) {
             result.message = 'General error: ' + e.getMessage();
+            result.errorDetails = e.getStackTraceString();
+        }
+        
+        return result;
+    }
+    
+    /**
+     * @description Process records using batch processing
+     * @param recordIds List of record IDs
+     * @param objectType Object type
+     * @param fieldsMap Map with fields and values
+     * @return Update result
+     */
+    private static UpdateResult processWithBatch(List<String> recordIds, String objectType, Map<String, Object> fieldsMap) {
+        UpdateResult result = new UpdateResult();
+        result.success = false;
+        result.updatedRecordsCount = 0;
+        
+        try {
+            // Validate object type
+            Schema.SObjectType objectSchema = Schema.getGlobalDescribe().get(objectType);
+            if (objectSchema == null) {
+                result.message = 'Unknown object type: ' + objectType;
+                return result;
+            }
+            
+            // Start batch processing
+            Id batchJobId = ObjectUpdateBatch.startBatch(objectType, fieldsMap, recordIds, 200);
+            
+            result.success = true;
+            result.updatedRecordsCount = recordIds.size();
+            result.message = 'Batch job started successfully. Job ID: ' + batchJobId + 
+                           '. Processing ' + recordIds.size() + ' records asynchronously.';
+            
+        } catch (Exception e) {
+            result.message = 'Error starting batch job: ' + e.getMessage();
             result.errorDetails = e.getStackTraceString();
         }
         

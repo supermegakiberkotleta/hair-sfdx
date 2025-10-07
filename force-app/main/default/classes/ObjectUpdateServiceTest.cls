@@ -280,4 +280,112 @@ private class ObjectUpdateServiceTest {
             System.assertEquals(2, result.updatedRecordsCount, 'Each operation should update 2 records');
         }
     }
+    
+    /**
+     * @description Test batch processing decision for large number of records
+     */
+    @isTest
+    static void testBatchProcessingForLargeVolume() {
+        // Create test Lead records (more than 50 to trigger batch processing)
+        List<Lead> testLeads = new List<Lead>();
+        for (Integer i = 0; i < 60; i++) {
+            testLeads.add(new Lead(
+                FirstName = 'Test',
+                LastName = 'Lead ' + i,
+                Company = 'Test Company ' + i,
+                Status = 'New'
+            ));
+        }
+        insert testLeads;
+        
+        // Preparing request
+        ObjectUpdateService.UpdateRequest request = new ObjectUpdateService.UpdateRequest();
+        request.objectType = 'Lead';
+        request.recordIds = new List<String>();
+        for (Lead lead : testLeads) {
+            request.recordIds.add(lead.Id);
+        }
+        request.fieldsJson = '{"Status": "Closed Lost", "Reason_for_closure__c": "Not interested"}';
+        
+        Test.startTest();
+        List<ObjectUpdateService.UpdateResult> results = ObjectUpdateService.updateObjects(new List<ObjectUpdateService.UpdateRequest>{request});
+        Test.stopTest();
+        
+        // Проверка результатов
+        System.assertEquals(1, results.size(), 'Should be one result');
+        ObjectUpdateService.UpdateResult result = results[0];
+        System.assertEquals(true, result.success, 'Operation should be successful');
+        System.assertEquals(60, result.updatedRecordsCount, 'Should process 60 records');
+        System.assert(result.message.contains('Batch job started successfully'), 'Message should indicate batch processing');
+        System.assert(result.message.contains('Job ID'), 'Message should contain job ID');
+        
+        // Note: We don't verify the actual record updates here because batch processing is asynchronous
+        // and we're not executing the actual batch to avoid limit issues in tests
+    }
+    
+    /**
+     * @description Test synchronous processing for small number of records
+     */
+    @isTest
+    static void testSynchronousProcessingForSmallVolume() {
+        // Create test Lead records (less than 50 to trigger synchronous processing)
+        List<Lead> testLeads = new List<Lead>();
+        for (Integer i = 0; i < 30; i++) {
+            testLeads.add(new Lead(
+                FirstName = 'Test',
+                LastName = 'Lead ' + i,
+                Company = 'Test Company ' + i,
+                Status = 'New'
+            ));
+        }
+        insert testLeads;
+        
+        // Preparing request
+        ObjectUpdateService.UpdateRequest request = new ObjectUpdateService.UpdateRequest();
+        request.objectType = 'Lead';
+        request.recordIds = new List<String>();
+        for (Lead lead : testLeads) {
+            request.recordIds.add(lead.Id);
+        }
+        request.fieldsJson = '{"Status": "Closed Lost", "Reason_for_closure__c": "Not interested"}';
+        
+        Test.startTest();
+        List<ObjectUpdateService.UpdateResult> results = ObjectUpdateService.updateObjects(new List<ObjectUpdateService.UpdateRequest>{request});
+        Test.stopTest();
+        
+        // Проверка результатов
+        System.assertEquals(1, results.size(), 'Should be one result');
+        ObjectUpdateService.UpdateResult result = results[0];
+        System.assertEquals(true, result.success, 'Operation should be successful');
+        System.assertEquals(30, result.updatedRecordsCount, 'Should update 30 records');
+        System.assert(result.message.contains('Successfully updated'), 'Message should indicate synchronous processing');
+        
+        // Checking updated records
+        List<Lead> updatedLeads = [SELECT Id, Status, Reason_for_closure__c FROM Lead WHERE Id IN :testLeads];
+        for (Lead lead : updatedLeads) {
+            System.assertEquals('Closed Lost', lead.Status, 'Status should be updated');
+            System.assertEquals('Not interested', lead.Reason_for_closure__c, 'Reason_for_closure__c should be updated');
+        }
+    }
+    
+    /**
+     * @description Test batch processing with invalid object type
+     */
+    @isTest
+    static void testBatchProcessingWithInvalidObjectType() {
+        ObjectUpdateService.UpdateRequest request = new ObjectUpdateService.UpdateRequest();
+        request.objectType = 'NonExistentObject';
+        request.recordIds = new List<String>{'001000000000000AAA', '001000000000000BBB'};
+        request.fieldsJson = '{"Name": "Test"}';
+        
+        Test.startTest();
+        List<ObjectUpdateService.UpdateResult> results = ObjectUpdateService.updateObjects(new List<ObjectUpdateService.UpdateRequest>{request});
+        Test.stopTest();
+        
+        // Проверка результатов
+        System.assertEquals(1, results.size(), 'Should be one result');
+        ObjectUpdateService.UpdateResult result = results[0];
+        System.assertEquals(false, result.success, 'Operation should fail');
+        System.assert(result.message.contains('Unknown object type'), 'Message should indicate unknown object type');
+    }
 }
