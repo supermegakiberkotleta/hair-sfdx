@@ -51,11 +51,11 @@ export default class FileUploader extends LightningElement {
         const MAX_NAME_LENGTH = 35;
         return this.rawFiles.map(file => {
             let displayName = file.name;
-            console.log(JSON.stringify(file, null, 2));
+            
             if (displayName.length > MAX_NAME_LENGTH) {
                 displayName = displayName.substring(0, MAX_NAME_LENGTH - 3) + '...';
             }
-            const prefix = file.type === 'M' ? 'M' : 'A';
+            const prefix = file.type ? 'A' : 'M';
             displayName = `[${prefix}] ${displayName}`;
             return { ...file, displayName };
         });
@@ -90,7 +90,8 @@ export default class FileUploader extends LightningElement {
             .then(result => {
                 this.rawFiles = result.map(file => ({
                     name: file.name,
-                    status: file.status
+                    status: file.status,
+                    type: file.type
                 }));
             })
             .catch(error => {

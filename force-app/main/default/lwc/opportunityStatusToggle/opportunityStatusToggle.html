@@ -1,0 +1,13 @@
+<template>
+    <lightning-card title={label}>
+        <div class="slds-p-horizontal_small slds-p-bottom_small">
+            <lightning-input
+                type="toggle"
+                label={helpText}
+                checked={checked}
+                onchange={handleChange}
+                disabled={isDisabled}>
+            </lightning-input>
+        </div>
+    </lightning-card>
+</template>

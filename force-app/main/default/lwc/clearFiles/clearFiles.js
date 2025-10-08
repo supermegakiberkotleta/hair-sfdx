@@ -5,6 +5,7 @@ import getClearFiles from '@salesforce/apex/ClearFilesController.getClearFiles';
 import uploadFileToClearFiles from '@salesforce/apex/ClearFilesController.uploadFileToClearFiles';
 import deleteClearFile from '@salesforce/apex/ClearFilesController.deleteClearFile';
 import getFileDownloadUrl from '@salesforce/apex/ClearFilesController.getFileDownloadUrl';
+import OPPORTUNITY_LEAD_FIELD from '@salesforce/schema/Opportunity.SlaesForceLeadId__c';
 
 // Import fields for Lead
 import LEAD_ID_FIELD from '@salesforce/schema/Lead.Id';
@@ -19,14 +20,21 @@ export default class ClearFiles extends LightningElement {
     @track uploadError = '';
     @track isDraggingOver = false;
     @track showUploadModal = false;
-    
+    @api objectApiName;
+
     // Private property for tracking recordId changes
     _lastRecordId = null;
     _lastLeadId = null;
 
     // Wire to get Lead data
-    @wire(getRecord, { recordId: '$recordId', fields: [LEAD_ID_FIELD] })
+    @wire(getRecord, { recordId: '$recordId', fields: '$requiredFields' })
     leadRecord;
+
+    get requiredFields() {
+        return this.objectApiName === 'Opportunity'
+            ? [OPPORTUNITY_LEAD_FIELD]
+            : [LEAD_ID_FIELD];
+    }
 
     // Watcher for leadRecord changes - main trigger for file loading
     get leadRecordWatcher() {
@@ -38,17 +46,17 @@ export default class ClearFiles extends LightningElement {
             currentFilesCount: this.clearFiles.length,
             isLoading: this.isLoading
         });
-        
+
         if (this.leadRecord.data && this.leadId) {
             // Check if leadId has changed
             if (this.leadId !== this._lastLeadId) {
                 console.log('Lead ID changed from', this._lastLeadId, 'to', this.leadId);
                 this._lastLeadId = this.leadId;
-                
+
                 // Reset files when Lead ID changes
                 this.clearFiles = [];
                 this.error = '';
-                
+
                 // Load files for new Lead ID
                 this.loadClearFiles();
             } else if (this.clearFiles.length === 0 && !this.isLoading && !this.isUploading) {
@@ -60,14 +68,20 @@ export default class ClearFiles extends LightningElement {
             console.error('Error in leadRecord:', this.leadRecord.error);
             this.error = 'Error loading Lead data: ' + (this.leadRecord.error.body?.message || this.leadRecord.error.message || 'Unknown error');
         }
-        
+
         // Return value for reactivity
         return this.leadRecord.data;
     }
 
     // Get Lead ID
     get leadId() {
-        return getFieldValue(this.leadRecord.data, LEAD_ID_FIELD);
+        if (this.objectApiName === 'Opportunity') {
+            return this.leadRecord?.data
+                ? getFieldValue(this.leadRecord.data, OPPORTUNITY_LEAD_FIELD)
+                : null;
+        }
+        // На записи Lead ID = recordId
+        return this.recordId || null;
     }
 
     // Watcher for recordId changes
@@ -75,7 +89,7 @@ export default class ClearFiles extends LightningElement {
         if (this.recordId && this.recordId !== this._lastRecordId) {
             console.log('RecordId changed from', this._lastRecordId, 'to', this.recordId);
             this._lastRecordId = this.recordId;
-            
+
             // Reset state when recordId changes
             this.clearFiles = [];
             this.selectedFiles = [];
@@ -83,7 +97,7 @@ export default class ClearFiles extends LightningElement {
             this.uploadError = '';
             this.showUploadModal = false;
             this._lastLeadId = null; // Reset Lead ID for reload
-            
+
             // Force load files with a small delay
             // so wire service has time to update
             setTimeout(() => {
@@ -127,38 +141,38 @@ export default class ClearFiles extends LightningElement {
         console.log('- window.FileList:', !!window.FileList);
         console.log('- window.Blob:', !!window.Blob);
         console.log('- window.File.prototype:', window.File ? window.File.prototype : 'Not available');
-        
+
         // Проверяем поддержку File API
         if (!window.File || !window.FileReader || !window.FileList || !window.Blob) {
             console.error('File API not supported in this browser');
             this.error = 'Your browser does not support file uploads. Please use a modern browser.';
             return;
         }
-        
+
         // Дополнительная проверка конструкторов
         try {
             const testFile = new File(['test'], 'test.txt', { type: 'text/plain' });
             console.log('File constructor test passed:', testFile);
-            
+
             const testReader = new FileReader();
             console.log('FileReader constructor test passed:', testReader);
-            
+
             const testBlob = new Blob(['test'], { type: 'text/plain' });
             console.log('Blob constructor test passed:', testBlob);
-            
+
         } catch (error) {
             console.error('File API constructor test failed:', error);
             this.error = 'File API test failed. Please refresh the page or use a different browser.';
             return;
         }
-        
+
         console.log('File API support verified successfully');
-        
+
         // Check if recordId is already available on init
         if (this.recordId) {
             console.log('RecordId available on init, will load files when leadRecord is ready');
             this._lastRecordId = this.recordId;
-            
+
             // If recordId is already available, try to load files immediately
             // (this can happen when page is reloaded)
             if (this.leadId) {
@@ -168,10 +182,10 @@ export default class ClearFiles extends LightningElement {
                 }, 500);
             }
         }
-        
+
         // Добавляем обработчик для обновления при изменении видимости
         this.addVisibilityChangeHandler();
-        
+
         // Force load files with a small delay
         // so wire service has time to initialize
         setTimeout(() => {
@@ -180,7 +194,7 @@ export default class ClearFiles extends LightningElement {
                 this.loadClearFiles();
             }
         }, 1000);
-        
+
         // Additional attempt to load files after 2 seconds
         setTimeout(() => {
             if (this.recordId && !this.isLoading && !this.isUploading && this.clearFiles.length === 0) {
@@ -205,7 +219,7 @@ export default class ClearFiles extends LightningElement {
                 }, 500);
             }
         };
-        
+
         document.addEventListener('visibilitychange', this._visibilityChangeHandler);
     }
 
@@ -230,7 +244,7 @@ export default class ClearFiles extends LightningElement {
             isUploading: this.isUploading,
             currentFilesCount: this.clearFiles.length
         });
-        
+
         if (!this.leadId) {
             console.warn('Lead ID is not available yet, cannot load files');
             // If Lead ID is not available but recordId exists, try to load later
@@ -245,13 +259,13 @@ export default class ClearFiles extends LightningElement {
             }
             return;
         }
-        
+
         // Check if files are already loading (if not forced refresh)
         if (this.isLoading && !force) {
             console.log('Files are already loading, skipping duplicate request');
             return;
         }
-        
+
         console.log('Loading Clear Files for Lead ID:', this.leadId);
         this.isLoading = true;
         this.error = '';
@@ -259,7 +273,7 @@ export default class ClearFiles extends LightningElement {
         // Добавляем timestamp для предотвращения кэширования
         const timestamp = new Date().getTime();
         const cacheBuster = force ? `&_t=${timestamp}` : '';
-        
+
         console.log('Request details:', {
             leadId: this.leadId,
             force: force,
@@ -274,12 +288,12 @@ export default class ClearFiles extends LightningElement {
                 console.log('Response type:', typeof result);
                 console.log('Response is array:', Array.isArray(result));
                 console.log('Response length:', result ? result.length : 'null');
-                
+
                 if (result && Array.isArray(result)) {
                     console.log('Processing', result.length, 'files');
                     console.log('File IDs from server:', result.map(f => f.id || f.Id));
                     console.log('File names from server:', result.map(f => f.fileName));
-                    
+
                     // Проверяем, есть ли новый загруженный файл
                     const expectedFileCount = this.clearFiles.length + 1; // Ожидаем +1 файл
                     if (result.length < expectedFileCount) {
@@ -291,7 +305,7 @@ export default class ClearFiles extends LightningElement {
                         console.warn('3. Error in ClearFilesController.getClearFiles() method');
                         console.warn('4. Database transaction not committed yet');
                     }
-                    
+
                     // Process the result and add additional fields
                     this.clearFiles = result.map(file => ({
                         ...file,
@@ -300,19 +314,19 @@ export default class ClearFiles extends LightningElement {
                         fileIcon: this.getFileIcon(file.fileExtension || ''),
                         id: file.id || file.Id
                     }));
-                    
+
                     console.log('Processed files:', this.clearFiles);
                 } else {
                     console.warn('Unexpected result format:', result);
                     this.clearFiles = [];
                 }
-                
+
                 // Дополнительная проверка для отладки
                 console.log('=== FILE LIST UPDATE VERIFICATION ===');
                 console.log('Files before update:', this.clearFiles.length);
                 console.log('Files after update:', this.clearFiles.length);
                 console.log('File names:', this.clearFiles.map(f => f.fileName));
-                
+
                 // Если файлов меньше ожидаемого, логируем предупреждение
                 if (this.clearFiles.length < 3) {
                     console.warn('File count seems low. Expected at least 3 files, got:', this.clearFiles.length);
@@ -322,10 +336,10 @@ export default class ClearFiles extends LightningElement {
             .catch(error => {
                 console.error('Error loading Clear Files:', error);
                 this.error = 'Error while getting file list: ' + (error.body?.message || error.message || 'Unknown error');
-                
+
                 // Показываем ошибку пользователю
                 this.showToast('Error', 'Failed to load file list. Please try refreshing the page.', 'error');
-                
+
                 // Очищаем список файлов при ошибке
                 this.clearFiles = [];
             })
@@ -347,7 +361,7 @@ export default class ClearFiles extends LightningElement {
         console.log('File change event triggered:', event);
         console.log('Event target:', event.target);
         console.log('Event target files:', event.target.files);
-        
+
         const files = event.target.files;
         if (!files || files.length === 0) {
             console.log('No files selected');
@@ -359,7 +373,7 @@ export default class ClearFiles extends LightningElement {
         const validFiles = [];
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            
+
             console.log('Processing file at index:', i);
             console.log('File object:', file);
             console.log('File constructor:', file.constructor.name);
@@ -371,50 +385,50 @@ export default class ClearFiles extends LightningElement {
                 type: file.type,
                 lastModified: file.lastModified
             });
-            
+
             // Дополнительные проверки файла
             if (!(file instanceof File) && !(file instanceof Blob)) {
                 console.error('Invalid file object:', file);
                 this.showToast('Error', `File "${file.name || 'Unknown'}" is invalid. Please select a valid file.`, 'error');
                 continue;
             }
-            
+
             // Проверяем, что файл имеет необходимые свойства
             if (!file.name || !file.size || !file.type) {
                 console.error('File missing required properties:', { name: file.name, size: file.size, type: file.type });
                 this.showToast('Error', `File "${file.name || 'Unknown'}" is corrupted or missing required properties.`, 'error');
                 continue;
             }
-            
+
             // Проверяем размер файла (максимум 10MB)
             const maxSize = 10 * 1024 * 1024; // 10MB
             if (file.size > maxSize) {
                 this.showToast('Error', `File "${file.name}" exceeds 10MB limit`, 'error');
                 continue;
             }
-            
+
             // Проверяем, что файл не пустой
             if (file.size === 0) {
                 this.showToast('Error', `File "${file.name}" is empty (0 bytes)`, 'error');
                 continue;
             }
-            
+
             // Дополнительная проверка размера файла
             if (typeof file.size !== 'number' || file.size < 0 || !isFinite(file.size)) {
                 console.error('File size is invalid:', file.size);
                 this.showToast('Error', `File "${file.name}" has invalid size`, 'error');
                 continue;
             }
-            
+
             console.log('File validation passed for:', file.name);
             validFiles.push(file);
         }
-        
+
         if (validFiles.length === 0) {
             this.showToast('Error', 'No valid files selected for upload', 'error');
             return;
         }
-        
+
         // Преобразуем валидные файлы
         this.selectedFiles = validFiles.map(file => {
             // Создаем объект с дополнительными свойствами, НЕ используя spread
@@ -427,7 +441,7 @@ export default class ClearFiles extends LightningElement {
                 formattedSize: this.formatFileSize(file.size)
             };
         });
-        
+
         console.log('Valid files selected:', this.selectedFiles);
         console.log('=== FILE STRUCTURE DEBUG ===');
         this.selectedFiles.forEach((fileWrapper, index) => {
@@ -446,7 +460,7 @@ export default class ClearFiles extends LightningElement {
             this.showToast('Error', 'Lead ID is not available', 'error');
             return;
         }
-        
+
         if (this.selectedFiles.length === 0) {
             this.showToast('Error', 'No files selected for upload', 'error');
             return;
@@ -455,45 +469,45 @@ export default class ClearFiles extends LightningElement {
         console.log('=== UPLOAD DEBUG INFO ===');
         console.log('selectedFiles array:', this.selectedFiles);
         console.log('selectedFiles length:', this.selectedFiles.length);
-        
+
         // Дополнительная валидация всех файлов перед загрузкой
         const invalidFiles = [];
         for (let i = 0; i < this.selectedFiles.length; i++) {
             const fileWrapper = this.selectedFiles[i];
             const file = fileWrapper.file; // Получаем оригинальный File объект
-            
+
             console.log(`File ${i} wrapper:`, fileWrapper);
             console.log(`File ${i} original:`, file);
             console.log(`File ${i} instanceof File:`, file instanceof File);
             console.log(`File ${i} instanceof Blob:`, file instanceof Blob);
             console.log(`File ${i} constructor:`, file ? file.constructor.name : 'null');
-            
+
             if (!file) {
                 invalidFiles.push(`File at index ${i}: undefined or null`);
                 continue;
             }
-            
+
             if (!(file instanceof File) && !(file instanceof Blob)) {
                 invalidFiles.push(`File "${file.name || 'Unknown'}": not a valid File or Blob object`);
                 continue;
             }
-            
+
             if (!file.name || !file.size || !file.type) {
                 invalidFiles.push(`File "${file.name || 'Unknown'}": missing required properties`);
                 continue;
             }
-            
+
             if (file.size === 0) {
                 invalidFiles.push(`File "${file.name}": empty (0 bytes)`);
                 continue;
             }
-            
+
             if (typeof file.size !== 'number' || file.size < 0 || !isFinite(file.size)) {
                 invalidFiles.push(`File "${file.name}": invalid size (${file.size})`);
                 continue;
             }
         }
-        
+
         if (invalidFiles.length > 0) {
             const errorMessage = 'Invalid files detected:\n' + invalidFiles.join('\n');
             console.error('File validation failed:', invalidFiles);
@@ -513,23 +527,23 @@ export default class ClearFiles extends LightningElement {
                     reject(new Error(`File is undefined or null: ${fileWrapper.name || 'Unknown'}`));
                     return;
                 }
-                
+
                 if (!(file instanceof File) && !(file instanceof Blob)) {
                     reject(new Error(`File is not a valid File or Blob object: ${fileWrapper.name || 'Unknown'}`));
                     return;
                 }
-                
+
                 if (file.size === 0) {
                     reject(new Error(`File is empty (0 bytes): ${fileWrapper.name || 'Unknown'}`));
                     return;
                 }
-                
+
                 // Проверяем, что файл не поврежден
                 if (typeof file.size !== 'number' || file.size < 0 || !isFinite(file.size)) {
                     reject(new Error(`File size is invalid or corrupted: ${fileWrapper.name || 'Unknown'}`));
                     return;
                 }
-                
+
                 console.log('Starting file read for:', file.name);
                 console.log('File details:', {
                     name: file.name,
@@ -537,7 +551,7 @@ export default class ClearFiles extends LightningElement {
                     type: file.type,
                     lastModified: file.lastModified
                 });
-                
+
                 const reader = new FileReader();
 
                 reader.onloadend = () => {
@@ -546,29 +560,29 @@ export default class ClearFiles extends LightningElement {
                         console.log('FileReader readyState:', reader.readyState);
                         console.log('FileReader result type:', typeof reader.result);
                         console.log('FileReader result length:', reader.result ? reader.result.length : 'null');
-                        
+
                         if (!reader.result) {
                             console.error('FileReader result is empty for file:', file.name);
                             reject(new Error(`FileReader result is empty: ${file.name}`));
                             return;
                         }
-                        
+
                         // Проверяем, что результат является строкой
                         if (typeof reader.result !== 'string') {
                             console.error('FileReader result is not a string for file:', file.name, 'Type:', typeof reader.result);
                             reject(new Error(`FileReader result is not a string: ${file.name}`));
                             return;
                         }
-                        
+
                         // Проверяем, что результат содержит base64 данные
                         if (!reader.result.includes(',')) {
                             console.error('FileReader result does not contain base64 data for file:', file.name);
                             reject(new Error(`FileReader result does not contain base64 data: ${file.name}`));
                             return;
                         }
-                        
+
                         const base64 = reader.result.split(',')[1];
-                        
+
                         if (!base64) {
                             console.error('Failed to extract base64 data from file:', file.name);
                             reject(new Error(`Failed to extract base64 data from file: ${file.name}`));
@@ -596,7 +610,7 @@ export default class ClearFiles extends LightningElement {
                                 console.log('=== UPLOAD RESPONSE ANALYSIS ===');
                                 console.log('Response type:', typeof response);
                                 console.log('Response object:', response);
-                                
+
                                 // Проверяем, что файл действительно загружен
                                 if (response && response.id) {
                                     console.log('✅ File upload confirmed with ID:', response.id);
@@ -607,7 +621,7 @@ export default class ClearFiles extends LightningElement {
                                         id: response.id,
                                         leadId: this.leadId
                                     });
-                                    
+
                                     // Проверяем, что файл загружен для правильного Lead ID
                                     if (response.leadId && response.leadId !== this.leadId) {
                                         console.error('❌ CRITICAL ERROR: File uploaded to wrong Lead ID!');
@@ -619,7 +633,7 @@ export default class ClearFiles extends LightningElement {
                                     console.warn('⚠️ File upload response missing ID:', response);
                                     console.warn('This might indicate an upload failure or wrong response format');
                                 }
-                                
+
                                 resolve();
                             })
                             .catch(uploadError => {
@@ -665,28 +679,28 @@ export default class ClearFiles extends LightningElement {
                 console.log('=== UPLOAD SUCCESS - STARTING REFRESH ===');
                 this.selectedFiles = [];
                 this.showUploadModal = false;
-                
+
                 // Принудительно сбрасываем состояние загрузки и обновляем список
                 this.isUploading = false;
-                
+
                 // Обновляем список файлов после успешной загрузки
                 this.loadClearFiles();
-                
+
                 this.showToast('Success', 'Files uploaded successfully', 'success');
             })
             .catch(error => {
                 console.error('Promise.all error details:', error);
-                
+
                 // Детальная обработка ошибок
                 let errorMessage = 'Unknown error';
                 let errorDetails = '';
-                
+
                 if (error.body && error.body.message) {
                     errorMessage = error.body.message;
                 } else if (error.message) {
                     errorMessage = error.message;
                 }
-                
+
                 // Проверяем, является ли ошибка связанной с File API
                 if (errorMessage.includes('File is not a valid File or Blob object')) {
                     errorDetails = 'The file object appears to be corrupted. Please try selecting the file again.';
@@ -697,19 +711,19 @@ export default class ClearFiles extends LightningElement {
                 } else if (errorMessage.includes('uploading file')) {
                     errorDetails = 'Server upload failed. Please check your connection and try again.';
                 }
-                
+
                 this.uploadError = 'Error uploading one or more files: ' + errorMessage;
                 if (errorDetails) {
                     this.uploadError += '\n\n' + errorDetails;
                 }
-                
+
                 console.error('Final upload error:', {
                     error: error,
                     errorMessage: errorMessage,
                     errorDetails: errorDetails,
                     uploadError: this.uploadError
                 });
-                
+
                 // Показываем детальную ошибку пользователю
                 this.showToast('Error', 'Upload failed: ' + errorMessage, 'error');
             })
@@ -722,27 +736,27 @@ export default class ClearFiles extends LightningElement {
     handleDeleteFile(event) {
         const fileId = event.currentTarget.dataset.fileId;
         const fileName = event.currentTarget.dataset.fileName;
-        
+
         if (!fileId) {
             this.showToast('Error', 'File ID is missing', 'error');
             return;
         }
-        
+
         if (confirm(`Are you sure you want to delete the file "${fileName}"?`)) {
             this.isLoading = true;
-            
+
             console.log('Deleting file:', fileName, 'with ID:', fileId);
-            
+
             deleteClearFile({ fileId: fileId })
                 .then(() => {
                     this.showToast('Success', 'File deleted successfully', 'success');
-                    
+
                     // Автоматически обновляем список файлов
                     console.log('File deleted successfully, refreshing file list...');
-                    
+
                     // Принудительно сбрасываем состояние загрузки и обновляем список
                     this.isLoading = false;
-                    
+
                     // Немедленно обновляем список файлов
                     this.loadClearFiles();
                 })
@@ -759,12 +773,12 @@ export default class ClearFiles extends LightningElement {
     // Get download URL for file
     handleDownloadFile(event) {
         const fileId = event.currentTarget.dataset.fileId;
-        
+
         if (!fileId) {
             this.showToast('Error', 'File ID is missing', 'error');
             return;
         }
-        
+
         getFileDownloadUrl({ fileId: fileId })
             .then(result => {
                 if (result) {
@@ -780,28 +794,28 @@ export default class ClearFiles extends LightningElement {
     // File preview
     handlePreviewFile(event) {
         const fileId = event.currentTarget.dataset.fileId;
-        
+
         if (!fileId) {
             this.showToast('Error', 'File ID is missing', 'error');
             return;
         }
-        
+
         console.log('Previewing file with ID:', fileId);
-        
+
         // Сначала получаем URL для скачивания
         getFileDownloadUrl({ fileId: fileId })
             .then(result => {
                 if (result) {
                     console.log('File preview URL:', result);
-                    
+
                     // Проверяем, что URL не пустой и не содержит ошибок
                     if (result.includes('error') || result.includes('undefined')) {
                         throw new Error('Invalid file URL received');
                     }
-                    
+
                     // Открываем файл в новом окне для предварительного просмотра
                     const previewWindow = window.open(result, '_blank');
-                    
+
                     // Проверяем, что окно открылось
                     if (!previewWindow) {
                         this.showToast('Warning', 'Popup blocked. Please allow popups for this site.', 'warning');
@@ -812,7 +826,7 @@ export default class ClearFiles extends LightningElement {
             })
             .catch(error => {
                 console.error('Error getting file preview URL:', error);
-                
+
                 // Показываем пользователю понятную ошибку
                 let errorMessage = 'Failed to open file for preview';
                 if (error.message.includes('Invalid file URL')) {
@@ -822,7 +836,7 @@ export default class ClearFiles extends LightningElement {
                 } else {
                     errorMessage += ': ' + (error.body?.message || error.message || 'Unknown error');
                 }
-                
+
                 this.showToast('Error', errorMessage, 'error');
             });
     }
@@ -861,7 +875,7 @@ export default class ClearFiles extends LightningElement {
     handleDrop(event) {
         event.preventDefault();
         this.isDraggingOver = false;
-        
+
         const files = event.dataTransfer.files;
         if (!files || files.length === 0) {
             this.showToast('Warning', 'No files dropped', 'warning');
@@ -872,47 +886,47 @@ export default class ClearFiles extends LightningElement {
         const validFiles = [];
         for (let i = 0; i < files.length; i++) {
             const file = files[i];
-            
+
             console.log('Dropped file object:', file);
             console.log('Dropped file constructor:', file.constructor.name);
             console.log('Dropped file instanceof File:', file instanceof File);
             console.log('Dropped file instanceof Blob:', file instanceof Blob);
-            
+
             // Дополнительные проверки файла
             if (!(file instanceof File) && !(file instanceof Blob)) {
                 console.error('Invalid dropped file object:', file);
                 this.showToast('Error', `Dropped file "${file.name || 'Unknown'}" is invalid. Please select a valid file.`, 'error');
                 continue;
             }
-            
+
             // Проверяем, что файл имеет необходимые свойства
             if (!file.name || !file.size || !file.type) {
                 console.error('Dropped file missing required properties:', { name: file.name, size: file.size, type: file.type });
                 this.showToast('Error', `Dropped file "${file.name || 'Unknown'}" is corrupted or missing required properties.`, 'error');
                 continue;
             }
-            
+
             // Проверяем размер файла (максимум 10MB)
             const maxSize = 10 * 1024 * 1024; // 10MB
             if (file.size > maxSize) {
                 this.showToast('Error', `Dropped file "${file.name}" exceeds 10MB limit`, 'error');
                 continue;
             }
-            
+
             // Проверяем, что файл не пустой
             if (file.size === 0) {
                 this.showToast('Error', `Dropped file "${file.name}" is empty (0 bytes)`, 'error');
                 continue;
             }
-            
+
             validFiles.push(file);
         }
-        
+
         if (validFiles.length === 0) {
             this.showToast('Error', 'No valid files dropped for upload', 'error');
             return;
         }
-        
+
         // Преобразуем валидные файлы
         this.selectedFiles = validFiles.map(file => {
             // Создаем объект с дополнительными свойствами, НЕ используя spread
@@ -925,7 +939,7 @@ export default class ClearFiles extends LightningElement {
                 formattedSize: this.formatFileSize(file.size)
             };
         });
-        
+
         console.log('Valid dropped files:', this.selectedFiles);
         console.log('=== DROPPED FILE STRUCTURE DEBUG ===');
         this.selectedFiles.forEach((fileWrapper, index) => {
@@ -952,14 +966,14 @@ export default class ClearFiles extends LightningElement {
     // Format file size
     formatFileSize(bytes) {
         if (bytes === null || bytes === undefined || bytes === 0) return '0 Bytes';
-        
+
         // Убеждаемся, что bytes это число
         const size = parseInt(bytes, 10);
         if (isNaN(size)) {
             console.warn('Invalid file size value:', bytes);
             return 'Unknown size';
         }
-        
+
         const k = 1024;
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(size) / Math.log(k));
@@ -971,9 +985,9 @@ export default class ClearFiles extends LightningElement {
         if (!fileExtension || typeof fileExtension !== 'string') {
             return 'utility:file';
         }
-        
+
         const extension = fileExtension.toLowerCase().trim();
-        
+
         if (['pdf'].includes(extension)) return 'utility:pdf';
         if (['doc', 'docx'].includes(extension)) return 'utility:word';
         if (['xls', 'xlsx'].includes(extension)) return 'utility:excel';
@@ -981,7 +995,7 @@ export default class ClearFiles extends LightningElement {
         if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(extension)) return 'utility:image';
         if (['txt'].includes(extension)) return 'utility:text';
         if (['zip', 'rar', '7z'].includes(extension)) return 'utility:zip';
-        
+
         return 'utility:file';
     }
 
@@ -990,22 +1004,22 @@ export default class ClearFiles extends LightningElement {
         if (!fileName || typeof fileName !== 'string') {
             return '';
         }
-        
+
         const parts = fileName.split('.');
         if (parts.length < 2) {
             return '';
         }
-        
+
         return parts.pop().toLowerCase();
     }
 
     // Format date
     formatDate(dateValue) {
         if (!dateValue) return '';
-        
+
         try {
             let date;
-            
+
             // Если это строка, попробуем её распарсить
             if (typeof dateValue === 'string') {
                 date = new Date(dateValue);
@@ -1015,13 +1029,13 @@ export default class ClearFiles extends LightningElement {
                 // Для Salesforce Datetime
                 date = new Date(dateValue);
             }
-            
+
             // Проверяем, что дата валидна
             if (isNaN(date.getTime())) {
                 console.warn('Invalid date value:', dateValue);
                 return String(dateValue);
             }
-            
+
             return date.toLocaleDateString('en-US', {
                 year: 'numeric',
                 month: 'short',
