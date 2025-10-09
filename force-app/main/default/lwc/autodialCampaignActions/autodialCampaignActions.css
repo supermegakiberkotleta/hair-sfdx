@@ -1,0 +1,59 @@
+.campaign-actions-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.campaign-info {
+    display: flex;
+    gap: 2rem;
+    flex: 1;
+}
+
+.field-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.field-label {
+    font-size: 0.75rem;
+    color: #706e6b;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.025rem;
+}
+
+.field-value {
+    font-size: 0.875rem;
+    color: #080707;
+    font-weight: 600;
+}
+
+.campaign-buttons {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+@media (max-width: 768px) {
+    .campaign-actions-container {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: stretch;
+    }
+    
+    .campaign-info {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .campaign-buttons {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+}
+

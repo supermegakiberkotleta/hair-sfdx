@@ -1,0 +1,70 @@
+<template>
+    <lightning-card>
+        <div class="campaign-actions-container">
+            <div class="campaign-info">
+                <div class="field-item">
+                    <div class="field-label">Status</div>
+                    <div class="field-value">{campaign.Status__c}</div>
+                </div>
+                <div class="field-item">
+                    <div class="field-label">Start Date</div>
+                    <div class="field-value">
+                        <lightning-formatted-date-time 
+                            value={campaign.Start_Date__c} 
+                            year="numeric" 
+                            month="2-digit" 
+                            day="2-digit"
+                            hour="2-digit"
+                            minute="2-digit">
+                        </lightning-formatted-date-time>
+                    </div>
+                </div>
+                <div class="field-item">
+                    <div class="field-label">End Date</div>
+                    <div class="field-value">
+                        <lightning-formatted-date-time 
+                            value={campaign.End_Date__c} 
+                            year="numeric" 
+                            month="2-digit" 
+                            day="2-digit"
+                            hour="2-digit"
+                            minute="2-digit">
+                        </lightning-formatted-date-time>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="campaign-buttons">
+                <lightning-button 
+                    label="Start" 
+                    variant="brand"
+                    onclick={handleStart}
+                    disabled={isStartDisabled}
+                    class="action-button">
+                </lightning-button>
+                <lightning-button 
+                    label="Pause" 
+                    variant="neutral"
+                    onclick={handlePause}
+                    disabled={isPauseDisabled}
+                    class="action-button">
+                </lightning-button>
+                <lightning-button 
+                    label="Cancel" 
+                    variant="destructive-text"
+                    onclick={handleCancel}
+                    disabled={isCancelDisabled}
+                    class="action-button">
+                </lightning-button>
+                <lightning-button 
+                    label="Complete" 
+                    variant="success"
+                    onclick={handleComplete}
+                    disabled={isCompleteDisabled}
+                    class="action-button">
+                </lightning-button>
+            </div>
+        </div>
+    </lightning-card>
+</template>
+
