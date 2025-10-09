@@ -1,0 +1,21 @@
+.iframe-container {
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+    position: relative;
+}
+
+.call-attempts-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+
+.slds-text-color_error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+
