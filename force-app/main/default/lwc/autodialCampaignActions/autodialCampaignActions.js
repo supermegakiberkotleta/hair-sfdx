@@ -56,14 +56,16 @@ export default class AutodialCampaignActions extends LightningElement {
         const status = this.campaign?.Status__c || '';
         return this.isLoading || 
                status === 'Canceled' ||
-               status === 'Completed';
+               status === 'Completed' ||
+               status === 'Not Started';
     }
 
     get isCompleteDisabled() {
         const status = this.campaign?.Status__c || '';
         return this.isLoading || 
                status === 'Canceled' ||
-               status === 'Completed';
+               status === 'Completed' ||
+               status === 'Not Started';
     }
 
     handleStart() {
@@ -95,10 +97,12 @@ export default class AutodialCampaignActions extends LightningElement {
                     this.refreshRecord();
                 }, 1000);
             } else {
+                // Use warning toast for validation errors (422), error for others
+                const toastVariant = result.statusCode === 422 ? 'warning' : 'error';
                 this.showToast(
                     `Error ${actionName} campaign (${result.statusCode})`, 
                     result.message, 
-                    'error'
+                    toastVariant
                 );
             }
         } catch (error) {
