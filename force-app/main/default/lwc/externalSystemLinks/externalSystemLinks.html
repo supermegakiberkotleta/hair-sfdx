@@ -1,0 +1,46 @@
+<template>
+    <lightning-card title="External Systems" icon-name="standard:link">
+        <template if:true={hasAnyLink}>
+            <div class="slds-p-around_medium">
+                <template if:true={quickbooksUrl}>
+                    <div class="slds-m-bottom_small">
+                        <a href={quickbooksUrl} 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           class="slds-text-link_reset slds-grid slds-grid_vertical-align-center">
+                            <lightning-icon icon-name="custom:custom88" 
+                                          size="small" 
+                                          alternative-text="QuickBooks"
+                                          class="slds-m-right_x-small">
+                            </lightning-icon>
+                            <span class="slds-text-link">View in QuickBooks</span>
+                        </a>
+                    </div>
+                </template>
+
+                <template if:true={zohoInventoryUrl}>
+                    <div class="slds-m-bottom_small">
+                        <a href={zohoInventoryUrl} 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           class="slds-text-link_reset slds-grid slds-grid_vertical-align-center">
+                            <lightning-icon icon-name="custom:custom89" 
+                                          size="small" 
+                                          alternative-text="Zoho Inventory"
+                                          class="slds-m-right_x-small">
+                            </lightning-icon>
+                            <span class="slds-text-link">View in Zoho Inventory</span>
+                        </a>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <template if:false={hasAnyLink}>
+            <div class="slds-p-around_medium">
+                <p class="slds-text-color_weak">No external system links available</p>
+            </div>
+        </template>
+    </lightning-card>
+</template>
+
