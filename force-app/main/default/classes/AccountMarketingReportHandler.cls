@@ -103,11 +103,27 @@ public class AccountMarketingReportHandler {
     /**
      * Calculates the week number of the year for a given date
      */
-    private static Integer getWeekNumber(Date messageDate) {
-        Date firstDayOfYear = Date.newInstance(messageDate.year(), 1, 1);
-        Integer daysDifference = firstDayOfYear.daysBetween(messageDate);
-        Integer weekNumber = (daysDifference / 7) + 1;
-        return weekNumber;
+     // ISO 8601: недели начинаются в понедельник, неделя №1 — та, что содержит 4 января
+    public static Integer getWeekNumber(Date d) {
+        // День недели в "воскресенье=1..суббота=7" через toStartOfWeek()
+        Integer dowSun = d.toStartOfWeek().daysBetween(d) + 1; 
+        // Переводим в ISO: понедельник=1..воскресенье=7
+        Integer isoDow = (dowSun == 1) ? 7 : dowSun - 1;
+
+        // Четверг текущей недели (ISO-опорный день)
+        Date thursday = d.addDays(4 - isoDow);
+
+        // Первая ISO-неделя года — та, где есть 4 января
+        Date jan4 = Date.newInstance(thursday.year(), 1, 4);
+        Integer jan4DowSun = jan4.toStartOfWeek().daysBetween(jan4) + 1;
+        Integer jan4IsoDow = (jan4DowSun == 1) ? 7 : jan4DowSun - 1;
+        Date week1Thursday = jan4.addDays(4 - jan4IsoDow);
+
+        // Номер недели
+        return (week1Thursday.daysBetween(thursday) / 7) + 1;
     }
+
+    
+    
 }
 

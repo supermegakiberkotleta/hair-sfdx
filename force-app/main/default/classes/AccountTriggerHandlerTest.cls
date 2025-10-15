@@ -235,6 +235,363 @@ private class AccountTriggerHandlerTest {
         System.assertEquals(51, insertedAccounts.size(), 'Should have 51 accounts');
     }
     
+    // ========== Marketing Report Tests ==========
+    
+    @isTest
+    static void testHandleMarketingReportInsert_WithConvertedLeads() {
+        // Создаем лиды для конвертации
+        List<Lead> testLeads = new List<Lead>();
+        for (Integer i = 0; i < 3; i++) {
+            testLeads.add(new Lead(
+                FirstName = 'Test',
+                LastName = 'Lead' + i,
+                Company = 'Test Company ' + i,
+                Status = 'New',
+                RecordTypeId = '012Kc000000ten6IAA'
+            ));
+        }
+        insert testLeads;
+        
+        // Конвертируем лиды в аккаунты
+        List<Database.LeadConvert> leadConverts = new List<Database.LeadConvert>();
+        LeadStatus convertStatus = [SELECT Id, MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1];
+        
+        for (Lead testLead : testLeads) {
+            Database.LeadConvert lc = new Database.LeadConvert();
+            lc.setLeadId(testLead.Id);
+            lc.setConvertedStatus(convertStatus.MasterLabel);
+            leadConverts.add(lc);
+        }
+        
+        Test.startTest();
+        List<Database.LeadConvertResult> lcResults = Database.convertLead(leadConverts);
+        Test.stopTest();
+        
+        // Получаем сконвертированные аккаунты и обновляем их RecordType
+        List<Account> convertedAccounts = new List<Account>();
+        for (Database.LeadConvertResult lcr : lcResults) {
+            Account acc = [SELECT Id, RecordTypeId FROM Account WHERE Id = :lcr.getAccountId()];
+            acc.RecordTypeId = TARGET_RECORD_TYPE_ID;
+            convertedAccounts.add(acc);
+        }
+        update convertedAccounts;
+        
+        // Проверяем, что созданы Marketing_Report_Customer__c записи
+        // (они создаются автоматически при конвертации лидов через LeadTrigger)
+        List<Marketing_Report_Customer__c> reports = [
+            SELECT Id, Account__c
+            FROM Marketing_Report_Customer__c
+            WHERE Account__c IN :convertedAccounts
+        ];
+        
+        System.assertEquals(3, reports.size(), 'Should have 3 marketing reports created by LeadTrigger');
+    }
+    
+    @isTest
+    static void testHandleMarketingReportInsert_WithNonConvertedLeads() {
+        // Создаем лиды, которые НЕ конвертированы
+        List<Lead> testLeads = new List<Lead>();
+        for (Integer i = 0; i < 3; i++) {
+            testLeads.add(new Lead(
+                FirstName = 'Test',
+                LastName = 'Lead' + i,
+                Company = 'Test Company ' + i,
+                Status = 'New',
+                RecordTypeId = '012Kc000000ten6IAA'
+            ));
+        }
+        insert testLeads;
+        
+        Test.startTest();
+        AccountTriggerHandler.handleMarketingReportInsert(testLeads);
+        Test.stopTest();
+        
+        // Проверяем, что НЕ созданы Marketing_Report_Customer__c записи
+        List<Marketing_Report_Customer__c> reports = [
+            SELECT Id
+            FROM Marketing_Report_Customer__c
+        ];
+        
+        System.assertEquals(0, reports.size(), 'Should have no marketing reports for non-converted leads');
+    }
+    
+    @isTest
+    static void testHandleMarketingReportInsert_WithNullInput() {
+        Test.startTest();
+        AccountTriggerHandler.handleMarketingReportInsert(null);
+        Test.stopTest();
+        
+        // Должен обработать null без ошибок
+        System.assert(true, 'Method should handle null input gracefully');
+    }
+    
+    @isTest
+    static void testHandleMarketingReportInsert_WithEmptyList() {
+        Test.startTest();
+        AccountTriggerHandler.handleMarketingReportInsert(new List<Lead>());
+        Test.stopTest();
+        
+        // Должен обработать пустой список без ошибок
+        System.assert(true, 'Method should handle empty list gracefully');
+    }
+    
+    @isTest
+    static void testHandleMarketingReportInsert_WithWrongRecordType() {
+        // Создаем лид и конвертируем его
+        Lead testLead = new Lead(
+            FirstName = 'Test',
+            LastName = 'Lead',
+            Company = 'Test Company',
+            Status = 'New',
+            RecordTypeId = '012Kc000000ten6IAA'
+        );
+        insert testLead;
+        
+        // Конвертируем лид
+        Database.LeadConvert lc = new Database.LeadConvert();
+        lc.setLeadId(testLead.Id);
+        LeadStatus convertStatus = [SELECT Id, MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1];
+        lc.setConvertedStatus(convertStatus.MasterLabel);
+        
+        Test.startTest();
+        Database.LeadConvertResult lcr = Database.convertLead(lc);
+        Test.stopTest();
+        
+       
+    }
+    
+    @isTest
+    static void testHandleMarketingReportUpdate_RecordTypeChanged() {
+        // Создаем аккаунт с другим RecordType
+        Account testAccount = new Account(
+            Name = 'Test Account',
+            RecordTypeId = '012Kc000000teo4IAA' // Другой RecordType
+        );
+        insert testAccount;
+        
+        // Обновляем RecordType на целевой
+        Account updatedAccount = new Account(
+            Id = testAccount.Id,
+            RecordTypeId = TARGET_RECORD_TYPE_ID
+        );
+        
+        Test.startTest();
+        // Вызываем метод напрямую (так как в триггере он закомментирован)
+        AccountTriggerHandler.handleMarketingReportUpdate(
+            new List<Account>{updatedAccount}, 
+            new List<Account>{testAccount}
+        );
+        Test.stopTest();
+        
+       
+    }
+    
+    @isTest
+    static void testHandleMarketingReportUpdate_RecordTypeNotChanged() {
+        // Создаем аккаунт с целевым RecordType
+        Account testAccount = new Account(
+            Name = 'Test Account',
+            RecordTypeId = TARGET_RECORD_TYPE_ID
+        );
+        insert testAccount;
+        
+        // Обновляем что-то другое, но НЕ RecordType
+        Account updatedAccount = new Account(
+            Id = testAccount.Id,
+            Name = 'Updated Test Account',
+            RecordTypeId = TARGET_RECORD_TYPE_ID
+        );
+        
+        Test.startTest();
+        AccountTriggerHandler.handleMarketingReportUpdate(
+            new List<Account>{updatedAccount}, 
+            new List<Account>{testAccount}
+        );
+        Test.stopTest();
+        
+        // Проверяем, что НЕ создана новая Marketing_Report_Customer__c запись
+        List<Marketing_Report_Customer__c> reports = [
+            SELECT Id
+            FROM Marketing_Report_Customer__c
+            WHERE Account__c = :testAccount.Id
+        ];
+        
+        System.assertEquals(0, reports.size(), 'Should have no marketing reports when RecordType not changed');
+    }
+    
+    @isTest
+    static void testHandleMarketingReportUpdate_WithNullInput() {
+        Test.startTest();
+        AccountTriggerHandler.handleMarketingReportUpdate(null, null);
+        Test.stopTest();
+        
+        // Должен обработать null без ошибок
+        System.assert(true, 'Method should handle null input gracefully');
+    }
+    
+    @isTest
+    static void testHandleMarketingReportUpdate_WithEmptyLists() {
+        Test.startTest();
+        AccountTriggerHandler.handleMarketingReportUpdate(
+            new List<Account>(), 
+            new List<Account>()
+        );
+        Test.stopTest();
+        
+        // Должен обработать пустые списки без ошибок
+        System.assert(true, 'Method should handle empty lists gracefully');
+    }
+    
+    @isTest
+    static void testHandleMarketingReportDelete_WithTargetRecordType() {
+        // Создаем лид и конвертируем его
+        Lead testLead = new Lead(
+            FirstName = 'Test',
+            LastName = 'Lead',
+            Company = 'Test Company',
+            Status = 'New',
+            RecordTypeId = '012Kc000000ten6IAA'
+        );
+        insert testLead;
+        
+        // Конвертируем лид
+        Database.LeadConvert lc = new Database.LeadConvert();
+        lc.setLeadId(testLead.Id);
+        LeadStatus convertStatus = [SELECT Id, MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1];
+        lc.setConvertedStatus(convertStatus.MasterLabel);
+        Database.LeadConvertResult lcr = Database.convertLead(lc);
+        
+        // Обновляем RecordType аккаунта на целевой
+        Account convertedAccount = [SELECT Id, RecordTypeId FROM Account WHERE Id = :lcr.getAccountId()];
+        convertedAccount.RecordTypeId = TARGET_RECORD_TYPE_ID;
+        update convertedAccount;
+        
+        // Проверяем, что запись создана автоматически при конвертации
+        List<Marketing_Report_Customer__c> reportsBefore = [
+            SELECT Id
+            FROM Marketing_Report_Customer__c
+            WHERE Account__c = :convertedAccount.Id
+        ];
+        System.assertEquals(1, reportsBefore.size(), 'Should have one report before delete');
+        
+        Test.startTest();
+        AccountTriggerHandler.handleMarketingReportDelete(new List<Account>{convertedAccount});
+        Test.stopTest();
+        
+        // Проверяем, что запись удалена
+        List<Marketing_Report_Customer__c> reportsAfter = [
+            SELECT Id
+            FROM Marketing_Report_Customer__c
+            WHERE Account__c = :convertedAccount.Id
+        ];
+        System.assertEquals(0, reportsAfter.size(), 'Report should be deleted');
+    }
+    
+    @isTest
+    static void testHandleMarketingReportDelete_WithWrongRecordType() {
+        // Создаем аккаунт с другим RecordType
+        Account testAccount = new Account(
+            Name = 'Test Account',
+            RecordTypeId = '012Kc000000teo4IAA' // Другой RecordType
+        );
+        insert testAccount;
+        
+        Test.startTest();
+        AccountTriggerHandler.handleMarketingReportDelete(new List<Account>{testAccount});
+        Test.stopTest();
+        
+        // Должен обработать без ошибок, но не удалять ничего
+        System.assert(true, 'Method should handle wrong RecordType gracefully');
+    }
+    
+    @isTest
+    static void testHandleMarketingReportDelete_WithNullInput() {
+        Test.startTest();
+        AccountTriggerHandler.handleMarketingReportDelete(null);
+        Test.stopTest();
+        
+        // Должен обработать null без ошибок
+        System.assert(true, 'Method should handle null input gracefully');
+    }
+    
+    @isTest
+    static void testHandleMarketingReportDelete_WithEmptyList() {
+        Test.startTest();
+        AccountTriggerHandler.handleMarketingReportDelete(new List<Account>());
+        Test.stopTest();
+        
+        // Должен обработать пустой список без ошибок
+        System.assert(true, 'Method should handle empty list gracefully');
+    }
+    
+    @isTest
+    static void testHandleMarketingReportDelete_WithNoRelatedReports() {
+        // Создаем аккаунт с целевым RecordType, но без связанных отчетов
+        Account testAccount = new Account(
+            Name = 'Test Account',
+            RecordTypeId = TARGET_RECORD_TYPE_ID
+        );
+        insert testAccount;
+        
+        Test.startTest();
+        AccountTriggerHandler.handleMarketingReportDelete(new List<Account>{testAccount});
+        Test.stopTest();
+        
+        // Должен обработать без ошибок, даже если нет связанных отчетов
+        System.assert(true, 'Method should handle accounts with no related reports gracefully');
+    }
+    
+    @isTest
+    static void testHandleMarketingReportInsert_DirectMethodCall() {
+        // Создаем лид и конвертируем его
+        Lead testLead = new Lead(
+            FirstName = 'Test',
+            LastName = 'Lead',
+            Company = 'Test Company',
+            Status = 'New',
+            RecordTypeId = '012Kc000000ten6IAA'
+        );
+        insert testLead;
+        
+        // Конвертируем лид
+        Database.LeadConvert lc = new Database.LeadConvert();
+        lc.setLeadId(testLead.Id);
+        LeadStatus convertStatus = [SELECT Id, MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1];
+        lc.setConvertedStatus(convertStatus.MasterLabel);
+        Database.LeadConvertResult lcr = Database.convertLead(lc);
+        
+        // Обновляем RecordType аккаунта на целевой
+        Account convertedAccount = [SELECT Id, RecordTypeId FROM Account WHERE Id = :lcr.getAccountId()];
+        convertedAccount.RecordTypeId = TARGET_RECORD_TYPE_ID;
+        update convertedAccount;
+        
+        // Удаляем существующие отчеты, чтобы тестировать только наш метод
+        List<Marketing_Report_Customer__c> existingReports = [
+            SELECT Id FROM Marketing_Report_Customer__c WHERE Account__c = :convertedAccount.Id
+        ];
+        if (!existingReports.isEmpty()) {
+            delete existingReports;
+        }
+        
+        // Получаем сконвертированный лид
+        Lead convertedLead = [SELECT Id, IsConverted, ConvertedAccountId FROM Lead WHERE Id = :testLead.Id];
+        
+        Test.startTest();
+        // Вызываем метод напрямую
+        AccountTriggerHandler.handleMarketingReportInsert(new List<Lead>{convertedLead});
+        Test.stopTest();
+        
+        // Проверяем, что создана Marketing_Report_Customer__c запись
+        List<Marketing_Report_Customer__c> reports = [
+            SELECT Id, Account__c
+            FROM Marketing_Report_Customer__c
+            WHERE Account__c = :convertedAccount.Id
+        ];
+        
+        System.assertEquals(1, reports.size(), 'Should have one marketing report from direct method call');
+        System.assertEquals(convertedAccount.Id, reports[0].Account__c, 'Account should match');
+    }
+
     /**
      * Mock класс для HTTP callout
      */

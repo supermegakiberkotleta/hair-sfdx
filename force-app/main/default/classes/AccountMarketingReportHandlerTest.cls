@@ -41,14 +41,15 @@ private class AccountMarketingReportHandlerTest {
         LeadStatus convertStatus = [SELECT Id, MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1];
         lc.setConvertedStatus(convertStatus.MasterLabel);
         
+        Test.startTest();
         Database.LeadConvertResult lcr = Database.convertLead(lc);
+        Test.stopTest();
+        
         Account convertedAccount = [SELECT Id FROM Account WHERE Id = :lcr.getAccountId()];
         
-        Test.startTest();
-        // Call the handler method directly with the converted account
-        List<Account> accountsToProcess = new List<Account>{convertedAccount};
-        AccountMarketingReportHandler.handleAfterInsert(accountsToProcess);
-        Test.stopTest();
+        // Update RecordType to target type to trigger report creation
+        convertedAccount.RecordTypeId = TARGET_RECORD_TYPE_ID;
+        update convertedAccount;
         
         // Verify Marketing_Report_Customer__c record was created
         List<Marketing_Report_Customer__c> reports = [
@@ -89,9 +90,14 @@ private class AccountMarketingReportHandlerTest {
             convertedAccounts.add(acc);
         }
         
+        // Update RecordType to target type to trigger report creation
+        for (Account acc : convertedAccounts) {
+            acc.RecordTypeId = TARGET_RECORD_TYPE_ID;
+        }
+        update convertedAccounts;
+        
         Test.startTest();
-        // Call the handler method directly with converted accounts
-        AccountMarketingReportHandler.handleAfterInsert(convertedAccounts);
+        // Reports are created automatically by LeadTrigger when leads are converted
         Test.stopTest();
         
         // Verify Marketing_Report_Customer__c records were created
@@ -119,9 +125,11 @@ private class AccountMarketingReportHandlerTest {
         Database.LeadConvertResult lcr = Database.convertLead(lc);
         Account convertedAccount = [SELECT Id FROM Account WHERE Id = :lcr.getAccountId()];
         
-        // Create report first by calling the handler
-        List<Account> accountsToProcess = new List<Account>{convertedAccount};
-        AccountMarketingReportHandler.handleAfterInsert(accountsToProcess);
+        // Update RecordType to target type to trigger report creation
+        convertedAccount.RecordTypeId = TARGET_RECORD_TYPE_ID;
+        update convertedAccount;
+        
+        // Report is created automatically by LeadTrigger when lead is converted
         
         // Verify report was created
         List<Marketing_Report_Customer__c> reportsBefore = [
@@ -133,6 +141,7 @@ private class AccountMarketingReportHandlerTest {
         
         Test.startTest();
         // Call the delete handler method directly
+        List<Account> accountsToProcess = new List<Account>{convertedAccount};
         AccountMarketingReportHandler.handleBeforeDelete(accountsToProcess);
         Test.stopTest();
         
@@ -147,29 +156,24 @@ private class AccountMarketingReportHandlerTest {
     
     @isTest
     static void testIgnoreAccountsWithDifferentRecordType() {
-        // Get test lead
-        Lead testLead = [SELECT Id FROM Lead WHERE LastName = 'Lead1' LIMIT 1];
-        
-        // Convert lead to account
-        Database.LeadConvert lc = new Database.LeadConvert();
-        lc.setLeadId(testLead.Id);
-        
-        LeadStatus convertStatus = [SELECT Id, MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1];
-        lc.setConvertedStatus(convertStatus.MasterLabel);
+        // Create account directly with different RecordType (not from lead conversion)
+        Account testAccount = new Account(
+            Name = 'Test Account Different RecordType',
+            RecordTypeId = '012Kc000000teo4IAA' // Different from TARGET_RECORD_TYPE_ID
+        );
         
         Test.startTest();
-        Database.LeadConvertResult lcr = Database.convertLead(lc);
-        
-        // Don't update RecordTypeId, leave it as default
-        Account convertedAccount = [SELECT Id, RecordTypeId FROM Account WHERE Id = :lcr.getAccountId()];
-        
+        insert testAccount;
         Test.stopTest();
+        
+        // Verify that RecordType is different from target
+        System.assertNotEquals(TARGET_RECORD_TYPE_ID, testAccount.RecordTypeId, 'Account should have different RecordType');
         
         // Verify NO Marketing_Report_Customer__c record was created
         List<Marketing_Report_Customer__c> reports = [
             SELECT Id
             FROM Marketing_Report_Customer__c
-            WHERE Account__c = :convertedAccount.Id
+            WHERE Account__c = :testAccount.Id
         ];
         
         System.assertEquals(0, reports.size(), 'No report should be created for account with different RecordType');
@@ -199,14 +203,15 @@ private class AccountMarketingReportHandlerTest {
         LeadStatus convertStatus = [SELECT Id, MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1];
         lc.setConvertedStatus(convertStatus.MasterLabel);
         
+        Test.startTest();
         Database.LeadConvertResult lcr = Database.convertLead(lc);
+        Test.stopTest();
+        
         Account convertedAccount = [SELECT Id FROM Account WHERE Id = :lcr.getAccountId()];
         
-        Test.startTest();
-        // Call the handler method directly with the converted account
-        List<Account> accountsToProcess = new List<Account>{convertedAccount};
-        AccountMarketingReportHandler.handleAfterInsert(accountsToProcess);
-        Test.stopTest();
+        // Update RecordType to target type to trigger report creation
+        convertedAccount.RecordTypeId = TARGET_RECORD_TYPE_ID;
+        update convertedAccount;
         
         // Verify week number is calculated
         List<Marketing_Report_Customer__c> reports = [
@@ -301,14 +306,15 @@ private class AccountMarketingReportHandlerTest {
         LeadStatus convertStatus = [SELECT Id, MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1];
         lc.setConvertedStatus(convertStatus.MasterLabel);
         
+        Test.startTest();
         Database.LeadConvertResult lcr = Database.convertLead(lc);
+        Test.stopTest();
+        
         Account convertedAccount = [SELECT Id FROM Account WHERE Id = :lcr.getAccountId()];
         
-        Test.startTest();
-        // Call the handler method directly with the converted account
-        List<Account> accountsToProcess = new List<Account>{convertedAccount};
-        AccountMarketingReportHandler.handleAfterInsert(accountsToProcess);
-        Test.stopTest();
+        // Update RecordType to target type to trigger report creation
+        convertedAccount.RecordTypeId = TARGET_RECORD_TYPE_ID;
+        update convertedAccount;
         
         // Verify Active__c field is set correctly
         List<Marketing_Report_Customer__c> reports = [
@@ -341,14 +347,15 @@ private class AccountMarketingReportHandlerTest {
         LeadStatus convertStatus = [SELECT Id, MasterLabel FROM LeadStatus WHERE IsConverted = true LIMIT 1];
         lc.setConvertedStatus(convertStatus.MasterLabel);
         
+        Test.startTest();
         Database.LeadConvertResult lcr = Database.convertLead(lc);
+        Test.stopTest();
+        
         Account convertedAccount = [SELECT Id FROM Account WHERE Id = :lcr.getAccountId()];
         
-        Test.startTest();
-        // Call the handler method directly with the converted account
-        List<Account> accountsToProcess = new List<Account>{convertedAccount};
-        AccountMarketingReportHandler.handleAfterInsert(accountsToProcess);
-        Test.stopTest();
+        // Update RecordType to target type to trigger report creation
+        convertedAccount.RecordTypeId = TARGET_RECORD_TYPE_ID;
+        update convertedAccount;
         
         // Verify Month_Message__c field is set correctly
         List<Marketing_Report_Customer__c> reports = [
@@ -413,8 +420,13 @@ private class AccountMarketingReportHandlerTest {
             convertedAccounts.add(acc);
         }
         
-        // Create reports by calling the handler
-        AccountMarketingReportHandler.handleAfterInsert(convertedAccounts);
+        // Update RecordType to target type to trigger report creation
+        for (Account acc : convertedAccounts) {
+            acc.RecordTypeId = TARGET_RECORD_TYPE_ID;
+        }
+        update convertedAccounts;
+        
+        // Reports are created automatically by LeadTrigger when leads are converted
         
         // Verify reports were created
         List<Marketing_Report_Customer__c> reportsBefore = [

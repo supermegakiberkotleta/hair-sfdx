@@ -50,24 +50,35 @@ public class AccountTriggerHandler {
     /**
      * Handles after insert event for Marketing Report creation
      */
-    public static void handleMarketingReportInsert(List<Account> newAccounts) {
-        System.debug('🔥 handleMarketingReportInsert STARTED. Records count: ' + newAccounts.size());
-
-        if (newAccounts == null || newAccounts.isEmpty()) {
+     public static void handleMarketingReportInsert(List<Lead> converted) {
+        if (converted == null || converted.isEmpty()) {
             return;
         }
-        
-        List<Account> filteredAccounts = new List<Account>();
-        for (Account acc : newAccounts) {
-            if (acc.RecordTypeId == TARGET_RECORD_TYPE_ID) {
-                filteredAccounts.add(acc);
+    
+        // Собираем ID аккаунтов из лидов, которые действительно сконвертированы
+        Set<Id> accountIds = new Set<Id>();
+        for (Lead l : converted) {
+            if (l.IsConverted && l.ConvertedAccountId != null) {
+                accountIds.add(l.ConvertedAccountId);
             }
         }
-        
+        if (accountIds.isEmpty()) {
+            return;
+        }
+    
+        // Подтягиваем только нужные аккаунты сразу фильтром в SOQL
+        List<Account> filteredAccounts = [
+            SELECT Id, RecordTypeId
+            FROM Account
+            WHERE Id IN :accountIds
+            AND RecordTypeId = :TARGET_RECORD_TYPE_ID
+        ];
+    
         if (!filteredAccounts.isEmpty()) {
             AccountMarketingReportHandler.handleAfterInsert(filteredAccounts);
         }
     }
+    
     
     /**
      * Handles after update event for Marketing Report creation
