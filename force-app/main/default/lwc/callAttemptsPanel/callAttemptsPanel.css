@@ -1,0 +1,27 @@
+.panel-container {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.iframe-container {
+    flex: 1;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+}
+
+.call-attempts-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
+
+.slds-text-color_error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
