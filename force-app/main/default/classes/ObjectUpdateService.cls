@@ -40,6 +40,10 @@ public with sharing class ObjectUpdateService {
     private static final Integer BATCH_THRESHOLD = 50;
     private static final Integer MAX_SYNC_RECORDS = 200;
     
+    // Flag to completely disable batch processing in Flow context
+    // This prevents cascade trigger issues that lead to queueable job limit errors
+    private static final Boolean DISABLE_BATCH_FOR_FLOW = true;
+    
     /**
      * @description Method for calling from Flow
      * @param requests List of update requests
@@ -73,10 +77,21 @@ public with sharing class ObjectUpdateService {
                     continue;
                 }
                 
-                // Choose processing method based on record count
-                if (request.recordIds.size() > BATCH_THRESHOLD) {
+                // Check execution context to avoid queueable job limits
+                Boolean isInAsyncContext = System.isBatch() || System.isFuture() || System.isQueueable() || System.isScheduled();
+                
+                // For Flow contexts, always use synchronous processing to avoid cascade trigger issues
+                // that can lead to "Too many queueable jobs" errors
+                Boolean shouldUseBatch = request.recordIds.size() > BATCH_THRESHOLD && 
+                                       !isInAsyncContext && 
+                                       !DISABLE_BATCH_FOR_FLOW;
+                
+                // Choose processing method based on record count and execution context
+                if (shouldUseBatch) {
+                    // Use batch processing only if not in async context
                     result = processWithBatch(request.recordIds, request.objectType, fieldsMap);
                 } else {
+                    // Use synchronous processing for small batches or when in async context
                     result = updateRecords(request.recordIds, request.objectType, fieldsMap);
                 }
                 
@@ -118,15 +133,21 @@ public with sharing class ObjectUpdateService {
         result.updatedRecordsCount = 0;
         
         try {
-            // Creating list of records to update
-            List<SObject> recordsToUpdate = new List<SObject>();
-            
             // Getting object type
             Schema.SObjectType objectSchema = Schema.getGlobalDescribe().get(objectType);
             if (objectSchema == null) {
                 result.message = 'Unknown object type: ' + objectType;
                 return result;
             }
+            
+            // For large datasets, process in chunks to avoid governor limits
+            // This is especially important in Flow context to prevent cascade trigger issues
+            if (recordIds.size() > MAX_SYNC_RECORDS) {
+                return processLargeDatasetInChunks(recordIds, objectType, fieldsMap, objectSchema);
+            }
+            
+            // Creating list of records to update
+            List<SObject> recordsToUpdate = new List<SObject>();
             
             // Creating records for update
             for (String recordId : recordIds) {
@@ -166,6 +187,84 @@ public with sharing class ObjectUpdateService {
             result.errorDetails = 'DML Error: ' + e.getDmlMessage(0);
         } catch (Exception e) {
             result.message = 'General error: ' + e.getMessage();
+            result.errorDetails = e.getStackTraceString();
+        }
+        
+        return result;
+    }
+    
+    /**
+     * @description Process large dataset in chunks to avoid governor limits
+     * @param recordIds List of record IDs
+     * @param objectType Object type
+     * @param fieldsMap Map with fields and values
+     * @param objectSchema Object schema
+     * @return Update result
+     */
+    private static UpdateResult processLargeDatasetInChunks(List<String> recordIds, String objectType, 
+                                                          Map<String, Object> fieldsMap, Schema.SObjectType objectSchema) {
+        UpdateResult result = new UpdateResult();
+        result.success = true;
+        result.updatedRecordsCount = 0;
+        result.message = 'Processing large dataset in chunks';
+        
+        try {
+            Integer chunkSize = 200; // Process 200 records at a time
+            Integer totalRecords = recordIds.size();
+            Integer processedRecords = 0;
+            Integer errorCount = 0;
+            
+            for (Integer i = 0; i < totalRecords; i += chunkSize) {
+                Integer endIndex = Math.min(i + chunkSize, totalRecords);
+                List<String> chunk = new List<String>();
+                for (Integer j = i; j < endIndex; j++) {
+                    chunk.add(recordIds[j]);
+                }
+                
+                // Process this chunk
+                List<SObject> recordsToUpdate = new List<SObject>();
+                
+                for (String recordId : chunk) {
+                    SObject record = objectSchema.newSObject(recordId);
+                    
+                    // Setting fields
+                    for (String fieldName : fieldsMap.keySet()) {
+                        try {
+                            Schema.SObjectField field = objectSchema.getDescribe().fields.getMap().get(fieldName);
+                            if (field != null) {
+                                Object fieldValue = fieldsMap.get(fieldName);
+                                record.put(fieldName, fieldValue);
+                            }
+                        } catch (Exception e) {
+                            System.debug('Error setting field ' + fieldName + ': ' + e.getMessage());
+                        }
+                    }
+                    
+                    recordsToUpdate.add(record);
+                }
+                
+                // Update this chunk
+                if (!recordsToUpdate.isEmpty()) {
+                    try {
+                        update recordsToUpdate;
+                        processedRecords += recordsToUpdate.size();
+                    } catch (DmlException e) {
+                        errorCount += recordsToUpdate.size();
+                        System.debug('DML Error in chunk ' + (i/chunkSize + 1) + ': ' + e.getMessage());
+                    }
+                }
+            }
+            
+            result.updatedRecordsCount = processedRecords;
+            result.message = 'Processed ' + processedRecords + ' records in chunks';
+            if (errorCount > 0) {
+                result.message += ' (' + errorCount + ' records failed)';
+                result.errorDetails = 'Some records failed to update due to DML errors';
+            }
+            
+        } catch (Exception e) {
+            result.success = false;
+            result.message = 'Error processing large dataset: ' + e.getMessage();
             result.errorDetails = e.getStackTraceString();
         }
         

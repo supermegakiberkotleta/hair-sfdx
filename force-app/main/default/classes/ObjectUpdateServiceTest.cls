@@ -388,4 +388,119 @@ private class ObjectUpdateServiceTest {
         System.assertEquals(false, result.success, 'Operation should fail');
         System.assert(result.message.contains('Unknown object type'), 'Message should indicate unknown object type');
     }
+    
+    /**
+     * @description Test processing in async context (simulating scheduled flow)
+     */
+    @isTest
+    static void testProcessingInAsyncContext() {
+        // Create test Lead records (more than 50 to normally trigger batch processing)
+        List<Lead> testLeads = new List<Lead>();
+        for (Integer i = 0; i < 60; i++) {
+            testLeads.add(new Lead(
+                FirstName = 'Test',
+                LastName = 'Lead ' + i,
+                Company = 'Test Company ' + i,
+                Status = 'New'
+            ));
+        }
+        insert testLeads;
+        
+        // Preparing request
+        ObjectUpdateService.UpdateRequest request = new ObjectUpdateService.UpdateRequest();
+        request.objectType = 'Lead';
+        request.recordIds = new List<String>();
+        for (Lead lead : testLeads) {
+            request.recordIds.add(lead.Id);
+        }
+        request.fieldsJson = '{"Status": "Closed Lost", "Reason_for_closure__c": "Not interested"}';
+        
+        // Simulate async context by using a queueable job
+        Test.startTest();
+        System.enqueueJob(new TestQueueableJob(request));
+        Test.stopTest();
+        
+        // Verify that records were updated synchronously (not via batch)
+        List<Lead> updatedLeads = [SELECT Id, Status, Reason_for_closure__c FROM Lead WHERE Id IN :testLeads];
+        for (Lead lead : updatedLeads) {
+            System.assertEquals('Closed Lost', lead.Status, 'Status should be updated synchronously');
+            System.assertEquals('Not interested', lead.Reason_for_closure__c, 'Reason_for_closure__c should be updated');
+        }
+    }
+    
+    /**
+     * @description Test chunked processing for large datasets in async context
+     */
+    @isTest
+    static void testChunkedProcessingForLargeDataset() {
+        // Create test Lead records (more than 200 to trigger chunked processing)
+        List<Lead> testLeads = new List<Lead>();
+        for (Integer i = 0; i < 250; i++) {
+            testLeads.add(new Lead(
+                FirstName = 'Test',
+                LastName = 'Lead ' + i,
+                Company = 'Test Company ' + i,
+                Status = 'New'
+            ));
+        }
+        insert testLeads;
+        
+        // Preparing request
+        ObjectUpdateService.UpdateRequest request = new ObjectUpdateService.UpdateRequest();
+        request.objectType = 'Lead';
+        request.recordIds = new List<String>();
+        for (Lead lead : testLeads) {
+            request.recordIds.add(lead.Id);
+        }
+        request.fieldsJson = '{"Status": "Closed Lost", "Reason_for_closure__c": "Not interested"}';
+        
+        // Simulate async context by using a queueable job
+        Test.startTest();
+        System.enqueueJob(new TestQueueableJob(request));
+        Test.stopTest();
+        
+        // Verify that records were updated in chunks
+        List<Lead> updatedLeads = [SELECT Id, Status, Reason_for_closure__c FROM Lead WHERE Id IN :testLeads];
+        System.assertEquals(250, updatedLeads.size(), 'All 250 records should be processed');
+        for (Lead lead : updatedLeads) {
+            System.assertEquals('Closed Lost', lead.Status, 'Status should be updated');
+            System.assertEquals('Not interested', lead.Reason_for_closure__c, 'Reason_for_closure__c should be updated');
+        }
+    }
+    
+    /**
+     * @description Test context detection methods
+     */
+    @isTest
+    static void testContextDetection() {
+        // Test in normal context
+        System.assertEquals(false, System.isBatch(), 'Should not be in batch context');
+        System.assertEquals(false, System.isFuture(), 'Should not be in future context');
+        System.assertEquals(false, System.isQueueable(), 'Should not be in queueable context');
+        System.assertEquals(false, System.isScheduled(), 'Should not be in scheduled context');
+        
+        // Test in queueable context
+        Test.startTest();
+        System.enqueueJob(new TestQueueableJob(null));
+        Test.stopTest();
+    }
+    
+    /**
+     * @description Helper queueable job for testing async context
+     */
+    private class TestQueueableJob implements Queueable {
+        private ObjectUpdateService.UpdateRequest request;
+        
+        public TestQueueableJob(ObjectUpdateService.UpdateRequest request) {
+            this.request = request;
+        }
+        
+        public void execute(QueueableContext context) {
+            if (request != null) {
+                List<ObjectUpdateService.UpdateResult> results = ObjectUpdateService.updateObjects(new List<ObjectUpdateService.UpdateRequest>{request});
+                System.assertEquals(1, results.size(), 'Should be one result');
+                System.assertEquals(true, results[0].success, 'Operation should be successful in async context');
+            }
+        }
+    }
 }
