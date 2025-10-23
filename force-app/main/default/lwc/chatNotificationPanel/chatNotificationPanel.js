@@ -28,19 +28,22 @@ export default class ChatNotificationPanel extends LightningElement {
             .then((name) => {
                 this.showMessage(evt, name);
             })
-            .catch(() => {
-                this.showMessage(evt, 'Неизвестный объект');
+            .catch((error) => {
+                // Если запись не найдена (удалена), показываем сообщение без ссылки
+                console.warn('Record not found for notification:', evt.RecordId__c, error);
+                this.showMessage(evt, 'Запись не найдена (возможно удалена)', true);
             });
     }
 
-    showMessage(evt, recordName) {
+    showMessage(evt, recordName, isDeleted = false) {
         const msg = {
             id: Date.now(),
             text: evt.Message__c,
-            link: '/' + evt.RecordId__c,
+            link: isDeleted ? null : '/' + evt.RecordId__c, // Не создаем ссылку для удаленных записей
             name: evt.Sender__c,
             recordName: recordName,
-            channel: evt.Channel__c
+            channel: evt.Channel__c,
+            isDeleted: isDeleted
         };
 
         this.messages.unshift(msg);

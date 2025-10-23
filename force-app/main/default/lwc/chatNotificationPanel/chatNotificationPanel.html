@@ -7,7 +7,12 @@
                     <span class="notification-channel">({msg.channel})</span>
                 </div>
                 <div class="notification-body">{msg.text}</div>
-                <a href={msg.link} target="_blank" class="notification-link">Go to record</a>
+                <template if:true={msg.link}>
+                    <a href={msg.link} target="_blank" class="notification-link">Go to record</a>
+                </template>
+                <template if:true={msg.isDeleted}>
+                    <span class="notification-deleted">Record deleted</span>
+                </template>
             </div>
         </template>
         <audio id="notificationSound" src={soundUrl}></audio>
